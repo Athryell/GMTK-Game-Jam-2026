@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Countdown Cookie</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: #14161c;
+    color: #eee;
+    font-family: system-ui, sans-serif;
+  }
+
+  #hud {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  #phase-label { font-weight: 600; }
+  #timer-bar, #light-bar {
+    height: 10px;
+    background: #2a2d36;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  #timer-fill { height: 100%; background: #e74c3c; width: 100%; }
+  #light-fill { height: 100%; background: #f1c40f; width: 100%; }
+
+  #house {
+    display: grid;
+    grid-template-columns: 60px 260px 60px;
+    grid-template-rows: 60px 260px 60px;
+    gap: 6px;
+  }
+  .door {
+    border-radius: 6px;
+    background: transparent;
+  }
+  .door.wall { background: transparent; }
+  .door.open { border: 2px solid rgba(255, 255, 255, 0.4); }
+  #door-up { grid-column: 2; grid-row: 1; }
+  #door-down { grid-column: 2; grid-row: 3; }
+  #door-left { grid-column: 1; grid-row: 2; }
+  #door-right { grid-column: 3; grid-row: 2; }
+
+  #room {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  #room-label {
+    margin-top: 10px;
+    padding: 3px 10px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 999px;
+  }
+  #kid, #cookie { position: absolute; border-radius: 50%; }
+  #kid {
+    width: 40px;
+    height: 40px;
+    background: #ffd23f;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #cookie {
+    width: 18px;
+    height: 18px;
+    background: #e8792a;
+    top: 50%;
+    left: 50%;
+    transform: translate(-2px, -22px);
+  }
+
+  #controls-hint {
+    font-size: 12px;
+    color: #888;
+  }
+
+  #restart-hud {
+    font-size: 12px;
+    background: none;
+    border: 1px solid #444;
+    color: #ccc;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  #message[hidden] { display: none; }
+  #message {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  #message-text { font-size: 20px; max-width: 400px; text-align: center; }
+  #restart {
+    font-size: 16px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #ffd23f;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="hud">
+    <div id="hud-top">
+      <span id="phase-label"></span>
+      <button id="restart-hud" type="button">Restart</button>
+    </div>
+    <div id="timer-bar"><div id="timer-fill"></div></div>
+    <span id="timer-text"></span>
+    <div id="light-bar"><div id="light-fill"></div></div>
+  </div>
+
+  <div id="house">
+    <div class="door" id="door-up"></div>
+    <div class="door" id="door-left"></div>
+    <div id="room">
+      <div id="room-label"></div>
+      <div id="kid"></div>
+      <div id="cookie" hidden></div>
+    </div>
+    <div class="door" id="door-right"></div>
+    <div class="door" id="door-down"></div>
+  </div>
+
+  <div id="controls-hint">Arrow keys / WASD, or click a door</div>
+
+  <div id="message" hidden>
+    <p id="message-text"></p>
+    <button id="restart" type="button">Try again</button>
+  </div>
+
+  <script type="module" src="src/game.mjs"></script>
+</body>
+</html>
