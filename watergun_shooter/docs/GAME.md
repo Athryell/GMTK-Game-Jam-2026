@@ -1,5 +1,16 @@
 # Watergun shooter
 
+## Playing the game
+This game exists in two forms:
+- a standalone HTML/JS port (`index.html`, `src/`) — open `index.html`
+  in a browser, no build or server needed; see the repo `README.md`
+  for development/test commands.
+- the original Godot 4.7 project, kept for reference under `old/`
+  (`old/project.godot`, `old/autoloads/`, `old/scenes/`)
+
+Both implement the same design described below; the Godot project is
+the original prototype and the web version is a 1:1 gameplay port of it.
+
 ## Concept
 You're in the desert, you have a water gun, a water shotgun, and some zombies
 are trying to kill you. You move around and shoot with the weapons in order to 

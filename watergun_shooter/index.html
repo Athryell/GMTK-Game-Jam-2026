@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Watergun Shooter</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #1a1410;
+  }
+  * { box-sizing: border-box; }
+
+  #game {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: crosshair;
+  }
+
+  #score {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font: 600 20px system-ui, sans-serif;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+
+  #hud {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    width: 230px;
+    background: rgba(20, 16, 12, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font: 13px system-ui, sans-serif;
+    color: #eee;
+  }
+  .stat, .meter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stat-label {
+    width: 56px;
+    flex-shrink: 0;
+  }
+  .stat-value {
+    width: 28px;
+    text-align: right;
+  }
+  .bar {
+    flex: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #60b361;
+  }
+  .bar-fill.move { background: #4ca3ff; }
+  .bar-fill.gun { background: #ff9e42; }
+  .bar-fill.shotgun { background: #c77dff; }
+  .refill-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 5px 8px;
+    background: #3a3126;
+    color: #eee;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .refill-btn:disabled { opacity: 0.4; cursor: default; }
+  .refill-btn:not(:disabled):hover { background: #4a4030; }
+
+  #controls-hint {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font: 12px system-ui, sans-serif;
+    text-align: right;
+  }
+
+  #game-over[hidden] { display: none; }
+  #game-over {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+  }
+  #game-over p:first-child { font-size: 32px; font-weight: 700; margin: 0; }
+  #final-score { margin: 0; font-size: 18px; }
+  #restart {
+    font-size: 16px;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    background: #ffd23f;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="score">Score: 0</div>
+
+  <div id="hud">
+    <div class="stat">
+      <span class="stat-label">Energy</span>
+      <div class="bar"><div class="bar-fill" id="energy-fill"></div></div>
+      <span class="stat-value" id="energy-value">0</span>
+    </div>
+    <div class="meter-row">
+      <span class="stat-label">Move</span>
+      <div class="bar"><div class="bar-fill move" id="move-fill"></div></div>
+      <button id="btn-move" class="refill-btn" type="button">Refill</button>
+    </div>
+    <div class="meter-row">
+      <span class="stat-label">Gun</span>
+      <div class="bar"><div class="bar-fill gun" id="gun-fill"></div></div>
+      <button id="btn-gun" class="refill-btn" type="button">Refill</button>
+    </div>
+    <div class="meter-row">
+      <span class="stat-label">Shotgun</span>
+      <div class="bar"><div class="bar-fill shotgun" id="shotgun-fill"></div></div>
+      <button id="btn-shotgun" class="refill-btn" type="button">Refill</button>
+    </div>
+  </div>
+
+  <div id="controls-hint">
+    WASD move &middot; aim with mouse<br />
+    Left click: water gun &middot; Right click: shotgun
+  </div>
+
+  <div id="game-over" hidden>
+    <p>Game Over</p>
+    <p id="final-score">Score: 0</p>
+    <button id="restart" type="button">Try again</button>
+  </div>
+
+  <script src="dist/game.bundle.js"></script>
+</body>
+</html>
