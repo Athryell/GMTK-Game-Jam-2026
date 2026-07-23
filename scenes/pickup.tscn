@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://c4dpfpcgjjasp"]
+
+[ext_resource type="Script" uid="uid://c3f8ifmway2dh" path="res://scenes/pickup.gd" id="1_pg2rt"]
+
+[sub_resource type="Gradient" id="Gradient_8tegq"]
+offsets = PackedFloat32Array(0.196, 0.244, 0.316, 1)
+colors = PackedColorArray(0.7944009, 0, 0.38023296, 1, 0.6957702, 0.05206415, 0, 1, 0.10980392, 0.10980392, 0.10980392, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_pu7wf"]
+gradient = SubResource("Gradient_8tegq")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2oi6r"]
+radius = 5.0
+
+[node name="Pickup" type="Area2D" unique_id=1661232095]
+script = ExtResource("1_pg2rt")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=363260044]
+scale = Vector2(0.34375, 0.34375)
+texture = SubResource("GradientTexture2D_pu7wf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=888046224]
+shape = SubResource("CircleShape2D_2oi6r")

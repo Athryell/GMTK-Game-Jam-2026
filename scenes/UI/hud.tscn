@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://bk23odlun6hlo"]
+
+[ext_resource type="Script" uid="uid://baa3k58eaut2o" path="res://scenes/UI/hud.gd" id="1_c4vmg"]
+[ext_resource type="Script" uid="uid://b1gow3m5jtqlq" path="res://scenes/UI/refill_button.gd" id="2_rd3kb"]
+
+[node name="HUD" type="CanvasLayer" unique_id=1889764087 node_paths=PackedStringArray("move_bar", "shoot_primary_bar", "shoot_secondary_bar", "energy_bar", "score_label", "energy_label", "alloc_move_btn", "alloc_shoot_primary_btn", "alloc_shoot_secondary_btn")]
+script = ExtResource("1_c4vmg")
+move_bar = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer/HBoxContainer/MoveBar")
+shoot_primary_bar = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer2/HBoxContainer/ShootPrimaryBar")
+shoot_secondary_bar = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer3/HBoxContainer/ShootSecondaryBar")
+energy_bar = NodePath("Panel/VBoxContainer/EnergyBar")
+score_label = NodePath("ScoreLabel")
+energy_label = NodePath("Panel/VBoxContainer/EnergyLabel")
+alloc_move_btn = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer/HBoxContainer/AllocMoveBtn")
+alloc_shoot_primary_btn = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer2/HBoxContainer/AllocShootPrimaryBtn")
+alloc_shoot_secondary_btn = NodePath("Panel/VBoxContainer/VBoxContainer/VBoxContainer3/HBoxContainer/AllocShootSecondaryBtn")
+
+[node name="ScoreLabel" type="Label" parent="." unique_id=881911087]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.5
+offset_right = 90.5
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Score: 0"
+
+[node name="Panel" type="Panel" parent="." unique_id=1186458882]
+custom_minimum_size = Vector2(160, 0)
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1765785971]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 73.0
+grow_vertical = 2
+
+[node name="EnergyLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1360878075]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Energy"
+
+[node name="EnergyBar" type="ProgressBar" parent="Panel/VBoxContainer" unique_id=110128058]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=848862743]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer/VBoxContainer" unique_id=1255451473]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MoveLabel" type="Label" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer" unique_id=516362061]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Move"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer" unique_id=402408644]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MoveBar" type="ProgressBar" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1692293955]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_vertical = 3
+fill_mode = 3
+
+[node name="AllocMoveBtn" type="Button" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=273614613]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Refill
+Movement"
+script = ExtResource("2_rd3kb")
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/VBoxContainer/VBoxContainer" unique_id=1198499458]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShootPrimaryLabel" type="Label" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer2" unique_id=1531990171]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Gun"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer2" unique_id=679660674]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ShootPrimaryBar" type="ProgressBar" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer2/HBoxContainer" unique_id=2129640129]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_vertical = 3
+fill_mode = 3
+
+[node name="AllocShootPrimaryBtn" type="Button" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer2/HBoxContainer" unique_id=409936484]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Refill
+Gun"
+script = ExtResource("2_rd3kb")
+meter_name = "shoot_primary"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="Panel/VBoxContainer/VBoxContainer" unique_id=1604685451]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShootSecondaryLabel" type="Label" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer3" unique_id=893104190]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Shotgun"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer3" unique_id=1949772822]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ShootSecondaryBar" type="ProgressBar" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer3/HBoxContainer" unique_id=248733600]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_vertical = 3
+fill_mode = 3
+
+[node name="AllocShootSecondaryBtn" type="Button" parent="Panel/VBoxContainer/VBoxContainer/VBoxContainer3/HBoxContainer" unique_id=667617249]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Refill
+Shotgun"
+script = ExtResource("2_rd3kb")
+meter_name = "shoot_secondary"

@@ -1,0 +1,141 @@
+[gd_scene format=3 uid="uid://bjliaxlt30lvm"]
+
+[ext_resource type="Script" uid="uid://cw2p88rhj6d0m" path="res://scenes/player.gd" id="1_3vyb7"]
+[ext_resource type="PackedScene" uid="uid://c4dpfpcgjjasp" path="res://scenes/pickup.tscn" id="2_g2els"]
+
+[sub_resource type="Gradient" id="Gradient_g2els"]
+offsets = PackedFloat32Array(0, 0.072)
+colors = PackedColorArray(0, 0.5294118, 1, 1, 0.24705882, 0.72156864, 0.8980392, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_hrbfe"]
+gradient = SubResource("Gradient_g2els")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="Curve" id="Curve_p0j8v"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.86013985, 0.3804348), -1.7972146, -1.7972146, 0, 0, Vector2(1, 0.007246375), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_r5twl"]
+curve = SubResource("Curve_p0j8v")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2oi6r"]
+particle_flag_disable_z = true
+gravity = Vector3(0, 0, 0)
+alpha_curve = SubResource("CurveTexture_r5twl")
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2oi6r"]
+radius = 20.0
+height = 54.0
+
+[sub_resource type="Gradient" id="Gradient_qhqgy"]
+offsets = PackedFloat32Array(0.039387308, 0.07002188)
+colors = PackedColorArray(1, 0.84313726, 0, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_g2els"]
+gradient = SubResource("Gradient_qhqgy")
+fill = 1
+fill_from = Vector2(0.5185185, 0.5270655)
+fill_to = Vector2(0.9059829, 0.122507125)
+
+[sub_resource type="Curve" id="Curve_qhqgy"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.6293706, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_dqkch"]
+curve = SubResource("Curve_qhqgy")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_g2els"]
+particle_flag_disable_z = true
+initial_velocity_min = 100.61
+initial_velocity_max = 271.04
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_dqkch")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2oi6r"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ocbqj"]
+
+[sub_resource type="Gradient" id="Gradient_u8vuu"]
+offsets = PackedFloat32Array(0.336, 0.632, 0.708, 1)
+colors = PackedColorArray(0.107795216, 0.34480062, 1, 1, 0.18588656, 0.14426878, 1, 1, 0.10980392, 0.10980392, 0.10980392, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_p0j8v"]
+gradient = SubResource("Gradient_u8vuu")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="Curve" id="Curve_g2els"]
+_data = [Vector2(0, 1), 0.0, -1.5543474, 0, 0, Vector2(0.71794873, 0), -0.53926384, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_qhqgy"]
+curve = SubResource("Curve_g2els")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_hrbfe"]
+particle_flag_disable_z = true
+spread = 0.0
+initial_velocity_min = 761.81
+initial_velocity_max = 761.81
+gravity = Vector3(0, 0, 0)
+alpha_curve = SubResource("CurveTexture_qhqgy")
+
+[node name="Player" type="CharacterBody2D" unique_id=586798649 node_paths=PackedStringArray("shotgun_area", "bullet_particles", "shotgun_particles")]
+script = ExtResource("1_3vyb7")
+aim_max_length = 20.0
+pickup_scene = ExtResource("2_g2els")
+shotgun_area = NodePath("ShotgunArea")
+bullet_particles = NodePath("BulletParticles")
+shotgun_particles = NodePath("ShotgunArea/GPUParticles2D")
+
+[node name="DropTrailParticles" type="GPUParticles2D" parent="." unique_id=1309766019]
+amount = 4
+texture = SubResource("GradientTexture2D_hrbfe")
+lifetime = 3.0
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_2oi6r")
+
+[node name="ShotgunArea" type="Area2D" parent="." unique_id=1761356689]
+collision_layer = 0
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShotgunArea" unique_id=503196030]
+position = Vector2(26, 0)
+shape = SubResource("CapsuleShape2D_2oi6r")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="ShotgunArea" unique_id=1442870976]
+emitting = false
+amount = 100
+texture = SubResource("GradientTexture2D_g2els")
+lifetime = 0.5
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_g2els")
+
+[node name="HurtArea" type="Area2D" parent="." unique_id=294606418]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtArea" unique_id=1394942047]
+shape = SubResource("CircleShape2D_2oi6r")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1577856444]
+shape = SubResource("CircleShape2D_ocbqj")
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D" unique_id=1331767998]
+scale = Vector2(0.34375, 0.34375)
+texture = SubResource("GradientTexture2D_p0j8v")
+
+[node name="AimLine" type="Line2D" parent="." unique_id=904151705]
+points = PackedVector2Array(0, 0, 20, 2)
+width = 2.0
+default_color = Color(0.8, 0.43137255, 0.7137255, 0.6509804)
+
+[node name="BulletParticles" type="GPUParticles2D" parent="." unique_id=1569503616]
+emitting = false
+amount = 1
+texture = SubResource("GradientTexture2D_g2els")
+lifetime = 0.15000000000000002
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_hrbfe")
