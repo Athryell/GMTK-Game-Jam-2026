@@ -22,3 +22,9 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# stuff 
+.serena/
+.claude/
+.DS_Store
+.DS_store
