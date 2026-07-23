@@ -116,20 +116,23 @@ recall and invert it under time pressure.
 
 ## MVP implementation (current state)
 
-Tech stack: plain HTML/CSS + vanilla JS (ES modules), no build step,
-no engine. Chosen for zero setup and instant playability given no
+Tech stack: plain HTML/CSS + vanilla JS (ES modules), no engine.
+Chosen for zero setup and instant playability given no
 platform/engine had been picked yet. Files:
 
-- `index.html` — page shell, layout, styling.
+- `index.html` — page shell, layout, styling; loads `dist/game.bundle.js`.
 - `src/house.mjs` — pure house-generation logic (no DOM).
 - `src/game.mjs` — game loop, input, rendering, DOM wiring.
 - `tests/house.test.mjs` — generates 500 houses and asserts the
   invariants below (run with `node tests/house.test.mjs`).
+- `scripts/build.mjs` — concatenates `src/*.mjs` into
+  `dist/game.bundle.js`, a classic (non-module) script, since
+  browsers block ES module imports from the local filesystem but
+  allow classic `<script src="...">` from `file://`.
 
-Run locally with a static server from the project root, e.g.
-`python3 -m http.server 8000` then open `http://localhost:8000`.
-Opening `index.html` directly via `file://` will not work — browsers
-block ES module imports from the local filesystem.
+Open `index.html` directly (`file://`) to play — no server needed.
+After editing anything in `src/`, rebuild with `node scripts/build.mjs`
+so `dist/game.bundle.js` picks up the change.
 
 ### Room types, colors, counts
 
