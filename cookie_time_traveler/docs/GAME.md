@@ -63,10 +63,9 @@ Backward phase: you fail by missing the clock or failing the sequence
 Completing forward+backward successfully in time.
 
 # Game progress design
-Infinite game: from level 0 to INF, each level being randomly generated.
-(Seed is always the same so each level design is the same for every 
-game).
-The higher the level, the higher the difficulty of the map.
+Infinite game: from level 0 to INF (or to 100+), each level being randomly generated.
+(Seed is always the same so each level design is the same for every run game).
+The higher the level, the higher the difficulty.
 
 ## Difficulty increase
 Ideas:
