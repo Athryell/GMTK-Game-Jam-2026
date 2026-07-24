@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hourglass Hero</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <h1>⏳ Hourglass Hero</h1>
+    <canvas id="game"></canvas>
+    <p class="hint">
+      <b>← →</b> / <b>A D</b> pour bouger &nbsp;·&nbsp; <b>Espace</b> / <b>↑</b> pour sauter &nbsp;·&nbsp; <b>R</b> pour recommencer
+    </p>
+    <p class="hint dim">
+      Tu es un sablier. Chaque saut <b>retourne le sable</b> (plus tu attends, plus tu récupères de temps)
+      <b>et te fait basculer</b> entre le plan avant et le plan arrière — ta position ne change pas, mais les
+      plateformes et les monstres, si. Le pointillé montre où tu atterriras après le prochain saut.
+    </p>
+    <p class="hint dim">
+      🟢 <b>Ressort</b> : te propulse <i>sans</i> retourner le sable ni changer de plan.
+      &nbsp;·&nbsp; 🟠 <b>Dalle-bascule</b> : retourne le sable <i>sans</i> sauter — le seul moyen de te
+      recharger en restant dans le même plan.
+    </p>
+
+    <!-- Classic scripts (no modules): works straight from file:// — just open this file. -->
+    <script src="js/config.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
