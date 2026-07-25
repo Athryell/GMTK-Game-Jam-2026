@@ -62,6 +62,12 @@ func down() -> Vector2:
 	return Vector2.DOWN.rotated(lean - tilt)
 
 
+## How far the sand has turned over inside an inversion zone, 0 to 1. Never a
+## rotation: the surface stays square to `down()` throughout.
+func invert() -> float:
+	return Game.flow_blend
+
+
 ## How full each chamber is, 0 to 1, indexed by the slot it is drawn in. The
 ## array's size is the chamber count, so this one value tells the shape both how
 ## many chambers to draw and how much is in each.

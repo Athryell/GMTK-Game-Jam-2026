@@ -3,6 +3,9 @@
 extends Node
 
 const LEVELS_DIR := "res://scenes/levels"
+## Nodes here are asked `contains_player()` once a frame. A group rather than a
+## registry: unloading a level deregisters every zone for free.
+const INVERSION_GROUP := "inversion_zones"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
@@ -46,6 +49,14 @@ var sand: float:
 
 var plane: Planes.Kind = Planes.Kind.P0
 var status: Status = Status.PLAY
+## Which way the sand runs: +1 normally, -1 inside an inversion zone. Cached
+## once a frame because `danger()` is read several times by the HUD, the sprite
+## and the player's light.
+var sand_flow := 1.0
+## How far the drawn sand has turned over, 0 (running down the glass) to 1
+## (running up it). Lags `sand_flow` by `flow_turn_duration`: sand that changes
+## direction between two frames reads as a glitch rather than as a cause.
+var flow_blend := 0.0
 
 ## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
 ## `start_level` runs before it is instantiated.
@@ -73,11 +84,43 @@ func _process(delta: float) -> void:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
 		return
-	# Death is the DRAINING chambers running dry, not the glass: at four chambers
-	# you can die with sand still sealed in a side you never turned towards.
-	drain(delta * Tuning.cfg.sand_drain_rate)
-	if sand <= 0.0:
+	# Both ends of the glass kill, and it is the DRAINING chambers that run out,
+	# not the glass: at four chambers you can die with sand still sealed in a side
+	# you never turned towards. Normally an empty one is death; inside an
+	# inversion zone the sand climbs back into them and a brim-full one — nothing
+	# left below to lift — is death instead. Standing still is never safe.
+	var cfg := Tuning.cfg
+	var flow := poll_sand_flow()
+	advance_flow_blend(delta)
+	drain(delta * flow * (cfg.sand_reverse_rate if flow < 0.0 else cfg.sand_drain_rate))
+	if flow < 0.0:
+		if sand >= capacity():
+			set_status(Status.DEAD)
+	elif sand <= 0.0:
 		set_status(Status.DEAD)
+
+
+## Asks every zone whether it holds the player, caches the answer in
+## `sand_flow` and returns it. Zones never push to `Game`, so the clock keeps a
+## single writer. One containing zone is enough: the flow is a direction, not
+## a total, so overlapping zones do not stack.
+func poll_sand_flow() -> float:
+	sand_flow = 1.0
+	for zone in get_tree().get_nodes_in_group(INVERSION_GROUP):
+		if zone.contains_player():
+			sand_flow = -1.0
+			break
+	return sand_flow
+
+
+## Moves the drawn sand a step towards whichever way the clock is running, and
+## returns how far it has got. Kept apart from `sand_flow` so the death rule
+## switches on the frame you cross the line; only the picture is allowed to lag.
+func advance_flow_blend(delta: float) -> float:
+	var target := 1.0 if sand_flow < 0.0 else 0.0
+	flow_blend = move_toward(flow_blend, target,
+		delta / maxf(Tuning.cfg.flow_turn_duration, 0.001))
+	return flow_blend
 
 
 ## Scans the levels folder; a .tscn dropped in there is picked up on next run.
@@ -134,6 +177,8 @@ func start_level(index: int) -> void:
 	# once the scene exists and can be asked; this is what a level that never
 	# does gets.
 	arm_glass(2, Tuning.cfg.sand_start)
+	sand_flow = 1.0
+	flow_blend = 0.0
 	flip_anim = 0.0
 	pad_flash = 0.0
 	# Cleared so a level granting it cannot leak into the next one.
@@ -202,22 +247,37 @@ func capacity() -> float:
 ## Moves `amount` of sand out of the draining chambers and into whatever sits
 ## below them. Never destroys a grain: what a chamber loses, its targets gain.
 ##
+## A NEGATIVE amount runs the same falls backwards — an inversion zone, where the
+## sand climbs out of the chambers below and back into the one draining. It is
+## the same graph read the other way round, so nothing here needed a second
+## table, and the trickle is drawn from the same `targets` either way.
+##
 ## The rate is the glass's, not a chamber's — two chambers draining at once each
 ## run at half speed, so the clock does not care how the sand is arranged.
 func drain(amount: float) -> void:
+	var down := amount >= 0.0
 	var live: Array[int] = []
 	for i in ChamberLayout.uppers(chamber_count):
-		if chambers[i] > 0.0:
+		# Running down, a chamber is live while it still holds sand; running up,
+		# while it still has room. Either way a dead chamber is one the sand cannot
+		# move through, and the glass's rate is shared among the rest.
+		var free := chambers[i] > 0.0 if down else chambers[i] < capacity()
+		if free:
 			live.append(i)
 	if live.is_empty():
 		return
 	var each := amount / float(live.size())
 	for i in live:
-		var moved := minf(each, chambers[i])
-		chambers[i] -= moved
 		var targets := ChamberLayout.targets(chamber_count, i)
 		if targets.is_empty():
 			continue
+		# Capped at both ends, in whichever direction the sand is going: there has
+		# to be sand to move, and room to put it in.
+		var below := 0.0
+		for t in targets:
+			below += chambers[t]
+		var moved := clampf(each, -minf(below, capacity() - chambers[i]), chambers[i])
+		chambers[i] -= moved
 		var share := moved / float(targets.size())
 		for t in targets:
 			chambers[t] += share
@@ -292,12 +352,16 @@ func pad_flash_ratio() -> float:
 	return clampf(pad_flash / duration, 0.0, 1.0)
 
 
-## How close death is, from 0 (safe) to 1 (about to run out).
+## How close death is, from 0 (safe) to 1 (about to run out), measured against
+## whichever end is currently lethal: an empty glass normally, a full one when
+## inverted.
 func danger() -> float:
-	var warn := Tuning.cfg.sand_warn
-	if warn <= 0.0 or sand > warn:
+	var cfg := Tuning.cfg
+	var warn := cfg.sand_warn
+	var left := cfg.sand_max - sand if sand_flow < 0.0 else sand
+	if warn <= 0.0 or left > warn:
 		return 0.0
-	return clampf(1.0 - sand / warn, 0.0, 1.0)
+	return clampf(1.0 - left / warn, 0.0, 1.0)
 
 
 func kill() -> void:

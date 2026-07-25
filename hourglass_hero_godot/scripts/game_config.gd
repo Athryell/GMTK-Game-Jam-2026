@@ -31,6 +31,12 @@ extends Resource
 @export_range(0.0, 10000.0, 100.0) var sand_warn: float = 2000.0
 ## How fast the sand runs out, in ms per second. 1000 = a real clock.
 @export_range(0.0, 5000.0, 10.0) var sand_drain_rate: float = 1000.0
+## How fast the sand runs the WRONG way inside an inversion zone, in ms per
+## second. Matching `sand_drain_rate` keeps both directions equally deadly.
+@export_range(0.0, 5000.0, 10.0) var sand_reverse_rate: float = 1000.0
+## How long the sand takes to stop and start running the other way, in s. Matches
+## `flip_duration` so a zone reads at the pace the player already knows.
+@export_range(0.05, 2.0, 0.05) var flow_turn_duration: float = 0.5
 ## Floor added to every flip. 0 = pure hourglass.
 @export_range(0.0, 6000.0, 100.0) var sand_flip_base: float = 0.0
 ## Length of the flip animation, in s.

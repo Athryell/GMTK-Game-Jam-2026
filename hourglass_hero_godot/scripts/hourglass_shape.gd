@@ -99,9 +99,11 @@ static func shell(size: Vector2, count: int) -> PackedVector2Array:
 ## chamber is, 0 to 1, indexed by the slot it is drawn in — and its SIZE is the
 ## number of chambers, so one array says both how many and how much. `down` is
 ## gravity in the glass's own frame; pass `Vector2.DOWN` for a glass at rest.
-## `phase` animates the trickle's wobble.
+## `phase` animates the trickle's wobble. `invert` is how far the flow has turned
+## over, 0 (down the glass) to 1 (up it).
 static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
-		sand: Color, down: Vector2, phase: float, line_width := 1.5) -> void:
+		sand: Color, down: Vector2, phase: float, line_width := 1.5,
+		invert := 0.0) -> void:
 	var count := fills.size()
 	if count < 2:
 		# Below two there is nowhere for sand to fall, and `chamber` would turn its
@@ -117,11 +119,16 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 
 	# The sand. Every chamber is the same trapezoid turned, so one area serves
 	# for all of them — the same symmetry that makes a completed turn seamless.
+	#
+	# Turning the flow over never turns the glass over: the surfaces stay square
+	# to `down` throughout, and only the piles climb.
 	var capacity := _area(chamber(size, count, 0))
 	for i in count:
-		_pour(canvas, chamber(size, count, i), down, fills[i] * capacity, sand)
+		var poly := chamber(size, count, i)
+		if fills[i] > 0.001:
+			fill(canvas, pile(poly, down, fills[i] * capacity, invert), sand)
 
-	_trickle(canvas, size, count, fills, sand, down, phase, line_width)
+	_trickle(canvas, size, count, fills, sand, down, phase, line_width, invert)
 
 	# Frame: the outline, then a plate capping each chamber.
 	_outline(canvas, ring, line_width)
@@ -140,9 +147,14 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 ## The fall dries up as the glass tips, spent by the angle of a chamber's own
 ## wall — which is exactly the tilt at which falling sand would start missing the
 ## chamber below, so a trickle can never be drawn outside the glass.
+##
+## `invert` runs the same falls backwards. The thread occupies the same segment
+## either way, so all that turns over is which end has to hold sand for there to
+## be anything to draw — plus the wobble, which stops: a column still shimmying
+## reads as still running.
 static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 		fills: PackedFloat32Array, sand: Color, down: Vector2, phase: float,
-		line_width: float) -> void:
+		line_width: float, invert: float) -> void:
 	var span := _span(size, count)
 	var throat := span.x * THROAT_RATIO
 	# Measured off the polygon that actually gets drawn, not rebuilt from the
@@ -154,11 +166,14 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
 	if pouring <= 0.01:
 		return
+	var climbing := invert >= 0.5
 	for i in count:
-		if fills[i] <= 0.01:
+		if fills[i] <= 0.01 and not climbing:
 			continue
 		var below := -ChamberLayout.axis(count, i)
 		for j in ChamberLayout.targets(count, i):
+			if climbing and fills[j] <= 0.01:
+				continue
 			# One thread per (draining chamber -> target) pair, and it is aimed by
 			# turning gravity through the angle from straight-below-the-draining-
 			# chamber to where the target actually sits.
@@ -180,17 +195,44 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 			# beginning at the origin leaves the height of the throat as a gap of
 			# bare glass, and the fall reads as cut in two right where it should be
 			# one thing.
-			var head := sideways * sin(phase) * 0.6 - dir * throat
+			var head := sideways * sin(phase) * 0.6 * absf(1.0 - 2.0 * invert) - dir * throat
 			canvas.draw_line(head, head + dir * (span.x * STREAM_REACH + throat),
 				Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 
-## Sand resting in one bulb, covering `target` area, surface square to `down`.
-static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
-		target: float, colour: Color) -> void:
-	if target <= 0.001:
-		return
-	fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
+## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips,
+## spent at the bulb wall's own angle so it is never drawn outside the glass.
+static func trickle_rate(size: Vector2, flow: Vector2) -> float:
+	var wall := cos(atan2(size.x * (1.0 - NECK_RATIO), size.y * (1.0 - THROAT_RATIO)))
+	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0)
+
+
+## How far a pile reaches along `down` (`far`) or against it, in that axis alone.
+## `fallback` answers for an empty pile, which has no face to measure.
+static func _reach(poly: PackedVector2Array, down: Vector2, far: bool,
+		fallback: float) -> float:
+	if poly.size() < 3:
+		return fallback
+	var best := -INF if far else INF
+	for v in poly:
+		var d := v.dot(down)
+		best = maxf(best, d) if far else minf(best, d)
+	return best
+
+
+## The sand lying in one bulb: `target` area of it, both surfaces square to
+## `down`. `lift` walks it from the floor of the bulb (0) to its ceiling (1), in
+## one slab: split it in two and a band of bare glass opens across the middle.
+static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
+		lift := 0.0) -> PackedVector2Array:
+	var bottom := INF
+	for v in bulb:
+		bottom = minf(bottom, v.dot(down))
+	var piece := _clip(bulb, down,
+		lerpf(_level(bulb, down, target), bottom, clampf(lift, 0.0, 1.0)))
+	# Trim back to `target`; at rest `piece` already holds exactly that.
+	var up := -down
+	return _clip(piece, up, _level(piece, up, target))
 
 
 ## How far along `down` to cut so exactly `target` area lies below, by bisection.
