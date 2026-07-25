@@ -109,63 +109,73 @@ static func shell(size: Vector2, count: int) -> PackedVector2Array:
 	return out
 
 
-## `size` is the full width and height of the glass. `chambers` is how full each
-## bulb is, 0 to 1: `x` the one at local -y, `y` the one at local +y. `down` is
-## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.
+## `size` is the full width and height of the glass. `fills` is how full each
+## chamber is, 0 to 1, indexed by the slot it is drawn in — and its SIZE is the
+## number of chambers, so one array says both how many and how much. `down` is
+## gravity in the glass's own frame; pass `Vector2.DOWN` for a glass at rest.
 ## `phase` animates the trickle's wobble.
-static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, sand: Color,
-		down: Vector2, phase: float, line_width := 1.5) -> void:
-	var hw := size.x / 2.0
-	var hh := size.y / 2.0
-	var nw := hw * NECK_RATIO
-	var nh := hh * THROAT_RATIO
+static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
+		sand: Color, down: Vector2, phase: float, line_width := 1.5) -> void:
+	var count := fills.size()
+	if count < 2:
+		return
 
-	# The glass itself: one ring, both bulbs joined through the throat. Drawing
-	# it in a single piece is what puts walls on the neck.
-	var shell := PackedVector2Array([
-		Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(nw, -nh), Vector2(nw, nh),
-		Vector2(hw, hh), Vector2(-hw, hh), Vector2(-nw, nh), Vector2(-nw, -nh),
-	])
-	canvas.draw_colored_polygon(shell, Color(Palette.GLASS, 0.10))
+	# The glass itself, in one piece.
+	var ring := shell(size, count)
+	canvas.draw_colored_polygon(ring, Color(Palette.GLASS, 0.10))
 
-	# The two bulbs the sand sits in, without the throat. Convex on purpose:
-	# cutting a convex polygon with a half-plane always leaves exactly one convex
-	# piece, which is the assumption `_level` and `_chord` are built on.
-	var upper := PackedVector2Array([
-		Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(nw, -nh), Vector2(-nw, -nh),
-	])
-	var lower := PackedVector2Array([
-		Vector2(-nw, nh), Vector2(nw, nh), Vector2(hw, hh), Vector2(-hw, hh),
-	])
-	# The bulbs are each other turned half a turn, so one area serves for both —
-	# and that same symmetry is why a completed flip is seamless.
-	var bulb_area := _area(upper)
+	# The sand. Every chamber is the same trapezoid turned, so one area serves
+	# for all of them — and that same symmetry is why a completed turn is
+	# seamless.
+	var capacity := _area(chamber(size, count, 0))
+	for i in count:
+		_pour(canvas, chamber(size, count, i), down, fills[i] * capacity, sand)
 
-	_pour(canvas, upper, down, chambers.x * bulb_area, sand)
-	_pour(canvas, lower, down, chambers.y * bulb_area, sand)
+	_trickle(canvas, size, count, fills, sand, down, phase, line_width)
 
-	# The trickle, falling straight down whatever the glass is doing, and drying
-	# up as the glass tips — tilt a real hourglass and the neck stops feeding.
-	# It is spent by the angle of the bulb's own wall, which is exactly the tilt
-	# at which falling sand would start missing the bulb: the trickle can never
-	# be drawn outside the glass.
-	var wall := cos(atan2(hw - nw, hh - nh))
+	# Frame: the outline, then a plate capping each chamber.
+	_outline(canvas, ring, line_width)
+	for i in count:
+		var poly := chamber(size, count, i)
+		var overhang := (poly[1] - poly[0]).normalized() * (line_width * 1.35)
+		canvas.draw_line(poly[0] - overhang, poly[1] + overhang, Palette.GLASS,
+			line_width * 1.35, true)
+
+
+## The sand in the air: one thread from each draining chamber to each chamber it
+## pours into. At two chambers that is the single fall down the middle; at three
+## it is the pair that splits half and half, and nothing here had to be told the
+## difference.
+##
+## The fall dries up as the glass tips, spent by the angle of a chamber's own
+## wall — which is exactly the tilt at which falling sand would start missing the
+## chamber below, so a trickle can never be drawn outside the glass.
+static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
+		fills: PackedFloat32Array, sand: Color, down: Vector2, phase: float,
+		line_width: float) -> void:
+	var span := _span(size, count)
+	var wall := cos(atan2(span.y - span.y * NECK_RATIO, span.x - span.x * THROAT_RATIO))
 	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
-	if chambers.x > 0.01 and pouring > 0.01:
-		var sideways := Vector2(-down.y, down.x)
-		# Starts at the UNDERSIDE of the upper bulb, not at the centre of the glass.
-		# The bulb's sand stops at the top of the throat, so a trickle beginning at
-		# the origin leaves the height of the throat as a gap of bare glass — the
-		# sand reads as cut in two right where it should be one continuous fall.
-		var head := sideways * sin(phase) * 0.6 - down * nh
-		canvas.draw_line(head, head + down * (hh * STREAM_REACH + nh),
+	if pouring <= 0.01:
+		return
+	var sideways := Vector2(-down.y, down.x)
+	var throat := span.x * THROAT_RATIO
+	for i in count:
+		if fills[i] <= 0.01 or ChamberLayout.targets(count, i).is_empty():
+			continue
+		# One thread per DRAINING chamber, not per target. Falling sand follows
+		# gravity and nothing else, so a chamber pouring into two of them is one
+		# fall that parts on the way down — drawing it once per target would rule
+		# the same line twice and read as a thread twice as bright.
+		#
+		# Starts at the UNDERSIDE of the draining chamber, not at the centre of
+		# the glass: the sand stops at the top of the throat, so a trickle
+		# beginning at the origin leaves the height of the throat as a gap of
+		# bare glass, and the fall reads as cut in two right where it should be
+		# one thing.
+		var head := sideways * sin(phase) * 0.6 - down * throat
+		canvas.draw_line(head, head + down * (span.x * STREAM_REACH + throat),
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
-
-	# Frame: the outline, then the plates capping it.
-	_outline(canvas, shell, line_width)
-	var lip := hw + line_width * 1.35
-	canvas.draw_line(Vector2(-lip, -hh), Vector2(lip, -hh), Palette.GLASS, line_width * 1.35, true)
-	canvas.draw_line(Vector2(-lip, hh), Vector2(lip, hh), Palette.GLASS, line_width * 1.35, true)
 
 
 ## Sand resting in one bulb, covering `target` area, with a surface square to

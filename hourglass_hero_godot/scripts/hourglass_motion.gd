@@ -80,15 +80,17 @@ func down() -> Vector2:
 	return Vector2.DOWN.rotated(lean - tilt)
 
 
-## How full each bulb is, 0 to 1: `x` the bulb at local -y, `y` the one at +y.
-func chambers() -> Vector2:
-	var frac := clampf(Game.sand / Tuning.cfg.sand_max, 0.0, 1.0)
+## How full each chamber is, 0 to 1, indexed by the slot it is drawn in. The
+## size of the array is the chamber count, so this one value tells the shape both
+## how many chambers to draw and how much is in each.
+func chambers() -> PackedFloat32Array:
+	var frac := clampf(Game.sand / maxf(Tuning.cfg.sand_max, 1.0), 0.0, 1.0)
 	if Game.flip_anim > 0.0:
-		# Mid-tumble the neck gates the sand and each bulb keeps what it held.
+		# Mid-tumble the neck gates the sand and each chamber keeps what it held.
 		# `Game.sand` jumped to the post-flip figure the instant the jump began,
 		# and a flip is exactly `max - sand`, so the pre-flip split is its mirror.
 		# Holding it fixed is what makes the tumble land seamlessly: at a half
-		# turn the two bulbs have swapped places on screen, which is precisely
+		# turn the two chambers have swapped places on screen, which is precisely
 		# when the roles below take over.
-		return Vector2(1.0 - frac, frac)
-	return Vector2(frac, 1.0 - frac)
+		return PackedFloat32Array([1.0 - frac, frac])
+	return PackedFloat32Array([frac, 1.0 - frac])
