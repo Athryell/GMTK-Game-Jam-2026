@@ -1,7 +1,44 @@
-[gd_scene format=3 uid="uid://bq1v8n0sndbnk"]
+[gd_scene load_steps=7 format=3 uid="uid://bq1v8n0sndbnk"]
+
+[ext_resource type="AudioStream" uid="uid://nmxnfhscnkk5" path="res://audio/sfx/jump.mp3" id="1_jump"]
+[ext_resource type="AudioStream" uid="uid://cjunyc2y20owo" path="res://audio/sfx/land.wav" id="2_land"]
+[ext_resource type="AudioStream" uid="uid://uphrtvolae4g" path="res://audio/sfx/death.wav" id="3_death"]
+[ext_resource type="AudioStream" uid="uid://cytdh25mhf2ao" path="res://audio/sfx/win.mp3" id="4_win"]
+[ext_resource type="AudioStream" uid="uid://bqbkuyfve5nlf" path="res://audio/music/ticking.wav" id="5_ticking"]
+[ext_resource type="AudioStream" uid="uid://cmmusr2qbbnfh" path="res://audio/music/falling_sand.wav" id="6_sand"]
 
 [node name="SoundBank" type="Node"]
 
 [node name="Sfx" type="Node" parent="."]
 
+[node name="jump" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("1_jump")
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="land" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("2_land")
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="death" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("3_death")
+volume_db = -4.0
+bus = &"SFX"
+
+[node name="win" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("4_win")
+volume_db = -4.0
+bus = &"SFX"
+
 [node name="Music" type="Node" parent="."]
+
+[node name="menu" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("5_ticking")
+volume_db = -12.0
+bus = &"Music"
+
+[node name="level" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("6_sand")
+volume_db = -14.0
+bus = &"Music"
