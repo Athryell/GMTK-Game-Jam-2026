@@ -1,3 +1,4 @@
 Bugfix and qol:
 	- When the hourglass is triple and quadruple we need a way to show the players which side activates which plane
 	- In the editor is not anymore visible the size of the platform
+	- Add different pitch to the "land" sound
