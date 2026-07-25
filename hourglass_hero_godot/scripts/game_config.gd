@@ -70,10 +70,11 @@ extends Resource
 ## the level — and it is why `CameraRig` divides the viewport by the zoom
 ## everywhere instead of trusting `get_viewport_rect()`.
 ##
-## 1.85 rather than 1.45 because most levels are 540 px tall with every platform
-## in the bottom 240. The camera clamps to the level, so the slack all ends up
-## as empty sky above the player; the only way to spend it is to move in.
-@export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.85
+## Above 1.0 because most levels are 540 px tall with every platform in the
+## bottom 240. The camera clamps to the level, so the slack all ends up as empty
+## sky above the player; the only way to spend it is to move in. 1.55 keeps
+## enough of the level ahead to read a gap before you commit to it.
+@export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.55
 ## Camera follow smoothing. 0 = locked to the player.
 @export_range(0.0, 20.0, 0.5) var camera_smoothing: float = 7.0
 ## How far the view leads the player in the direction they are running, in px.

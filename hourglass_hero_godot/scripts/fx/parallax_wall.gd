@@ -13,7 +13,6 @@ extends Node2D
 enum Style {
 	FAR, ## Distant wall: dense columns, beams, and the clock face.
 	NEAR, ## Closer pillars with a lit cap.
-	FORE, ## Passes between the player and the camera.
 }
 
 ## 1.0 moves with the world, 0.0 is pinned to the camera, above 1.0 rushes past.
@@ -53,8 +52,6 @@ func _draw() -> void:
 			_draw_far(rng, left, right, bottom)
 		Style.NEAR:
 			_draw_near(rng, left, right, bottom)
-		Style.FORE:
-			_draw_fore(rng, left, right, bottom)
 
 
 ## The far wall: a stone face of columns crossed by beams, with a clock let into
@@ -99,24 +96,6 @@ func _draw_near(rng: RandomNumberGenerator, left: float, right: float, bottom: f
 		draw_rect(Rect2(x, top, width, 5.0), cap)
 		draw_rect(Rect2(x + width * 0.34, top + 24.0, width * 0.32, bottom - top), inner)
 		x += rng.randf_range(300.0, 400.0)
-
-
-## The pillars that sweep between the player and the camera.
-##
-## Kept sparse, narrow and translucent on purpose. A foreground that is any
-## heavier stops being depth and starts being a thing that hides spikes.
-func _draw_fore(rng: RandomNumberGenerator, left: float, right: float, bottom: float) -> void:
-	# Nearly opaque. At 0.55 these pillars were near-black on a near-black room
-	# and only their edge highlight survived, which read as a scratch on the
-	# screen rather than as something standing between you and the level.
-	var body := Color(tone, 0.92)
-	var edge := Color(tone.lightened(0.45), 0.7)
-	var x := left
-	while x < right:
-		var width := rng.randf_range(54.0, 92.0)
-		draw_rect(Rect2(x, -MARGIN, width, bottom + MARGIN), body)
-		draw_rect(Rect2(x + width - 4.0, -MARGIN, 4.0, bottom + MARGIN), edge)
-		x += rng.randf_range(520.0, 760.0)
 
 
 func _set_tone(value: Color) -> void:

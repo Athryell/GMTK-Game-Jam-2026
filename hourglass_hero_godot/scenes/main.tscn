@@ -1,10 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/tuning_panel.tscn" id="3_tuner"]
 [ext_resource type="Script" path="res://scripts/fx/backdrop.gd" id="4_backdrop"]
-[ext_resource type="Script" path="res://scripts/fx/parallax_wall.gd" id="5_wall"]
 [ext_resource type="Script" path="res://scripts/fx/camera_rig.gd" id="6_camera"]
 
 [node name="Main" type="Node2D"]
@@ -14,11 +13,6 @@ script = ExtResource("1_main")
 script = ExtResource("4_backdrop")
 
 [node name="LevelRoot" type="Node2D" parent="."]
-
-[node name="Foreground" type="Node2D" parent="."]
-script = ExtResource("5_wall")
-scroll = 1.22
-style = 2
 
 [node name="WorldLight" type="CanvasModulate" parent="."]
 color = Color(0.58, 0.58, 0.65, 1)

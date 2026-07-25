@@ -12,7 +12,6 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
-@onready var _foreground: ParallaxWall = $Foreground
 @onready var _world_light: CanvasModulate = $WorldLight
 
 var _level: Level
@@ -48,12 +47,11 @@ func _process(delta: float) -> void:
 			if Game.status != Game.Status.VICTORY:
 				_load_current_level()
 
-	# After the camera has moved this frame, never before: the parallax layers
+	# After the camera has moved this frame, never before: the backdrop's walls
 	# are placed relative to it, and reading last frame's position puts the
 	# scenery one frame behind the level it sits behind — which shows up as the
 	# walls juddering whenever you run.
 	_backdrop.sync(_camera.global_position)
-	_foreground.sync(_camera.global_position)
 
 
 # ----- Loading ---------------------------------------------------------------
@@ -76,13 +74,11 @@ func _load_current_level() -> void:
 	_player.death_y = _level.world_size.y + Tuning.cfg.fall_death_margin
 
 	_backdrop.configure(_level.world_size)
-	_foreground.configure(_level.world_size, Palette.FOREGROUND)
 
 	_camera.target = _player
 	_camera.frame(_level.world_size)
 	_camera.snap()
 	_backdrop.sync(_camera.global_position)
-	_foreground.sync(_camera.global_position)
 
 	Game.announce_level(_level.level_name)
 

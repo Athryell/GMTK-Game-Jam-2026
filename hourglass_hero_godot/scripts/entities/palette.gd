@@ -55,10 +55,6 @@ const BACK_FLOOR := Color("0a0614") ## Backdrop gradient, bottom.
 const BACK_FAR := Color("281b4d") ## Far wall.
 const BACK_NEAR := Color("362566") ## Near wall.
 
-## The pillars that sweep between you and the camera. Near-black in both planes:
-## a foreground that carried a hue would read as a solid you could stand on.
-const FOREGROUND := Color("04070d")
-
 
 ## A solid's colour for its plane. A "BOTH" solid takes the hue of whichever
 ## plane the player is in, so you can always read where you are.
