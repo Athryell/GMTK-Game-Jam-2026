@@ -29,6 +29,9 @@ var _air_jumps := 0
 var _light: PointLight2D
 var _pulse := 0.0
 
+## The drawn hourglass. Held so death can hide it and read the size it broke at.
+@onready var _visual: Node2D = $Visual
+
 ## Below this much danger the glass is nervous but dry. Set so the sweat starts
 ## noticeably AFTER the light has already begun to redden — two cues arriving
 ## together read as one, and the point of the second is that things got worse.
@@ -181,10 +184,28 @@ func _on_flipped(_from_pad: bool) -> void:
 		Palette.solid(Planes.Kind.BOTH, Game.plane))
 
 
+## Death: the glass breaks and what was in it goes on the floor.
+##
+## The visual is hidden on the same frame the fragments appear, and that order
+## is the whole trick — an intact hourglass still standing behind its own
+## wreckage is the difference between "it shattered" and "something shattered
+## near it". The body is left alone: hiding is not dying, and `main.gd` still
+## owns when this node goes away.
+##
+## Both halves are given the death pause as their lifetime, because the level —
+## and every effect parented to it — is freed the moment that pause ends. An
+## effect that outlasts it is an effect the player never sees the end of.
 func _on_status_changed(status: Game.Status) -> void:
-	if status == Game.Status.DEAD:
-		Burst.shards(get_parent(), global_position, Palette.GLASS)
-		Audio.sfx("death")
+	if status != Game.Status.DEAD:
+		return
+	var life: float = Tuning.cfg.death_delay
+	var chambers := Glass.motion.chambers()
+	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life)
+	# Both bulbs: the sand does not care which end of the glass it was in.
+	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
+		chambers.x + chambers.y, life)
+	_visual.hide()
+	Audio.sfx("death")
 
 
 ## Launched by a spring: height, but no flip and no plane change. The height is
