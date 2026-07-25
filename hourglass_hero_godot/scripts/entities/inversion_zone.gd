@@ -19,6 +19,11 @@ extends PlaneArea
 ## otherwise spent on small bright solids, so this stays large, faint, outlined.
 const FIELD_ALPHA := 0.10
 const EDGE_ALPHA := 0.5
+## Multiplier while the zone actually holds the player. The turn takes half a
+## second, so something has to say "this is what started it" on the frame you
+## cross the line; without it the glass simply begins tipping for no visible
+## reason.
+const HELD_BOOST := 2.6
 ## Rising motes: the only part that says "upward" while you stand still.
 const MOTE_COLUMNS := 5
 const MOTE_SPEED := 110.0 ## px per second
@@ -61,9 +66,11 @@ func contains_player() -> bool:
 
 func _draw() -> void:
 	var tint := _shade(Palette.FLIP_PAD)
+	var boost := HELD_BOOST if contains_player() else 1.0
+	var edge := Color(tint, minf(tint.a * EDGE_ALPHA * boost, 1.0))
 	var bounds := Rect2(Vector2.ZERO, size)
-	draw_rect(bounds, Color(tint, tint.a * FIELD_ALPHA))
-	draw_rect(bounds, Color(tint, tint.a * EDGE_ALPHA), false, 2.0)
+	draw_rect(bounds, Color(tint, tint.a * FIELD_ALPHA * boost))
+	draw_rect(bounds, edge, false, 2.0)
 
 	# Evenly spread so the column never reads as one object drifting past, and
 	# clipped to the zone so the boundary stays the strongest line in the drawing.
@@ -72,4 +79,4 @@ func _draw() -> void:
 		var travelled := fmod(_phase + size.y * i / float(MOTE_COLUMNS), size.y)
 		var head := size.y - travelled
 		draw_line(Vector2(x, head), Vector2(x, minf(head + MOTE_LENGTH, size.y)),
-			Color(tint, tint.a * EDGE_ALPHA), 2.0, true)
+			edge, 2.0, true)
