@@ -34,7 +34,7 @@ func _draw() -> void:
 
 	draw_set_transform(gauge_centre, motion.tilt, Vector2.ONE)
 	HourglassShape.draw_glass(self, gauge_size, motion.chambers(), colour,
-		motion.down(), motion.stream_phase, 2.0, true)
+		motion.down(), motion.stream_phase, 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# The gauge throbs when the sand runs low.

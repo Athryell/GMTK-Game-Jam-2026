@@ -1,13 +1,14 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
 [ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_monster"]
 
 [node name="Level" type="Node2D"]
 script = ExtResource("1_level")
-level_name = "The Fountain"
-world_size = Vector2(1320, 540)
+level_name = "Parity"
+world_size = Vector2(960, 540)
 
 [node name="Spawn" type="Marker2D" parent="."]
 position = Vector2(53, 479)
@@ -15,30 +16,38 @@ position = Vector2(53, 479)
 [node name="Entities" type="Node2D" parent="."]
 
 [node name="Door" parent="Entities" instance=ExtResource("2_door")]
-position = Vector2(1260, 438)
-size = Vector2(34, 64)
-plane = 2
+position = Vector2(858, 440)
+size = Vector2(34, 62)
+plane = 1
 
 [node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
-size = Vector2(1160, 38)
-plane = 0
+size = Vector2(340, 38)
+plane = 2
 kind = 0
 
 [node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
-position = Vector2(1160, 502)
-size = Vector2(160, 38)
+position = Vector2(470, 502)
+size = Vector2(150, 38)
 plane = 2
 kind = 0
 
 [node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
-position = Vector2(360, 502)
-size = Vector2(120, 38)
-plane = 0
-kind = 1
+position = Vector2(740, 502)
+size = Vector2(210, 38)
+plane = 1
+kind = 0
 
 [node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
-position = Vector2(760, 502)
-size = Vector2(120, 38)
+position = Vector2(368, 430)
+size = Vector2(80, 16)
 plane = 0
-kind = 1
+kind = 0
+
+[node name="Monster1" parent="Entities" instance=ExtResource("4_monster")]
+position = Vector2(530, 390)
+size = Vector2(30, 34)
+plane = 0
+move_axis = 2
+move_distance = 90.0
+move_speed = 120.0

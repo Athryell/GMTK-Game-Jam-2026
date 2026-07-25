@@ -97,11 +97,53 @@ would bury the dozen sliders that actually change how the game plays.
 | `platform.tscn` | Floor, wall or platform. `kind = FLIP_PAD` turns it into a refuel pad. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
 | `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = use the tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
+| `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
 turns into a faint, non-solid ghost. Moving entities travel `move_distance` px
-from where you placed them and back, so you author the *start* of the path.
+from where you placed them and back, so you author the *start* of the path;
+`move_phase` shifts where in that cycle they begin, which is the only way to
+break two movers of equal period out of lockstep.
+
+Spikes kill on the inner 75% of the band, not on the outline — the tips are
+visual overhang, because spikes that kill on their silhouette feel cheap.
+
+### Two rules a level may bend for itself
+
+On the level root, under **Rules**:
+
+| Property | Effect |
+|---|---|
+| `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
+| `double_jump` | Grants one extra jump in mid-air, for this level only. |
+
+Both are applied by `main.gd` after the scene exists, and both reset between
+levels, so a level cannot leak its rules into the next one.
+
+The air jump needs no balancing of its own. `sand_flip_base` is 0, so
+`flip_sand()` is exactly `max - sand`: an involution. Two flips return you to
+your starting plane **and** to your starting sand, so a double jump is pure
+height and pure time — free while you are full, ruinous while you are empty.
+That is the exact mirror of the single jump, and it falls out of the formula
+rather than out of a tuning pass. `sand_test.gd` guards the identity.
+
+### The levels
+
+| # | Level | What it teaches |
+|---|---|---|
+| 1 | Wake-Up | A jump is a refuel. Walking straight ahead kills you. |
+| 2 | The Void | The far floor is `BACK`: the last hop has to be a step, not a jump. |
+| 3 | The Ledge | A spike ceiling forbids refuelling for 820 px. Fill up *before* you commit. |
+| 4 | The Spring | Height without a flip, climbing a shaft. |
+| 5 | The Fountain | One plane, no jumping: the flip-pad ferries are the only refuel. |
+| 6 | Parity | Flip count is a resource. A ghost ledge that can never be stood on. |
+| 7 | Ten | Ten ledges, each narrower, planes forced to alternate all the way up. |
+| 8 | Metronome | Five movers, one period, five phases. Cross on the beat. |
+| 9 | The Well | Descending. Every depth is half solid; a flip swaps which half. |
+| 10 | Double or Nothing | The air jump buys reach and costs time, never sand. |
+| 11 | Midnight | The gauntlet: everything so far, over a spike pit, finishing in `BACK`. |
+| 12 | The Last Grain | 1.2 s on the clock. Empty is not a problem, it is the resource. |
 
 ## Architecture
 
@@ -121,7 +163,7 @@ scripts/
   entities/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
-    spring.gd  monster.gd  door.gd
+    spring.gd  monster.gd  spikes.gd  door.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
     ping_pong.gd  palette.gd  layers.gd
   ui/

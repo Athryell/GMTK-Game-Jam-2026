@@ -33,6 +33,11 @@ var sand: float = 0.0
 var plane: Planes.Kind = Planes.Kind.FRONT
 var status: Status = Status.PLAY
 
+## Does the current level grant an extra jump in mid-air? Set by `main.gd` from
+## the level's own `double_jump`, because the level scene does not exist yet
+## when `start_level` arms the state.
+var double_jump := false
+
 ## Seconds left on the flip animation, and which way it tumbles.
 var flip_anim: float = 0.0
 var flip_dir: float = 1.0
@@ -116,6 +121,9 @@ func start_level(index: int) -> void:
 	sand = Tuning.cfg.sand_start
 	flip_anim = 0.0
 	pad_flash = 0.0
+	# Off until the level says otherwise, so a level that grants it cannot leak
+	# into the next one.
+	double_jump = false
 	set_plane(Planes.Kind.FRONT)
 	set_status(Status.PLAY)
 

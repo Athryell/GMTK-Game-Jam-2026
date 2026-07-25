@@ -19,11 +19,40 @@ var _coyote := 0.0
 var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
+## Jumps left in mid-air. Refilled on landing, and only ever above zero on a
+## level whose `double_jump` is on.
+var _air_jumps := 0
+
+## The light the glass gives off. Its brightness IS the sand: the room closes in
+## around you as the clock runs down, so "how long have I got" is answerable
+## without ever looking at the gauge.
+var _light: PointLight2D
+var _pulse := 0.0
 
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
 	collision_mask = Layers.SOLID
+	# The one shadow-casting light in the game: the terrain subtracts from it,
+	# so walking past a platform sweeps its shadow across the room.
+	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
+		Tuning.cfg.player_light_energy, Vector2.ZERO, true)
+	add_child(_light)
+	Game.flipped.connect(_on_flipped)
+	Game.status_changed.connect(_on_status_changed)
+
+
+func _process(delta: float) -> void:
+	_pulse += delta
+	var cfg := Tuning.cfg
+	var danger := Game.danger()
+	var fuel: float = clampf(Game.sand / maxf(cfg.sand_max, 1.0), 0.0, 1.0)
+	# Never all the way out. A light that reaches zero is not tension, it is a
+	# player who cannot see the platform they are about to miss.
+	var throb := 1.0 + 0.14 * sin(_pulse * 13.0) * danger
+	_light.color = Palette.SAND_FULL.lerp(Palette.SAND_LOW, danger)
+	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
+	_light.texture_scale = cfg.player_light_radius * 2.0 / LightKit.TEXTURE_SIZE
 
 
 func _physics_process(delta: float) -> void:
@@ -53,6 +82,18 @@ func _physics_process(delta: float) -> void:
 
 	if _buffer > 0.0 and _coyote > 0.0:
 		_jump()
+	elif _air_jumps > 0 and Input.is_action_just_pressed("jump"):
+		# Deliberately keyed to the press itself, not to `_buffer`: a buffered
+		# jump that missed the ground would otherwise be spent in the air the
+		# instant it was pressed, which is not what the player asked for.
+		#
+		# This is a second real flip, so it undoes the first — same plane, same
+		# sand, pure height. Double-jump while nearly empty and you throw away
+		# the refuel you just earned, which is exactly the trap level 10 is
+		# built around. No special case here makes that happen; `max - sand`
+		# applied twice does.
+		_air_jumps -= 1
+		_jump()
 
 	velocity.y += cfg.gravity * delta
 	# Variable jump height: releasing early clips the rise.
@@ -60,10 +101,15 @@ func _physics_process(delta: float) -> void:
 		velocity.y = maxf(velocity.y, -cfg.jump_cut_velocity)
 	velocity.y = minf(velocity.y, cfg.max_fall_speed)
 
+	var was_airborne := not is_on_floor()
+	var impact := velocity.y
 	move_and_slide()
 
 	if is_on_floor():
+		if was_airborne:
+			_land(impact)
 		_jumping = false
+		_air_jumps = 1 if Game.double_jump else 0
 
 	if global_position.y > death_y:
 		Game.kill()
@@ -77,9 +123,36 @@ func _jump() -> void:
 	Game.jump_flip(velocity.x)
 
 
+# ----- Presentation ----------------------------------------------------------
+# Effects are spawned into the LEVEL, not onto the player. A burst parented here
+# would be dragged along by the thing that made it — dust would follow you off
+# the ledge — and would be freed with the player on a restart, mid-animation.
+
+func _land(impact_speed: float) -> void:
+	var force := clampf(impact_speed / maxf(Tuning.cfg.max_fall_speed, 1.0) * 2.4, 0.0, 1.0)
+	if force < 0.08:
+		return
+	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0),
+		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
+
+
+## The plane swap, in the colour of the plane you have just arrived in — the
+## ring is the clearest read of "which side am I on now" in the whole game.
+func _on_flipped(_from_pad: bool) -> void:
+	Burst.ring(get_parent(), global_position,
+		Palette.solid(Planes.Kind.BOTH, Game.plane))
+
+
+func _on_status_changed(status: Game.Status) -> void:
+	if status == Game.Status.DEAD:
+		Burst.shards(get_parent(), global_position, Palette.GLASS)
+
+
 ## Launched by a spring: height, but no flip and no plane change. The height is
 ## fixed, so no variable-height cut applies.
 func bounce(power: float) -> void:
 	velocity.y = -power
 	_jumping = false
 	_coyote = 0.0
+	# A spring hands back your air jump: it is a launch, not a jump you spent.
+	_air_jumps = 1 if Game.double_jump else 0

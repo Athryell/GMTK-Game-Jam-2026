@@ -35,7 +35,7 @@ const LEVEL_STEPS := 16
 ## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.
 ## `phase` animates the trickle's wobble.
 static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, sand: Color,
-		down: Vector2, phase: float, line_width := 1.5, half_marker := false) -> void:
+		down: Vector2, phase: float, line_width := 1.5) -> void:
 	var hw := size.x / 2.0
 	var hh := size.y / 2.0
 	var nw := hw * NECK_RATIO
@@ -77,15 +77,6 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 		var head := sideways * sin(phase) * 0.6
 		canvas.draw_line(head, head + down * hh * STREAM_REACH,
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
-
-	# The decision line: the sand surface sits here at exactly half a bulb. Above
-	# it a flip costs you time, below it a flip gains you time. Drawn in whichever
-	# bulb is currently the upper one, so it survives the tumble.
-	if half_marker:
-		var bulb := upper if down.y >= 0.0 else lower
-		var chord := _chord(bulb, down, _level(bulb, down, bulb_area * 0.5))
-		if chord.size() == 2:
-			canvas.draw_line(chord[0], chord[1], Color(Palette.TEXT, 0.5), 1.0, true)
 
 	# Frame: the outline, then the plates capping it.
 	_outline(canvas, shell, line_width)
@@ -147,7 +138,8 @@ static func _clip(poly: PackedVector2Array, down: Vector2, level: float) -> Pack
 
 
 ## The two points where the surface meets the bulb's walls, or nothing if it
-## misses the bulb entirely.
+## misses the bulb entirely. Nothing drawn here needs it; `tests/sand_test.gd`
+## uses it to measure the angle a free surface actually comes out at.
 static func _chord(poly: PackedVector2Array, down: Vector2, level: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var n := poly.size()

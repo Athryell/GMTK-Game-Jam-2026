@@ -1,0 +1,59 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "The Last Grain"
+world_size = Vector2(960, 540)
+sand_start_override = 1200.0
+double_jump = true
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(40, 479)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(890, 378)
+size = Vector2(34, 62)
+plane = 2
+
+[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(0, 502)
+size = Vector2(240, 38)
+plane = 2
+kind = 0
+
+[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(400, 470)
+size = Vector2(200, 18)
+plane = 2
+kind = 0
+
+[node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(830, 440)
+size = Vector2(130, 18)
+plane = 2
+kind = 0
+
+[node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(240, 505)
+size = Vector2(190, 35)
+plane = 2
+facing = 0
+
+[node name="Spikes2" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(600, 505)
+size = Vector2(230, 35)
+plane = 2
+facing = 0
+
+[node name="Spikes3" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(440, 340)
+size = Vector2(160, 72)
+plane = 2
+facing = 1

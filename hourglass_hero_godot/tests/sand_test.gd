@@ -91,6 +91,35 @@ func _ready() -> void:
 	_check("the tumble lands with no jump in the sand", drift < 0.01,
 		"sand moves %.4f px across the reset" % drift)
 
+	# --- Flipping is an involution -------------------------------------------
+	# `sand_flip_base` is 0, so `flip_sand()` is exactly `max - sand` and two
+	# flips must land on the number you started from — bit for bit, not roughly.
+	#
+	# This is the single most load-bearing fact in the game. The double jump is
+	# two flips, so it is sand-neutral by arithmetic rather than by tuning: free
+	# while you are full, ruinous while you are empty. Give `sand_flip_base` a
+	# non-zero value and the identity breaks, the air jump silently becomes a
+	# refuel or a leak, and "Double or Nothing" stops teaching what it teaches.
+	var cfg := Tuning.cfg
+	var worst_drift := 0.0
+	var worst_from := 0.0
+	for step in 41:
+		var start: float = cfg.sand_max * step / 40.0 # includes both 0 and max
+		Game.sand = start
+		Game.sand = Game.flip_sand()
+		Game.sand = Game.flip_sand()
+		if absf(Game.sand - start) > worst_drift:
+			worst_drift = absf(Game.sand - start)
+			worst_from = start
+	_check("flipping twice returns the sand exactly", worst_drift < 0.0001,
+		"off by %.6f starting from %.0f — check sand_flip_base" % [worst_drift, worst_from])
+
+	Game.sand = 0.0
+	_check("flipping on empty gives back a full glass",
+		absf(Game.flip_sand() - cfg.sand_max) < 0.0001)
+	Game.sand = cfg.sand_max
+	_check("flipping on full gives back nothing", Game.flip_sand() < 0.0001)
+
 	_finish()
 
 

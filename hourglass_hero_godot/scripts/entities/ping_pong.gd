@@ -12,6 +12,13 @@ enum Axis {
 }
 
 
+## Seconds for a full there-and-back. 0 when the entity does not move.
+static func cycle(distance: float, speed: float) -> float:
+	if distance <= 0.0 or speed <= 0.0:
+		return 0.0
+	return distance * 2.0 / speed
+
+
 ## Offset from the starting position at time `elapsed`. Starts at 0, climbs to
 ## `distance`, comes back, and repeats.
 static func offset(elapsed: float, distance: float, speed: float) -> float:
@@ -23,11 +30,19 @@ static func offset(elapsed: float, distance: float, speed: float) -> float:
 
 
 ## The offset projected onto the requested axis.
-static func offset_vector(axis: Axis, elapsed: float, distance: float, speed: float) -> Vector2:
+##
+## `phase` shifts the start along the cycle, as a fraction of a full there-and-
+## back. Every mover derives its position from the same clock, so without it two
+## entities of equal period are locked in step forever — which is exactly what
+## "Metronome" needs to break, and is not something a level author can fake by
+## nudging positions.
+static func offset_vector(axis: Axis, elapsed: float, distance: float, speed: float,
+		phase := 0.0) -> Vector2:
+	var t := elapsed + phase * cycle(distance, speed)
 	match axis:
 		Axis.X:
-			return Vector2(offset(elapsed, distance, speed), 0.0)
+			return Vector2(offset(t, distance, speed), 0.0)
 		Axis.Y:
-			return Vector2(0.0, offset(elapsed, distance, speed))
+			return Vector2(0.0, offset(t, distance, speed))
 		_:
 			return Vector2.ZERO

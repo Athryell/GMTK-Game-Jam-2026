@@ -28,6 +28,10 @@ const PAD_DETECT_HEIGHT := 8.0
 @export_range(0.0, 800.0, 1.0) var move_distance := 0.0
 ## Speed of the back-and-forth, in px/s.
 @export_range(0.0, 400.0, 1.0) var move_speed := 0.0
+## Where in the cycle it starts, as a fraction of a full there-and-back. Movers
+## share one clock, so two of equal period sit in lockstep at 0 — set this to
+## spread them into a wave.
+@export_range(0.0, 1.0, 0.05) var move_phase := 0.0
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 @onready var _pad_detector: Area2D = $PadDetector
@@ -47,6 +51,9 @@ func _ready() -> void:
 	Game.plane_changed.connect(_on_plane_changed)
 	Tuning.changed.connect(queue_redraw)
 	_pad_detector.body_entered.connect(_on_pad_body_entered)
+	EntityOccluder.attach(self, plane, size)
+	if kind == Kind.FLIP_PAD:
+		EntityLight.attach(self, plane, size, Palette.FLIP_PAD, 150.0, 1.0)
 	_on_plane_changed(Game.plane)
 
 
@@ -57,7 +64,8 @@ func _physics_process(delta: float) -> void:
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
 		return
 	_elapsed += delta
-	position = _origin + PingPong.offset_vector(move_axis, _elapsed, move_distance, move_speed)
+	position = _origin + PingPong.offset_vector(
+		move_axis, _elapsed, move_distance, move_speed, move_phase)
 
 
 func _draw() -> void:

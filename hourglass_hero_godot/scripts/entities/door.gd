@@ -11,6 +11,7 @@ extends Area2D
 
 var _active := true
 var _pulse := 0.0
+var _light: EntityLight
 
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _ready() -> void:
 		return
 	Game.plane_changed.connect(_on_plane_changed)
 	body_entered.connect(_on_body_entered)
+	_light = EntityLight.attach(self, plane, size, Palette.DOOR, 190.0, 1.25)
 	_on_plane_changed(Game.plane)
 
 
@@ -27,6 +29,9 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_pulse += delta
+	if _light != null:
+		_light.energy_scale = 1.25 + 0.35 * sin(_pulse * 3.0)
+		_light.energy = Tuning.cfg.entity_light_energy * _light.energy_scale
 	queue_redraw()
 
 
