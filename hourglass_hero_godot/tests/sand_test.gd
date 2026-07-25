@@ -164,10 +164,27 @@ func _ready() -> void:
 	full_zone.add_to_group(Game.INVERSION_GROUP)
 	Game.poll_sand_flow()
 	var motion := HourglassMotion.new()
+
+	# Crossing the boundary must NOT redraw the sand upside down on the same
+	# frame. That version shipped and read as a glitch: nothing on screen showed
+	# a cause, the sand was simply falling the other way.
+	Game.advance_flow_turn(1.0 / 60.0)
+	_check("the glass does not snap over the instant you enter",
+		motion.down().y > 0.0, "down = %v" % motion.down())
+
+	# Halfway through, gravity points sideways and the trickle is spent — the
+	# frame where the sand is visibly deciding.
+	Game.advance_flow_turn(cfg.flow_turn_duration / 2.0)
+	_check("halfway through the turn the sand pours sideways",
+		absf(motion.down().y) < 0.2, "down = %v" % motion.down())
+
+	Game.advance_flow_turn(cfg.flow_turn_duration)
 	_check("inverted, the sand falls UP the glass", motion.down().y < 0.0,
 		"down = %v" % motion.down())
+
 	full_zone.remove_from_group(Game.INVERSION_GROUP)
 	Game.poll_sand_flow()
+	Game.advance_flow_turn(cfg.flow_turn_duration)
 	_check("normally, the sand falls DOWN the glass", motion.down().y > 0.0,
 		"down = %v" % motion.down())
 

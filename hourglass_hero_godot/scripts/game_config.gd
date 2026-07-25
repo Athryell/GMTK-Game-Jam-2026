@@ -34,6 +34,9 @@ extends Resource
 ## How fast the sand runs the WRONG way inside an inversion zone, in ms per
 ## second. Matching `sand_drain_rate` keeps both directions equally deadly.
 @export_range(0.0, 5000.0, 10.0) var sand_reverse_rate: float = 1000.0
+## How long the glass takes to turn over when the flow reverses, in s. Matches
+## `flip_duration` so a zone reads like the flip the player already knows.
+@export_range(0.05, 2.0, 0.05) var flow_turn_duration: float = 0.5
 ## Floor added to every flip. 0 = pure hourglass.
 @export_range(0.0, 6000.0, 100.0) var sand_flip_base: float = 0.0
 ## Length of the flip animation, in s.
