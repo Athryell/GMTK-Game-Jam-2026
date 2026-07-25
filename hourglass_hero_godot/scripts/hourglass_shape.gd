@@ -30,6 +30,59 @@ const STREAM_REACH := 0.82
 const LEVEL_STEPS := 16
 
 
+## How far a chamber reaches from the neck, and how wide it is at the far end,
+## both in px, for a glass of `size`.
+##
+## At two chambers the glass keeps the width and height it was authored with —
+## which is what makes the twelve two-plane levels pixel-identical, and it costs
+## one branch. Above two it is a rosette, so it takes one radius in every
+## direction: an ellipse of chambers would give the side lobes a different area
+## from the top one, and the sand economy assumes every chamber holds the same.
+##
+## `sin(PI / count)` is the widest a chamber can be without touching its
+## neighbour — they touch at `tan`, and sin is the same number pulled safely
+## short of it.
+static func _span(size: Vector2, count: int) -> Vector2:
+	if count == 2:
+		return Vector2(size.y / 2.0, size.x / 2.0)
+	var radius := (size.x + size.y) / 4.0
+	return Vector2(radius, radius * sin(PI / float(count)))
+
+
+## Chamber `index` as a convex polygon in the glass's own frame: a trapezoid
+## with its narrow end at the neck and its wide end out at the rim. Corners run
+## far-side, far-other-side, neck-other-side, neck-side, which is the order
+## `shell` walks to join the chambers into one ring.
+static func chamber(size: Vector2, count: int, index: int) -> PackedVector2Array:
+	var span := _span(size, count)
+	var axis := ChamberLayout.axis(count, index)
+	var side := Vector2(-axis.y, axis.x)
+	var wide := span.y
+	var narrow := wide * NECK_RATIO
+	var throat := span.x * THROAT_RATIO
+	return PackedVector2Array([
+		axis * span.x - side * wide,
+		axis * span.x + side * wide,
+		axis * throat + side * narrow,
+		axis * throat - side * narrow,
+	])
+
+
+## The whole glass as ONE ring: every chamber walked in turn and joined through
+## the neck. Drawing it in a single piece is what puts walls on the throat and
+## leaves no seam across it — outlining each chamber separately would rule a
+## line through the middle of the glass.
+static func shell(size: Vector2, count: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in count:
+		var poly := chamber(size, count, i)
+		out.append(poly[3])
+		out.append(poly[0])
+		out.append(poly[1])
+		out.append(poly[2])
+	return out
+
+
 ## `size` is the full width and height of the glass. `chambers` is how full each
 ## bulb is, 0 to 1: `x` the one at local -y, `y` the one at local +y. `down` is
 ## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.

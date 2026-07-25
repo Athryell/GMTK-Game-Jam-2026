@@ -120,7 +120,69 @@ func _ready() -> void:
 	Game.sand = cfg.sand_max
 	_check("flipping on full gives back nothing", Game.flip_sand() < 0.0001)
 
+	# --- The two-bulb glass is the N-chamber formula at N=2 --------------------
+	# Not "close enough": the twelve shipped levels must not move by a pixel, and
+	# the cheapest way to know that is to hold the new polygons against the ones
+	# written out by hand above.
+	var drift_upper := _polygon_drift(HourglassShape.chamber(Vector2(48.0, 72.0), 2, 0), upper)
+	_check("chamber 0 of a two-chamber glass IS the upper bulb", drift_upper < 0.0001,
+		"corners move %.6f px" % drift_upper)
+	var drift_lower := _polygon_drift(HourglassShape.chamber(Vector2(48.0, 72.0), 2, 1), lower)
+	_check("chamber 1 of a two-chamber glass IS the lower bulb", drift_lower < 0.0001,
+		"corners move %.6f px" % drift_lower)
+
+	# Every chamber holds the same, whatever the count — the sand economy hands
+	# each one the same amount at rest and expects it to read the same depth.
+	for count in [2, 3, 4]:
+		var areas: Array[float] = []
+		for i in count:
+			areas.append(HourglassShape._area(
+				HourglassShape.chamber(Vector2(48.0, 72.0), count, i)))
+		var spread: float = areas.max() - areas.min()
+		_check("N=%d: every chamber has the same capacity" % count,
+			spread / areas.max() < 0.001, "areas %s" % [areas])
+
+	# Convex, because `_clip`, `_level` and `_pour` are built on it: cutting a
+	# convex polygon with a half-plane leaves exactly one convex piece.
+	for count in [2, 3, 4]:
+		var convex := true
+		for i in count:
+			convex = convex and _is_convex(HourglassShape.chamber(Vector2(48.0, 72.0), count, i))
+		_check("N=%d: every chamber is convex" % count, convex)
+
 	_finish()
+
+
+## The furthest any corner of `got` sits from the nearest corner of `wanted`.
+## Compares the shapes rather than the vertex lists: the same quadrilateral
+## written starting from another corner, or wound the other way, is the same
+## quadrilateral, and nothing downstream can tell the difference.
+func _polygon_drift(got: PackedVector2Array, wanted: PackedVector2Array) -> float:
+	if got.size() != wanted.size():
+		return INF
+	var worst := 0.0
+	for p in got:
+		var nearest := INF
+		for q in wanted:
+			nearest = minf(nearest, p.distance_to(q))
+		worst = maxf(worst, nearest)
+	return worst
+
+
+## Does the polygon turn the same way at every corner?
+func _is_convex(poly: PackedVector2Array) -> bool:
+	var n := poly.size()
+	var sign_seen := 0.0
+	for i in n:
+		var a := poly[(i + 1) % n] - poly[i]
+		var b := poly[(i + 2) % n] - poly[(i + 1) % n]
+		var cross := a.cross(b)
+		if absf(cross) < 0.0001:
+			continue
+		if sign_seen != 0.0 and signf(cross) != sign_seen:
+			return false
+		sign_seen = signf(cross)
+	return true
 
 
 func _check(name: String, passed: bool, detail := "") -> void:
