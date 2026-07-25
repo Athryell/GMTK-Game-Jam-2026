@@ -30,6 +30,24 @@ const STREAM_REACH := 0.82
 const LEVEL_STEPS := 16
 
 
+## The outline of the whole glass, centred on the origin: both bulbs joined
+## through the throat, wound clockwise from the top-left.
+##
+## Public because the death shatter cuts its fragments out of this exact
+## polygon. A second hand-written copy of these eight points would be a silent
+## trap: widen the neck here and the glass that breaks would stop being the
+## glass that was standing there.
+static func silhouette(size: Vector2) -> PackedVector2Array:
+	var hw := size.x / 2.0
+	var hh := size.y / 2.0
+	var nw := hw * NECK_RATIO
+	var nh := hh * THROAT_RATIO
+	return PackedVector2Array([
+		Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(nw, -nh), Vector2(nw, nh),
+		Vector2(hw, hh), Vector2(-hw, hh), Vector2(-nw, nh), Vector2(-nw, -nh),
+	])
+
+
 ## `size` is the full width and height of the glass. `chambers` is how full each
 ## bulb is, 0 to 1: `x` the one at local -y, `y` the one at local +y. `down` is
 ## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.
@@ -43,10 +61,7 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 
 	# The glass itself: one ring, both bulbs joined through the throat. Drawing
 	# it in a single piece is what puts walls on the neck.
-	var shell := PackedVector2Array([
-		Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(nw, -nh), Vector2(nw, nh),
-		Vector2(hw, hh), Vector2(-hw, hh), Vector2(-nw, nh), Vector2(-nw, -nh),
-	])
+	var shell := silhouette(size)
 	canvas.draw_colored_polygon(shell, Color(Palette.GLASS, 0.10))
 
 	# The two bulbs the sand sits in, without the throat. Convex on purpose:

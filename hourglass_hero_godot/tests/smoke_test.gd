@@ -149,7 +149,43 @@ func _ready() -> void:
 	_check("spikes go inert in the other plane", not spikes.monitoring)
 	spikes.queue_free()
 
+	# --- The camera keeps the player on screen --------------------------------
+	await _check_camera_holds_a_launch()
+
 	_finish()
+
+
+## A spring launch is the fastest the player ever moves, and it used to carry
+## them clean out of the frame: 350 px off centre in a view half 174 px tall,
+## with the camera parked at the edge of its vertical slack watching them go.
+##
+## Asserted in px against the frame rather than against a tuned number, so this
+## keeps meaning the same thing if the zoom, the slack or the spring power move.
+func _check_camera_holds_a_launch() -> void:
+	Game.start_level(0)
+	await _load_level_scene()
+	var player := _find_player()
+	var camera: CameraRig = get_tree().root.find_children("", "CameraRig", true, false)[0]
+	if player == null or camera == null:
+		_check("camera: player and camera exist", false)
+		return
+
+	for i in 120:
+		await get_tree().physics_frame
+		if player.is_on_floor():
+			break
+
+	var half: float = camera.get_viewport_rect().size.y / camera.zoom.y / 2.0
+	player.bounce(Tuning.cfg.spring_power)
+	var worst := 0.0
+	for i in 90:
+		await get_tree().physics_frame
+		if not is_instance_valid(player) or Game.status != Game.Status.PLAY:
+			break
+		worst = maxf(worst, absf(player.global_position.y - camera.global_position.y))
+
+	_check("camera keeps the player on screen through a spring launch",
+		worst < half, "%.0f px off centre, frame reaches %.0f" % [worst, half])
 
 
 ## On a level that grants it, a second jump must fire in mid-air — and because

@@ -32,11 +32,11 @@ position = Vector2(151, 881)
 size = Vector2(240, 20)
 
 [node name="Spring1" parent="Entities" unique_id=1095997758 instance=ExtResource("5_spring")]
-position = Vector2(240, 1324)
-size = Vector2(160, 22)
+position = Vector2(292, 1326)
+size = Vector2(56, 14)
 power = 1400.0
 
 [node name="Spring2" parent="Entities" unique_id=1349763696 instance=ExtResource("5_spring")]
-position = Vector2(498, 1086)
-size = Vector2(140, 22)
+position = Vector2(542, 1088)
+size = Vector2(52, 14)
 power = 1400.0

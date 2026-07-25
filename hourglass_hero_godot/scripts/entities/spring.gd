@@ -8,6 +8,19 @@
 class_name Spring
 extends PlaneArea
 
+## Proportions of the pad's height, base to top: the foot it stands on, the
+## plate you land on, and how far that plate travels on impact. The rest is the
+## gap the posts cross — which is the part that visibly closes.
+const FOOT := 0.14
+const PLATE := 0.30
+const TRAVEL := 0.62
+
+## Post width and how far each post sits in from its end, as fractions of the
+## pad's width. Proportional rather than fixed px so a narrow pad and a wide one
+## read as the same object at two sizes, instead of as two different objects.
+const POST := 0.045
+const POST_INSET := 0.08
+
 ## Impulse, in px/s. At 0 it takes `spring_power` from the tuning panel.
 @export_range(0.0, 3000.0, 10.0) var power := 0.0
 
@@ -15,7 +28,14 @@ var _compress := 0.0 ## Visual cue: the spring squashes, then springs back.
 
 
 func _init() -> void:
-	size = Vector2(84.0, 22.0)
+	# A pad reads as furniture, and furniture that stands as tall — or spreads as
+	# wide — as the thing it launches competes with it. The player is 26 wide, so
+	# this is roughly two of them: enough to aim at, small enough to stay scenery.
+	#
+	# Whatever size a level picks, remember the origin is the TOP-LEFT corner:
+	# a pad resting on a floor sits at the floor's top minus its own height, not
+	# at the floor's top.
+	size = Vector2(56.0, 14.0)
 	light_tint = Palette.SPRING
 	light_radius = 120.0
 	light_energy = 0.9
@@ -38,16 +58,26 @@ func _touched(player: Player) -> void:
 	queue_redraw()
 
 
+## A plate riding on two fixed posts. On impact the plate travels down and the
+## posts stay put, so the compression is read from the gap closing rather than
+## from the pad changing shape — the silhouette holds still on the one frame the
+## player actually sees. The old slab squashed its whole body instead, which on
+## that frame turned into a shapeless smear.
 func _draw() -> void:
-	# On impact the spring flattens, then recovers as it extends.
-	var squash := 1.0 - 0.45 * _compress
-	var h := size.y * squash
-	var top := size.y - h
 	var colour := _shade(Palette.SPRING)
-	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, h)), colour)
-	# Three upward chevrons: the launch direction reads at a glance.
-	var mid := size.x / 2.0
-	for i in 3:
-		var y := top + h * (0.25 + 0.25 * i)
-		draw_line(Vector2(mid - 14.0, y + 6.0), Vector2(mid, y), colour.darkened(0.5), 2.0)
-		draw_line(Vector2(mid, y), Vector2(mid + 14.0, y + 6.0), colour.darkened(0.5), 2.0)
+	var foot := maxf(2.0, size.y * FOOT)
+	var plate := maxf(4.0, size.y * PLATE)
+	var top := (size.y - foot - plate) * TRAVEL * _compress
+
+	draw_rect(Rect2(Vector2(0.0, size.y - foot), Vector2(size.x, foot)),
+		colour.darkened(0.55))
+	# Inset from the ends, so the plate reads as resting ON the posts rather
+	# than as one block with a stripe down it.
+	var post := maxf(3.0, size.x * POST)
+	var inset := size.x * POST_INSET
+	for x in [inset, size.x - inset - post]:
+		draw_rect(Rect2(Vector2(x, top + plate),
+			Vector2(post, size.y - foot - top - plate)), colour.darkened(0.38))
+	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, plate)), colour)
+	# The lip that says "this face". It is the only bright edge on the pad.
+	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, 2.0)), colour.lightened(0.45))

@@ -90,6 +90,11 @@ extends Resource
 ## How far the view may drift from the last ground the player stood on, in px.
 ## Below the jump's 125 px rise, so a jump nudges the frame instead of chasing it.
 @export_range(0.0, 400.0, 5.0) var camera_vertical_slack: float = 84.0
+## How much of the frame's edge stays clear of the player, in px. The camera is
+## hard-clamped to keep them inside this, whatever the smoothing is doing — see
+## the leash in `CameraRig`. Raise it and the view grabs the player sooner in a
+## fast launch; at 0 they are allowed to touch the bezel before it does.
+@export_range(0.0, 200.0, 4.0) var camera_edge_margin: float = 56.0
 ## Shake amplitude at full trauma, in px.
 @export_range(0.0, 60.0, 1.0) var camera_shake_strength: float = 16.0
 ## Seconds for a full-strength shake to die away.
