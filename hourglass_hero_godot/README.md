@@ -104,6 +104,7 @@ would bury the dozen sliders that actually change how the game plays.
 | `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = use the tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
+| `cannon.tscn` | A laser that tracks you while it charges, then fires along the line it held at the shot. Blocked by anything solid, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
@@ -151,6 +152,7 @@ rather than out of a tuning pass. `sand_test.gd` guards the identity.
 | 10 | Double or Nothing | The air jump buys reach and costs time, never sand. |
 | 11 | Midnight | The gauntlet: everything so far, over a spike pit, finishing in `BACK`. |
 | 12 | The Last Grain | 1.2 s on the clock. Empty is not a problem, it is the resource. |
+| 16 | Crossfire | Two lasers lock on before they fire. Dodging the shot is the jump, and the jump is the refuel. |
 
 ## Architecture
 
@@ -172,7 +174,7 @@ scripts/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
     terrain.gd            StaticBody2D drawn FROM its own collision polygon
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
-    spring.gd  monster.gd  spikes.gd  door.gd
+    spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
     ping_pong.gd  palette.gd  layers.gd
   ui/

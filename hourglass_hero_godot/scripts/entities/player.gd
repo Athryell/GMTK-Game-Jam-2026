@@ -47,6 +47,8 @@ func _ready() -> void:
 	# Godot's own 45° stays: past that a face is a wall, which is what the
 	# vertical sides of every ledge in the game rely on being.
 	floor_snap_length = FLOOR_SNAP
+	# Named in one place, so a group typed into a .tscn cannot drift from it.
+	add_to_group(Game.PLAYER_GROUP)
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
 		Tuning.cfg.player_light_energy)
 	add_child(_light)

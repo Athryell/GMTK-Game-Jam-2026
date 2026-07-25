@@ -6,6 +6,11 @@ const LEVELS_DIR := "res://scenes/levels"
 ## Nodes here are asked `contains_player()` once a frame. A group rather than a
 ## registry: unloading a level deregisters every zone for free.
 const INVERSION_GROUP := "inversion_zones"
+## The player puts itself here. Entities that need to know where it IS — rather
+## than merely whether it has touched them — look it up through this. A group
+## rather than a reference on `Game`: the level owns the player, so nothing here
+## has to be cleared when the level goes.
+const PLAYER_GROUP := "player"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 

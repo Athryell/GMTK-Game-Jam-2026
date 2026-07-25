@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/entities/cannon.tscn" id="4_cannon"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "Crossfire"
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(60, 479)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground"]
+polygon = PackedVector2Array(0, 502, 260, 502, 260, 494, 300, 494, 300, 502, 600, 502, 600, 494, 640, 494, 640, 502, 960, 502, 960, 560, 0, 560)
+
+[node name="Shelter" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Shelter"]
+polygon = PackedVector2Array(450, 458, 500, 458, 500, 502, 450, 502)
+
+[node name="CannonNear" parent="Entities" instance=ExtResource("4_cannon")]
+position = Vector2(280, 481)
+
+[node name="CannonFar" parent="Entities" instance=ExtResource("4_cannon")]
+position = Vector2(620, 481)
+phase = 0.5
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(890, 438)
