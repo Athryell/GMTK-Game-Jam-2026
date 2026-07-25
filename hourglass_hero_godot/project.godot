@@ -12,6 +12,7 @@ config_version=5
 
 config/name="Hourglass Hero"
 config/description="A platformer where the player IS an hourglass. Every jump flips the glass, swaps plane and launches you."
+run/main_scene="uid://dvknasl0juliy"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
