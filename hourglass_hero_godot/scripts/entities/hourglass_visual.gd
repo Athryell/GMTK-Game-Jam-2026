@@ -9,30 +9,20 @@ extends Node2D
 ## CollisionShape2D on `player.tscn`, so widen both if you widen one.
 @export var body_size := Vector2(26.0, 38.0)
 
-## The tumble, the slosh and the trickle's wobble. The HUD gauge keeps its own.
-var _motion := HourglassMotion.new()
-var _last_speed := 0.0
-
-
-func _process(delta: float) -> void:
-	# Setting off, stopping and turning around all shove the sand, the way a
-	# glass of syrup slops when you start carrying it. Read off the parent
-	# because that is the body actually moving; this node only spins.
-	var body := get_parent() as CharacterBody2D
-	var speed := body.velocity.x if body != null else 0.0
-	var shove := speed - _last_speed
-	_last_speed = speed
-
-	_motion.update(delta, speed, shove)
-	rotation = _motion.tilt
+func _process(_delta: float) -> void:
+	# The motion is `Glass`'s, not ours — the HUD gauge reads the very same one,
+	# which is what keeps the two glasses sloshing together. `Glass` is an
+	# autoload, so it has already ticked by the time we get here.
+	rotation = Glass.motion.tilt
 	queue_redraw()
 
 
 func _draw() -> void:
+	var motion := Glass.motion
 	var sand_colour := Palette.SAND_FULL.lerp(Palette.SAND_LOW, Game.danger())
-	# Same routine that draws the HUD gauge: one hourglass, two sizes.
-	HourglassShape.draw_glass(self, body_size, _motion.chambers(), sand_colour,
-		_motion.down(), _motion.stream_phase)
+	# Same routine, same motion as the HUD gauge: one hourglass, two sizes.
+	HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
+		motion.down(), motion.stream_phase)
 
 	# Orange burst when a flip-pad has just refuelled us.
 	if Game.pad_flash > 0.0:

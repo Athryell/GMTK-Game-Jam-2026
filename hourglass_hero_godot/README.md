@@ -116,6 +116,7 @@ scripts/
   autoload/
     tuning.gd    (Tuning) Owns the single GameConfig; reads @export metadata
     game.gd      (Game)   Sand, plane, status, progression + signals
+    glass.gd     (Glass)  The one HourglassMotion: player and HUD share it
     screen.gd    (Screen) The window: launches fullscreen, Alt+Enter toggles
   entities/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
@@ -177,3 +178,8 @@ Two consequences worth knowing before you touch it:
   At the end of the tumble the glass snaps from π back to 0, and at that same
   instant `chambers()` swaps which bulb holds what. The two cancel exactly. Break
   one and the sand visibly jumps — `tests/sand_test.tscn` guards it.
+- **There is one glass, drawn twice.** The sprite and the HUD gauge both read the
+  single `HourglassMotion` held by the `Glass` autoload, which the player feeds
+  its sideways speed. Run right and the sand banks against the left wall in both,
+  identically — not because the two are tuned alike, but because there is only
+  one spring.

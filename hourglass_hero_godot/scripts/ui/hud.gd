@@ -7,10 +7,6 @@ extends Control
 ## Drawn size of the gauge hourglass. It is the player's own glass, scaled up.
 @export var gauge_size := Vector2(48.0, 72.0)
 
-## The tumble, the slosh and the trickle's wobble. The player keeps its own, so
-## the two glasses animate independently off the same maths.
-var _motion := HourglassMotion.new()
-
 @onready var _level_label: Label = $LevelLabel
 @onready var _plane_label: Label = $PlaneLabel
 @onready var _overlay: Label = $Overlay
@@ -25,20 +21,20 @@ func _ready() -> void:
 	_on_plane_changed(Game.plane)
 
 
-func _process(delta: float) -> void:
-	# No sideways acceleration to feed it: the gauge is bolted to the screen. It
-	# still sloshes, from the tumble alone.
-	_motion.update(delta)
+func _process(_delta: float) -> void:
 	queue_redraw()
 
 
 func _draw() -> void:
+	# Literally the player's own glass, drawn a second time at another size: same
+	# tumble, same slosh, same trickle. Run right and the sand banks against the
+	# left wall here exactly as it does down on the sprite.
+	var motion := Glass.motion
 	var colour := Palette.SAND_FULL.lerp(Palette.SAND_LOW, Game.danger())
 
-	# The gauge tumbles with the player's glass — the same flip, read twice.
-	draw_set_transform(gauge_centre, _motion.tilt, Vector2.ONE)
-	HourglassShape.draw_glass(self, gauge_size, _motion.chambers(), colour,
-		_motion.down(), _motion.stream_phase, 2.0, true)
+	draw_set_transform(gauge_centre, motion.tilt, Vector2.ONE)
+	HourglassShape.draw_glass(self, gauge_size, motion.chambers(), colour,
+		motion.down(), motion.stream_phase, 2.0, true)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# The gauge throbs when the sand runs low.
