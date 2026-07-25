@@ -3,6 +3,9 @@
 extends Node
 
 const LEVELS_DIR := "res://scenes/levels"
+## Nodes here are asked `contains_player()` once a frame. A group rather than a
+## registry: unloading a level deregisters every zone for free.
+const INVERSION_GROUP := "inversion_zones"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
@@ -27,6 +30,14 @@ var levels_reached := 0
 var sand: float = 0.0
 var plane: Planes.Kind = Planes.Kind.FRONT
 var status: Status = Status.PLAY
+## Which way the sand runs: +1 normally, -1 inside an inversion zone. Cached
+## once a frame because `danger()` is read several times by the HUD, the sprite
+## and the player's light.
+var sand_flow := 1.0
+## How far the drawn sand has turned over, 0 (running down the glass) to 1
+## (running up it). Lags `sand_flow` by `flow_turn_duration`: sand that changes
+## direction between two frames reads as a glitch rather than as a cause.
+var flow_blend := 0.0
 
 ## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
 ## `start_level` runs before it is instantiated.
@@ -54,10 +65,43 @@ func _process(delta: float) -> void:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
 		return
-	sand -= delta * Tuning.cfg.sand_drain_rate
-	if sand <= 0.0:
+	# Both ends of the glass kill. Normally the sand drains and an empty top
+	# bulb is death; inside an inversion zone it climbs and a full gauge — an
+	# empty BOTTOM bulb — is death instead. Standing still is never safe.
+	var cfg := Tuning.cfg
+	var flow := poll_sand_flow()
+	advance_flow_blend(delta)
+	sand -= delta * flow * (cfg.sand_reverse_rate if flow < 0.0 else cfg.sand_drain_rate)
+	if flow < 0.0:
+		if sand >= cfg.sand_max:
+			sand = cfg.sand_max
+			set_status(Status.DEAD)
+	elif sand <= 0.0:
 		sand = 0.0
 		set_status(Status.DEAD)
+
+
+## Asks every zone whether it holds the player, caches the answer in
+## `sand_flow` and returns it. Zones never push to `Game`, so the clock keeps a
+## single writer. One containing zone is enough: the flow is a direction, not
+## a total, so overlapping zones do not stack.
+func poll_sand_flow() -> float:
+	sand_flow = 1.0
+	for zone in get_tree().get_nodes_in_group(INVERSION_GROUP):
+		if zone.contains_player():
+			sand_flow = -1.0
+			break
+	return sand_flow
+
+
+## Moves the drawn sand a step towards whichever way the clock is running, and
+## returns how far it has got. Kept apart from `sand_flow` so the death rule
+## switches on the frame you cross the line; only the picture is allowed to lag.
+func advance_flow_blend(delta: float) -> float:
+	var target := 1.0 if sand_flow < 0.0 else 0.0
+	flow_blend = move_toward(flow_blend, target,
+		delta / maxf(Tuning.cfg.flow_turn_duration, 0.001))
+	return flow_blend
 
 
 ## Scans the levels folder; a .tscn dropped in there is picked up on next run.
@@ -111,6 +155,8 @@ func start_level(index: int) -> void:
 	level_index = clampi(index, 0, level_scenes.size() - 1)
 	levels_reached = maxi(levels_reached, level_index)
 	sand = Tuning.cfg.sand_start
+	sand_flow = 1.0
+	flow_blend = 0.0
 	flip_anim = 0.0
 	pad_flash = 0.0
 	# Cleared so a level granting it cannot leak into the next one.
@@ -186,12 +232,16 @@ func pad_flash_ratio() -> float:
 	return clampf(pad_flash / duration, 0.0, 1.0)
 
 
-## How close death is, from 0 (safe) to 1 (about to run out).
+## How close death is, from 0 (safe) to 1 (about to run out), measured against
+## whichever end is currently lethal: an empty glass normally, a full one when
+## inverted.
 func danger() -> float:
-	var warn := Tuning.cfg.sand_warn
-	if warn <= 0.0 or sand > warn:
+	var cfg := Tuning.cfg
+	var warn := cfg.sand_warn
+	var left := cfg.sand_max - sand if sand_flow < 0.0 else sand
+	if warn <= 0.0 or left > warn:
 		return 0.0
-	return clampf(1.0 - sand / warn, 0.0, 1.0)
+	return clampf(1.0 - left / warn, 0.0, 1.0)
 
 
 func kill() -> void:

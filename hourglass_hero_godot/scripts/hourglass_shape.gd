@@ -8,8 +8,6 @@ extends RefCounted
 const NECK_RATIO := 0.13
 ## Half-height of the throat, as a fraction of the glass's half-height.
 const THROAT_RATIO := 0.07
-## Fraction of a bulb's height the trickle reaches before the pile hides it.
-const STREAM_REACH := 0.82
 ## Bisection steps used to place a free surface; 16 lands inside a pixel.
 const LEVEL_STEPS := 16
 
@@ -30,9 +28,10 @@ static func silhouette(size: Vector2) -> PackedVector2Array:
 ## `size` is the full width and height of the glass. `chambers` is how full each
 ## bulb is, 0 to 1: `x` the one at local -y, `y` the one at local +y. `down` is
 ## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.
-## `phase` animates the trickle's wobble.
+## `phase` animates the trickle's wobble. `invert` is how far the flow has turned
+## over, 0 (down the glass) to 1 (up it).
 static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, sand: Color,
-		down: Vector2, phase: float, line_width := 1.5) -> void:
+		down: Vector2, phase: float, line_width := 1.5, invert := 0.0) -> void:
 	var hw := size.x / 2.0
 	var hh := size.y / 2.0
 	var nw := hw * NECK_RATIO
@@ -53,19 +52,25 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	# The bulbs are a half turn apart, so one area serves for both.
 	var bulb_area := _area(upper)
 
-	_pour(canvas, upper, down, chambers.x * bulb_area, sand)
-	_pour(canvas, lower, down, chambers.y * bulb_area, sand)
+	# Turning the flow over never turns the glass over: the surface stays square to
+	# `down` throughout, and only the piles move.
+	var up := -down
+	var upper_sand := pile(upper, down, chambers.x * bulb_area, invert)
+	var lower_sand := pile(lower, down, chambers.y * bulb_area, invert)
+	fill(canvas, upper_sand, sand)
+	fill(canvas, lower_sand, sand)
 
-	# The trickle, falling straight down and drying up as the glass tips. Spent at
-	# the bulb wall's own angle, so it is never drawn outside the glass.
-	var wall := cos(atan2(hw - nw, hh - nh))
-	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
-	if chambers.x > 0.01 and pouring > 0.01:
+	# The trickle is the gap the two piles leave, so it stays joined to both.
+	var flow := down if invert < 0.5 else up
+	var source: float = chambers.x if flow.y >= 0.0 else chambers.y
+	var pouring := trickle_rate(size, flow)
+	if source > 0.01 and pouring > 0.01:
+		var from := _reach(upper_sand, down, true, -nh)
+		var to := _reach(lower_sand, down, false, nh)
+		# Only the wobble stops: a column still shimmying reads as still running.
 		var sideways := Vector2(-down.y, down.x)
-		# Starts at the underside of the upper bulb, not the origin, or the throat's
-		# height shows as a gap of bare glass.
-		var head := sideways * sin(phase) * 0.6 - down * nh
-		canvas.draw_line(head, head + down * (hh * STREAM_REACH + nh),
+		var wobble := sideways * sin(phase) * 0.6 * absf(1.0 - 2.0 * invert)
+		canvas.draw_line(down * from + wobble, down * to + wobble,
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 	_outline(canvas, shell, line_width)
@@ -74,12 +79,39 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	canvas.draw_line(Vector2(-lip, hh), Vector2(lip, hh), Palette.GLASS, line_width * 1.35, true)
 
 
-## Sand resting in one bulb, covering `target` area, surface square to `down`.
-static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
-		target: float, colour: Color) -> void:
-	if target <= 0.001:
-		return
-	fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
+## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips,
+## spent at the bulb wall's own angle so it is never drawn outside the glass.
+static func trickle_rate(size: Vector2, flow: Vector2) -> float:
+	var wall := cos(atan2(size.x * (1.0 - NECK_RATIO), size.y * (1.0 - THROAT_RATIO)))
+	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0)
+
+
+## How far a pile reaches along `down` (`far`) or against it, in that axis alone.
+## `fallback` answers for an empty pile, which has no face to measure.
+static func _reach(poly: PackedVector2Array, down: Vector2, far: bool,
+		fallback: float) -> float:
+	if poly.size() < 3:
+		return fallback
+	var best := -INF if far else INF
+	for v in poly:
+		var d := v.dot(down)
+		best = maxf(best, d) if far else minf(best, d)
+	return best
+
+
+## The sand lying in one bulb: `target` area of it, both surfaces square to
+## `down`. `lift` walks it from the floor of the bulb (0) to its ceiling (1), in
+## one slab: split it in two and a band of bare glass opens across the middle.
+static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
+		lift := 0.0) -> PackedVector2Array:
+	var bottom := INF
+	for v in bulb:
+		bottom = minf(bottom, v.dot(down))
+	var piece := _clip(bulb, down,
+		lerpf(_level(bulb, down, target), bottom, clampf(lift, 0.0, 1.0)))
+	# Trim back to `target`; at rest `piece` already holds exactly that.
+	var up := -down
+	return _clip(piece, up, _level(piece, up, target))
 
 
 ## How far along `down` to cut so exactly `target` area lies below, by bisection.

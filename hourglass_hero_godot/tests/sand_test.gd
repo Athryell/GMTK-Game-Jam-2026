@@ -105,7 +105,154 @@ func _ready() -> void:
 	Game.sand = cfg.sand_max
 	_check("flipping on full gives back nothing", Game.flip_sand() < 0.0001)
 
+	# --- The inversion zone reverses the clock --------------------------------
+	# The flow is asked of a Godot group, so a stub in that group drives it and
+	# this bench stays pure. Real containment is smoke_test's job.
+	_check("no zones means the sand flows normally", Game.poll_sand_flow() > 0.0)
+
+	var empty_zone := _StubZone.new(false)
+	var full_zone := _StubZone.new(true)
+	add_child(empty_zone)
+	add_child(full_zone)
+
+	empty_zone.add_to_group(Game.INVERSION_GROUP)
+	_check("a zone the player is NOT in leaves the flow alone",
+		Game.poll_sand_flow() > 0.0)
+
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	_check("standing in a zone reverses the flow", Game.poll_sand_flow() < 0.0)
+
+	# The flow is a direction, not a total: overlapping zones must not stack.
+	var second := _StubZone.new(true)
+	add_child(second)
+	second.add_to_group(Game.INVERSION_GROUP)
+	_check("overlapping zones invert once, not twice",
+		is_equal_approx(Game.poll_sand_flow(), -1.0),
+		"flow = %.2f" % Game.sand_flow)
+	# Out of the group by hand: `queue_free` only lands at the end of the frame,
+	# and a zone still in the group is still asked.
+	second.remove_from_group(Game.INVERSION_GROUP)
+	second.queue_free()
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	_check("leaving every zone restores the normal flow",
+		Game.poll_sand_flow() > 0.0)
+
+	# --- Danger measures the death that is actually active --------------------
+	# `Palette.sand()` feeds the sprite, the HUD and the player's light off this
+	# one number, so reading the wrong end lies in three places at once.
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	Game.sand = cfg.sand_max
+	_check("inverted, a FULL glass is maximum danger",
+		is_equal_approx(Game.danger(), 1.0), "danger = %.3f" % Game.danger())
+	Game.sand = 0.0
+	_check("inverted, an EMPTY glass is safe",
+		is_zero_approx(Game.danger()), "danger = %.3f" % Game.danger())
+
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	Game.sand = 0.0
+	_check("normally, an EMPTY glass is maximum danger",
+		is_equal_approx(Game.danger(), 1.0), "danger = %.3f" % Game.danger())
+	Game.sand = cfg.sand_max
+	_check("normally, a FULL glass is safe", is_zero_approx(Game.danger()),
+		"danger = %.3f" % Game.danger())
+
+	# --- The drawn sand turns over without the glass turning over -------------
+	# Rotating gravity through half a turn swings the pile round the bulb like a
+	# clock hand, and reads as the glass spinning. `down()` must stay put.
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	var motion := HourglassMotion.new()
+
+	Game.advance_flow_blend(1.0 / 60.0)
+	_check("entering a zone does not tip the glass",
+		motion.down().is_equal_approx(Vector2.DOWN), "down = %v" % motion.down())
+	_check("entering a zone starts the sand turning over, but only just",
+		motion.invert() > 0.0 and motion.invert() < 0.1,
+		"invert = %.3f" % motion.invert())
+
+	Game.advance_flow_blend(cfg.flow_turn_duration / 2.0)
+	_check("halfway through, the sand is halfway over",
+		absf(motion.invert() - 0.5) < 0.05, "invert = %.3f" % motion.invert())
+
+	Game.advance_flow_blend(cfg.flow_turn_duration)
+	_check("turned over, the sand runs entirely the other way",
+		is_equal_approx(motion.invert(), 1.0), "invert = %.3f" % motion.invert())
+	_check("the glass is still upright at the end of it",
+		motion.down().is_equal_approx(Vector2.DOWN), "down = %v" % motion.down())
+
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	Game.advance_flow_blend(cfg.flow_turn_duration)
+	_check("leaving the zone runs the sand back down the glass",
+		is_zero_approx(motion.invert()), "invert = %.3f" % motion.invert())
+
+	# The trickle survives the reversal.
+	var glass := Vector2(hw * 2.0, hh * 2.0)
+	for dir in [Vector2.DOWN, Vector2.UP]:
+		_check("the trickle pours at full rate with gravity %v" % dir,
+			HourglassShape.trickle_rate(glass, dir) > 0.99)
+
+	# The pile rises in one piece and keeps its sand the whole way.
+	var held: float = area * 0.5
+	var climbed := -INF
+	var worst_loss := 0.0
+	var jumped := false
+	for step in 21:
+		var lift: float = step / 20.0
+		var slab: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, lift)
+		# Same slack as the accuracy check above: `_level` bisects, it does not solve.
+		worst_loss = maxf(worst_loss, absf(HourglassShape._area(slab) - held) / area)
+		var height := -_centre(slab).y
+		if height < climbed - 0.01:
+			jumped = true
+		climbed = maxf(climbed, height)
+	_check("the pile keeps its sand all the way up", worst_loss < 0.002,
+		"off by %.4f%%" % [worst_loss * 100.0])
+	_check("and never drops back down on the way", not jumped)
+
+	var settled_low: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, 0.0)
+	var settled_high: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, 1.0)
+	_check("at rest it sits on the floor of its bulb",
+		absf(_centre(settled_low).y - _centre(HourglassShape._clip(upper, Vector2.DOWN,
+			HourglassShape._level(upper, Vector2.DOWN, held))).y) < 0.01)
+	_check("turned over it clings to the ceiling of its bulb",
+		_centre(settled_high).y < _centre(settled_low).y - 1.0,
+		"%.1f vs %.1f" % [_centre(settled_high).y, _centre(settled_low).y])
+
+	# The trickle is the gap the two piles leave, so it is joined to both at every
+	# step, and rides the sand rather than stretching between it.
+	var shortest := INF
+	var longest := 0.0
+	for step in 21:
+		var lift: float = step / 20.0
+		var top: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, lift)
+		var bottom: PackedVector2Array = HourglassShape.pile(lower, Vector2.DOWN, held, lift)
+		var span: float = HourglassShape._reach(bottom, Vector2.DOWN, false, nh) \
+			- HourglassShape._reach(top, Vector2.DOWN, true, -nh)
+		shortest = minf(shortest, span)
+		longest = maxf(longest, span)
+	_check("the trickle always has both piles to hold on to", shortest > 0.0,
+		"shortest span %.2f px" % shortest)
+	_check("and its length barely changes on the way",
+		longest - shortest < hh * 0.12, "%.1f px to %.1f px" % [shortest, longest])
+
+	empty_zone.queue_free()
+	full_zone.queue_free()
+
 	_finish()
+
+
+## Average of a polygon's corners. Not the true centroid, but enough to say which
+## end of a bulb a pile is sitting at.
+func _centre(poly: PackedVector2Array) -> Vector2:
+	if poly.is_empty():
+		return Vector2.ZERO
+	var total := Vector2.ZERO
+	for p in poly:
+		total += p
+	return total / poly.size()
 
 
 func _check(name: String, passed: bool, detail := "") -> void:
@@ -120,3 +267,15 @@ func _finish() -> void:
 	print("")
 	print("All checks passed." if _failures == 0 else "%d check(s) FAILED." % _failures)
 	get_tree().quit(1 if _failures > 0 else 0)
+
+
+## Stands in for an InversionZone: `Game` only ever asks a zone one question,
+## so the flow can be tested without a scene tree full of physics.
+class _StubZone extends Node:
+	var _occupied: bool
+
+	func _init(occupied: bool) -> void:
+		_occupied = occupied
+
+	func contains_player() -> bool:
+		return _occupied

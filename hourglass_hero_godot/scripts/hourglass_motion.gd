@@ -60,6 +60,12 @@ func down() -> Vector2:
 	return Vector2.DOWN.rotated(lean - tilt)
 
 
+## How far the sand has turned over inside an inversion zone, 0 to 1. Never a
+## rotation: the surface stays square to `down()` throughout.
+func invert() -> float:
+	return Game.flow_blend
+
+
 ## How full each bulb is, 0 to 1: `x` the bulb at local -y, `y` the one at +y.
 func chambers() -> Vector2:
 	var frac := clampf(Game.sand / Tuning.cfg.sand_max, 0.0, 1.0)
