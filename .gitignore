@@ -29,3 +29,6 @@ mono_crash.*.json
 .DS_Store
 .DS_store
 .superpowers/
+
+# Brainstorm specs and implementation plans: working notes, not part of the game.
+docs/superpowers/
