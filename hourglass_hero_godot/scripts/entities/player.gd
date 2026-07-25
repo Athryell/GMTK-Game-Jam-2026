@@ -6,13 +6,18 @@
 class_name Player
 extends CharacterBody2D
 
-## Depth past which you have fallen out of the level. Set by `main.gd`.
-var death_y := 10000.0
-## Screen-y of "down" for this glass: +1 normally, -1 in an inverted level.
+## The band you are allowed to be in, in screen-y. Outside it you have fallen
+## out of the level. Two edges rather than one: the world turns over mid-level,
+## so either way is a way out. Set by `main.gd`.
+var death_top := -10000.0
+var death_bottom := 10000.0
+
+## Screen-y of "down" for this glass: +1 normally, -1 while the world is over.
 ##
-## Copied from `Game` once rather than read every frame, and for the same reason
-## `death_y` is a field: a level is freed a frame after the next one is armed, so
-## a player still winding down must keep judging by the world it was born in.
+## Followed from `Game` through a signal rather than read every frame, and for
+## the same reason the death band is a field: a level is freed a frame after the
+## next one is armed, so a player still winding down must keep judging by the
+## world it was born in, not the one that has just been armed.
 var pull := 1.0
 
 var _coyote := 0.0
@@ -56,8 +61,8 @@ func _ready() -> void:
 	# Which way is up for this level. Set once: a level does not change its mind
 	# about gravity halfway through, and the player is spawned after the rule is
 	# applied.
-	pull = Game.gravity_sign
-	up_direction = Vector2(0.0, -pull)
+	_face_gravity(Game.gravity_sign)
+	Game.gravity_changed.connect(_face_gravity)
 	# Named in one place, so a group typed into a .tscn cannot drift from it.
 	add_to_group(Game.PLAYER_GROUP)
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
@@ -146,8 +151,16 @@ func _physics_process(delta: float) -> void:
 		_jumping = false
 		_air_jumps = 1 if Game.double_jump else 0
 
-	if (global_position.y - death_y) * pull > 0.0:
+	if global_position.y < death_top or global_position.y > death_bottom:
 		Game.kill()
+
+
+## Turns with the world. The velocity is deliberately left alone: keep flying
+## the way you were, now decelerating instead of accelerating, and the flip reads
+## as the world moving rather than as the glass being teleported.
+func _face_gravity(sign: float) -> void:
+	pull = sign
+	up_direction = Vector2(0.0, -pull)
 
 
 ## The signature move: height, a turn of the glass, and a plane change, all off

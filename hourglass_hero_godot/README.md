@@ -105,6 +105,7 @@ would bury the dozen sliders that actually change how the game plays.
 | `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
 | `cannon.tscn` | A laser that tracks you while it charges, then fires along the line it held at the shot. Blocked by anything solid, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
+| `gravity_pad.tscn` | Turns the world over: touch it and gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
@@ -125,18 +126,29 @@ On the level root, under **Rules**:
 | `chambers` | How many chambers the glass has, 2 to 4 — and so how many planes, and how far a jump turns you. |
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
 | `double_jump` | Grants one extra jump in mid-air, for this level only. |
-| `inverted_gravity` | Pulls towards the TOP of the screen: you walk on ceilings, jump downwards, and fall off the top edge. |
 
 All are applied by `main.gd` after the scene exists, and all reset between
 levels, so a level cannot leak its rules into the next one.
 
-Inverted gravity is one signed number, `Game.gravity_sign`, copied onto the
-player at spawn as `pull`. Every vertical quantity — the pull, the jump, the
-fall cap, which way you land, where you fall out of the world — is written as a
-downward component times that sign, so the upside-down level runs the same
-arithmetic as every other and cannot drift from it. It is copied rather than
-read live because a level is freed a frame after the next one is armed, and a
-player still winding down must keep judging by the world it was born in.
+### Turning the world over
+
+Gravity is not a level rule — it is a pad you place, so any level can gain one
+without being rebuilt. Underneath it is a single signed number,
+`Game.gravity_sign`, which the player follows through `gravity_changed` and
+keeps as its own `pull`. Every vertical quantity — the pull, the jump, the fall
+cap, which way you land — is written as a downward component times that sign,
+so an upside-down world runs the same arithmetic as every other and cannot
+drift from it.
+
+The player keeps its own copy rather than reading `Game` each frame for the
+same reason it keeps its own death band: a level is freed a frame after the
+next one is armed, and a player still winding down must keep judging by the
+world it was born in, not the one that has just been armed.
+
+A pad SETS a direction and never toggles one. That is what makes it safe to
+stand on, lets two pads facing the same way agree instead of cancelling, and
+lets a pad you are already obeying go dim rather than lie. Every level starts
+the right way up.
 
 The air jump needs no balancing of its own. `sand_flip_base` is 0, so on a
 two-chamber glass a turn gives back exactly `max - sand`: an involution. Two
@@ -166,7 +178,7 @@ rather than out of a tuning pass. `sand_test.gd` guards the identity.
 | 14 | Trefoil | Three chambers, three planes. A jump turns you a third of the way, so coming home takes three. |
 | 15 | Quarters | Four chambers, four planes, and sand that can be stranded two turns from where you need it. |
 | 16 | Crossfire | Two lasers lock on before they fire. Dodging the shot is the jump, and the jump is the refuel. |
-| 17 | Downside Up | Gravity the other way up, on a three-chamber glass. The ceiling is the floor and a jump falls. |
+| 17 | Downside Up | A pad turns the world over. The ceiling is the only bridge across the pit, and a second pad puts you back down. |
 
 ## Architecture
 

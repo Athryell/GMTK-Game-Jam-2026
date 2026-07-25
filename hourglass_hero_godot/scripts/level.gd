@@ -23,10 +23,6 @@ extends Node2D
 ## turns restore both the starting plane and the exact sand, so the double jump
 ## is pure height — free while you are full, ruinous while you are empty.
 @export var double_jump := false
-## Turns the level upside down: gravity pulls towards the TOP of the screen, so
-## you walk on ceilings, jump downwards, and fall off the top edge. Everything
-## else — planes, sand, slopes, hazards — behaves exactly as it always did.
-@export var inverted_gravity := false
 
 @onready var spawn: Marker2D = $Spawn
 

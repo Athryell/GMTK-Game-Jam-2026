@@ -19,6 +19,8 @@ signal plane_changed(plane: Planes.Kind)
 ## The hourglass was flipped; `from_pad` distinguishes a flip-pad from a jump.
 signal flipped(from_pad: bool)
 signal status_changed(status: Status)
+## Which way the world pulls has changed. `sign` is the new [member gravity_sign].
+signal gravity_changed(sign: float)
 signal level_loaded(index: int, level_name: String)
 
 ## Level scenes, sorted by filename (level_01_… before level_02_…).
@@ -78,13 +80,15 @@ var flow_blend := 0.0
 ## `start_level` runs before it is instantiated.
 var double_jump := false
 
-## Screen-y of "down" for the level being played: +1 normally, -1 where gravity
-## is inverted and the ceiling is the floor.
+## Screen-y of "down" right now: +1 normally, -1 while the world is upside down
+## and the ceiling is the floor. Changed mid-level by a [GravityPad].
 ##
 ## A sign rather than a second set of rules. Every vertical quantity in the game
-## — the pull, the jump, the fall cap, which way you land, where you fall out of
-## the world — is written as a downward component times this, so the inverted
-## level is the same code with one number changed and cannot drift from it.
+## — the pull, the jump, the fall cap, which way you land — is written as a
+## downward component times this, so an inverted world is the same code with one
+## number changed and cannot drift from it.
+##
+## Set through `set_gravity`, never assigned directly: the player has to be told.
 var gravity_sign := 1.0
 
 ## Seconds left on the flip animation, and which way it tumbles.
@@ -92,6 +96,17 @@ var flip_anim: float = 0.0
 var flip_dir: float = 1.0
 ## Seconds left on the "flip-pad triggered" flash.
 var pad_flash: float = 0.0
+
+
+
+## Turns the world over, or leaves it as it is. Idempotent, because a pad fires
+## every time it is touched and standing on one must not flutter the world.
+func set_gravity(sign: float) -> void:
+	var wanted := signf(sign) if not is_zero_approx(sign) else 1.0
+	if is_equal_approx(wanted, gravity_sign):
+		return
+	gravity_sign = wanted
+	gravity_changed.emit(gravity_sign)
 
 
 func _ready() -> void:

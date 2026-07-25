@@ -193,24 +193,25 @@ func _ready() -> void:
 	await _check_inversion_zone()
 
 	# --- Gravity the other way up ---------------------------------------------
-	await _check_inverted_gravity()
+	await _check_gravity_pad()
 
 	_finish()
 
 
-## The upside-down level is a real level: you stand on its ceiling, and walking
-## and jumping get you to its door exactly as they do anywhere else.
-func _check_inverted_gravity() -> void:
+## The gravity pad, in the real game: the world starts the right way up, a pad
+## turns it over, and the level is only crossable because of that.
+func _check_gravity_pad() -> void:
 	var index := -1
 	for i in Game.level_scenes.size():
-		var packed := Game.level_scenes[i].instantiate() as Level
-		var inverted: bool = packed != null and packed.inverted_gravity
-		if packed != null:
-			packed.free()
-		if inverted:
+		var level := Game.level_scenes[i].instantiate() as Level
+		var has_pad := level != null \
+			and not level.find_children("", "GravityPad", true, false).is_empty()
+		if level != null:
+			level.free()
+		if has_pad:
 			index = i
 			break
-	_check("some level turns gravity the other way up", index >= 0)
+	_check("some level has a gravity pad", index >= 0)
 	if index < 0:
 		return
 
@@ -218,34 +219,51 @@ func _check_inverted_gravity() -> void:
 	await _load_level_scene()
 	var player := _find_player()
 	if player == null:
-		_check("inverted: player spawned", false)
+		_check("gravity pad: player spawned", false)
 		return
-	_check("inverted: the pull is reversed", is_equal_approx(player.pull, -1.0),
-		"pull=%.1f" % player.pull)
+	_check("gravity pad: the level starts the right way up",
+		is_equal_approx(player.pull, 1.0), "pull=%.1f" % player.pull)
 
-	# Falling towards the ceiling, then held there.
-	var start := player.global_position.y
-	await _frames(30)
-	_check("inverted: the glass falls upwards and settles on the ceiling",
-		player.is_on_floor() and player.global_position.y <= start,
-		"y %.0f → %.0f floor=%s" % [start, player.global_position.y, player.is_on_floor()])
-
+	# The gap in the floor is wider than any jump, so reaching the door at all
+	# proves the pads fired and the ceiling carried the crossing.
 	var level_before := Game.level_index
-	Input.action_press("move_right")
 	var reached := false
-	for i in 900:
+	var went_over := false
+	var came_back := false
+	Input.action_press("move_right")
+	for i in 1200:
 		if i % 90 == 0:
 			Input.action_press("jump")
 		elif i % 90 == 6:
 			Input.action_release("jump")
 		await get_tree().physics_frame
+		if player.pull < 0.0:
+			went_over = true
+		elif went_over:
+			came_back = true
 		if Game.status == Game.Status.LEVEL_CLEAR or Game.level_index != level_before:
 			reached = true
 			break
 	Input.action_release("move_right")
 	Input.action_release("jump")
-	_check("inverted: walking the ceiling reaches the door", reached,
+	_check("gravity pad: walking onto one turns the world over", went_over)
+	_check("gravity pad: the opposite pad turns it back", came_back)
+	_check("gravity pad: the crossing reaches the door", reached,
 		"status=%s x=%.0f sand=%.0f" % [Game.status, player.global_position.x, Game.sand])
+
+	# Setting the gravity already in force must be silent, or standing on a pad
+	# would flutter the world every frame you touched it.
+	var beats := 0
+	var counter := func(_sign: float) -> void: beats += 1
+	Game.gravity_changed.connect(counter)
+	Game.set_gravity(Game.gravity_sign)
+	Game.gravity_changed.disconnect(counter)
+	_check("gravity pad: setting the gravity already in force says nothing", beats == 0)
+
+	Game.start_level(0)
+	await _load_level_scene()
+	_check("gravity pad: the next level starts the right way up again",
+		is_equal_approx(Game.gravity_sign, 1.0) and is_equal_approx(_find_player().pull, 1.0))
 
 
 ## A spring launch is the fastest the player ever moves. Asserted in px against
