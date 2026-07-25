@@ -174,7 +174,7 @@ func _ready() -> void:
 		"invert = %.3f" % motion.invert())
 
 	Game.advance_flow_blend(cfg.flow_turn_duration / 2.0)
-	_check("halfway through, the sand is split between both ends of each bulb",
+	_check("halfway through, the sand is halfway over",
 		absf(motion.invert() - 0.5) < 0.05, "invert = %.3f" % motion.invert())
 
 	Game.advance_flow_blend(cfg.flow_turn_duration)
@@ -200,21 +200,34 @@ func _ready() -> void:
 	_check("the trickle stops dead in the middle of the turn",
 		HourglassShape.trickle_rate(glass, Vector2.DOWN, 0.5) < 0.001)
 
-	# "Sticks to the ceiling": fully turned over, each bulb's pile is cut against
-	# UP, so it rests against the far end. Measured as the pile's centre, which
-	# must move up the bulb rather than swing round it.
-	var floor_pile: PackedVector2Array = HourglassShape._clip(upper, Vector2.DOWN,
-		HourglassShape._level(upper, Vector2.DOWN, area * 0.5))
-	var roof_pile: PackedVector2Array = HourglassShape._clip(upper, Vector2.UP,
-		HourglassShape._level(upper, Vector2.UP, area * 0.5))
-	_check("turned over, the pile clings to the ceiling of its bulb",
-		_centre(roof_pile).y < _centre(floor_pile).y - 1.0,
-		"%.1f vs %.1f" % [_centre(roof_pile).y, _centre(floor_pile).y])
-	# Same slack as the accuracy check above: `_level` bisects, it does not solve.
-	var pile_gap: float = absf(
-		HourglassShape._area(roof_pile) - HourglassShape._area(floor_pile))
-	_check("and it holds the same amount of sand either way", pile_gap < area * 0.002,
-		"off by %.4f%%" % [pile_gap / area * 100.0])
+	# The pile rises in one piece and keeps its sand the whole way. The version
+	# before this drew a share at each end of the bulb and crossfaded, which cut
+	# the sand in two with a band of bare glass across the middle.
+	var held: float = area * 0.5
+	var climbed := -INF
+	var worst_loss := 0.0
+	var jumped := false
+	for step in 21:
+		var lift: float = step / 20.0
+		var slab: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, lift)
+		# Same slack as the accuracy check above: `_level` bisects, it does not solve.
+		worst_loss = maxf(worst_loss, absf(HourglassShape._area(slab) - held) / area)
+		var height := -_centre(slab).y
+		if height < climbed - 0.01:
+			jumped = true
+		climbed = maxf(climbed, height)
+	_check("the pile keeps its sand all the way up", worst_loss < 0.002,
+		"off by %.4f%%" % [worst_loss * 100.0])
+	_check("and never drops back down on the way", not jumped)
+
+	var settled_low: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, 0.0)
+	var settled_high: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, 1.0)
+	_check("at rest it sits on the floor of its bulb",
+		absf(_centre(settled_low).y - _centre(HourglassShape._clip(upper, Vector2.DOWN,
+			HourglassShape._level(upper, Vector2.DOWN, held))).y) < 0.01)
+	_check("turned over it clings to the ceiling of its bulb",
+		_centre(settled_high).y < _centre(settled_low).y - 1.0,
+		"%.1f vs %.1f" % [_centre(settled_high).y, _centre(settled_low).y])
 
 	empty_zone.queue_free()
 	full_zone.queue_free()

@@ -55,15 +55,11 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	var bulb_area := _area(upper)
 
 	# Turning the flow over never turns the glass over: the free surface stays
-	# square to `down` the whole way through. What moves is which end of a bulb
-	# the sand rests against — the share lying on the floor drains away as the
-	# share clinging to the ceiling grows, so the pile lets go of one end and
-	# settles against the other without ever swinging round.
+	# square to `down` the whole way through. What moves is the pile, which lets
+	# go of the floor of its bulb and rises to the ceiling in one piece.
 	var up := -down
-	_pour(canvas, upper, down, chambers.x * bulb_area * (1.0 - invert), sand)
-	_pour(canvas, upper, up, chambers.x * bulb_area * invert, sand)
-	_pour(canvas, lower, down, chambers.y * bulb_area * (1.0 - invert), sand)
-	_pour(canvas, lower, up, chambers.y * bulb_area * invert, sand)
+	_pour(canvas, upper, down, chambers.x * bulb_area, sand, invert)
+	_pour(canvas, lower, down, chambers.y * bulb_area, sand, invert)
 
 	# The trickle runs whichever way the sand is going, and which bulb feeds it
 	# follows from that alone. Past the halfway point the flow has committed to
@@ -95,12 +91,34 @@ static func trickle_rate(size: Vector2, flow: Vector2, invert: float) -> float:
 	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0) * absf(1.0 - 2.0 * invert)
 
 
-## Sand resting in one bulb, covering `target` area, surface square to `down`.
+## Sand resting in one bulb, covering `target` area, surfaces square to `down`.
 static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
-		target: float, colour: Color) -> void:
+		target: float, colour: Color, lift := 0.0) -> void:
 	if target <= 0.001:
 		return
-	fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
+	fill(canvas, pile(bulb, down, target, lift), colour)
+
+
+## The sand lying in one bulb: `target` area of it, both surfaces square to
+## `down`. Public so the tests can measure the pile the drawing actually uses.
+##
+## `lift` walks it from the floor of the bulb (0) to its ceiling (1) as the flow
+## turns over. It stays one slab throughout — drawing a share at each end and
+## crossfading between them splits the sand in two, with a band of bare glass
+## across the middle, which is what the first version did and it read as a fault.
+## The slab's underside is what is driven; its thickness is re-solved each time so
+## the amount of sand drawn never changes on the way up.
+static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
+		lift := 0.0) -> PackedVector2Array:
+	var bottom := INF
+	for v in bulb:
+		bottom = minf(bottom, v.dot(down))
+	var piece := _clip(bulb, down,
+		lerpf(_level(bulb, down, target), bottom, clampf(lift, 0.0, 1.0)))
+	# Trim off the top, which `_level` places so that `target` is left underneath
+	# it. At rest there is nothing to trim: `piece` already holds exactly `target`.
+	var up := -down
+	return _clip(piece, up, _level(piece, up, target))
 
 
 ## How far along `down` to cut so exactly `target` area lies below, by bisection.
