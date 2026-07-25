@@ -75,6 +75,12 @@ func _ready() -> void:
 	# At the end of a flip the glass snaps from a half turn back to upright. That
 	# is invisible only because the bulbs swap contents at the same moment (see
 	# `HourglassMotion.chambers`). If the two ever disagree, the sand jumps.
+	#
+	# Going through `_polygon_drift` means this also quietly requires the two
+	# clips to come out with the SAME number of corners — the helper answers `inf`
+	# rather than a distance when they do not. Both are four today. Should a clip
+	# ever land a corner exactly on the cut plane and the counts diverge, read a
+	# failure of "sand moves inf px" as that, not as the sand having moved.
 	var frac := 0.7
 	var down_end := Vector2.DOWN.rotated(-PI)
 	var last_frame: PackedVector2Array = HourglassShape._clip(upper, down_end,
@@ -170,25 +176,47 @@ func _ready() -> void:
 	# through every chamber in turn, which is only a simple polygon while the
 	# chambers are disjoint.
 	#
-	# The far corners are held by `sin` and the neck corners by `WEDGE_FILL`, two
-	# unrelated mechanisms, so both ends are worth measuring.
+	# The two ends are held apart by unrelated mechanisms, so they get a check
+	# each, measured against the bound that actually governs them. Rolled into one
+	# they would report the wrong cause: the far corners have no relationship to
+	# `WEDGE_FILL` and merely happen to sit under it, so tightening that constant
+	# — which is free, and something a future reader may well do — would fail a
+	# check pointing at the constant instead of at `sin`.
 	for count in [2, 3, 4]:
-		var worst_fill := 0.0
+		var worst_neck := 0.0
+		var worst_far := 0.0
 		for i in count:
 			var axis := ChamberLayout.axis(count, i)
-			for corner in HourglassShape.chamber(Vector2(48.0, 72.0), count, i):
-				worst_fill = maxf(worst_fill, absf(axis.angle_to(corner)) / (PI / float(count)))
-		_check("N=%d: no corner reaches out of its own wedge" % count,
-			worst_fill <= HourglassShape.WEDGE_FILL + 0.0001,
-			"a corner sits %.3f of the way to the wedge wall" % worst_fill)
+			var poly := HourglassShape.chamber(Vector2(48.0, 72.0), count, i)
+			var wedge := PI / float(count)
+			worst_far = maxf(worst_far, absf(axis.angle_to(poly[0])) / wedge)
+			worst_far = maxf(worst_far, absf(axis.angle_to(poly[1])) / wedge)
+			worst_neck = maxf(worst_neck, absf(axis.angle_to(poly[2])) / wedge)
+			worst_neck = maxf(worst_neck, absf(axis.angle_to(poly[3])) / wedge)
+		# The cap in `chamber` puts the neck corners exactly on `WEDGE_FILL`
+		# wherever it bites, so this is an equality as much as a bound.
+		_check("N=%d: the neck corners stop where WEDGE_FILL says" % count,
+			worst_neck <= HourglassShape.WEDGE_FILL + 0.0001,
+			"a neck corner sits %.4f of the way to the wedge wall" % worst_neck)
+		# `sin` promises only that the far corners stay inside the wedge, and
+		# STRICTLY inside: a corner sitting exactly on the wall is a corner shared
+		# with the neighbouring chamber, which pinches the ring to a point right
+		# where `shell` has to pass through it.
+		_check("N=%d: the far corners stay inside the wedge" % count,
+			worst_far < 1.0 - 0.0001,
+			"a far corner sits %.4f of the way to the wedge wall" % worst_far)
 
 	for count in [2, 3, 4]:
 		for i in count:
+			var other: int = (i + 1) % count
 			var shared := Geometry2D.intersect_polygons(
 				HourglassShape.chamber(Vector2(48.0, 72.0), count, i),
-				HourglassShape.chamber(Vector2(48.0, 72.0), count, (i + 1) % count))
-			_check("N=%d: chambers %d and %d do not overlap" % [count, i, (i + 1) % count],
-				shared.is_empty())
+				HourglassShape.chamber(Vector2(48.0, 72.0), count, other))
+			# Named low-then-high so that at two chambers, where "the next one
+			# round" from either chamber is the other one, both passes print the
+			# same line and read as the one assertion they are.
+			_check("N=%d: chambers %d and %d do not overlap"
+				% [count, mini(i, other), maxi(i, other)], shared.is_empty())
 
 	# --- One ring, through every chamber --------------------------------------
 	# `shell` is what Task 3 will hand to `draw_colored_polygon`, and it is only a

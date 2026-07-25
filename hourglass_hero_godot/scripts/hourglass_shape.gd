@@ -30,8 +30,12 @@ const STREAM_REACH := 0.82
 const LEVEL_STEPS := 16
 ## How much of its own wedge a chamber may fill, measured as an angle off its
 ## axis. Chamber `i` owns the wedge `PI / count` either side of its axis; at 1.0
-## it fills that wedge exactly and touches its neighbours, so every corner is
-## held to this fraction of it instead.
+## it fills that wedge exactly and touches its neighbours, so the neck corners
+## are held to this fraction of it instead.
+##
+## Must sit strictly between 0 and 1, and 1 is a harder ceiling than it looks:
+## the cap is a tangent, so past the wedge the angle goes obtuse, `tan` comes
+## back NEGATIVE, and the chamber turns inside out rather than merely touching.
 ##
 ## It is not decoration. Two chambers that overlap draw their sand twice over the
 ## shared sliver, and `shell` — one ring through every chamber — stops being a
