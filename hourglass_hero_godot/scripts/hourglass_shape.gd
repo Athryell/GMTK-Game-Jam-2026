@@ -28,10 +28,23 @@ const STREAM_REACH := 0.82
 ## Bisection steps used to place a free surface. Each one halves the error, so
 ## 16 lands well inside a pixel at any size we draw.
 const LEVEL_STEPS := 16
+## How much of its own wedge a chamber may fill, measured as an angle off its
+## axis. Chamber `i` owns the wedge `PI / count` either side of its axis; at 1.0
+## it fills that wedge exactly and touches its neighbours, so every corner is
+## held to this fraction of it instead.
+##
+## It is not decoration. Two chambers that overlap draw their sand twice over the
+## shared sliver, and `shell` — one ring through every chamber — stops being a
+## simple polygon, which `draw_colored_polygon` triangulates into a mess right at
+## the neck, where the eye is.
+const WEDGE_FILL := 0.8
 
 
 ## How far a chamber reaches from the neck, and how wide it is at the far end,
-## both in px, for a glass of `size`.
+## both in px, for a glass of `size`. NOTE the axes swap: `.x` is a reach ALONG
+## the chamber's axis and `.y` a half-width ACROSS it, so at two chambers `.x`
+## comes from `size.y` and `.y` from `size.x`. `chamber` renames them the moment
+## it has them.
 ##
 ## At two chambers the glass keeps the width and height it was authored with —
 ## which is what makes the twelve two-plane levels pixel-identical, and it costs
@@ -39,9 +52,13 @@ const LEVEL_STEPS := 16
 ## direction: an ellipse of chambers would give the side lobes a different area
 ## from the top one, and the sand economy assumes every chamber holds the same.
 ##
-## `sin(PI / count)` is the widest a chamber can be without touching its
-## neighbour — they touch at `tan`, and sin is the same number pulled safely
-## short of it.
+## `sin(PI / count)` sets the FAR end only, and buys it a real margin: a corner
+## at half-width `r * sin(t)` and reach `r` sits `atan(sin(t))` off the axis,
+## which is comfortably short of `t` (35 degrees of a 45-degree wedge at four).
+## It says nothing at all about the NECK end — that corner is `NECK_RATIO` over
+## `THROAT_RATIO`, two hand-tuned constants with no idea `count` exists, and at
+## four chambers they aim it 52 degrees off a 45-degree wedge. `chamber` is where
+## that gets bounded, by `WEDGE_FILL`; see the note there.
 static func _span(size: Vector2, count: int) -> Vector2:
 	if count == 2:
 		return Vector2(size.y / 2.0, size.x / 2.0)
@@ -58,8 +75,13 @@ static func chamber(size: Vector2, count: int, index: int) -> PackedVector2Array
 	var axis := ChamberLayout.axis(count, index)
 	var side := Vector2(-axis.y, axis.x)
 	var wide := span.y
-	var narrow := wide * NECK_RATIO
 	var throat := span.x * THROAT_RATIO
+	# The throat is short, so `NECK_RATIO` of the full width is a wide corner at a
+	# tiny reach — an angle off the axis that grows as the glass gets more
+	# chambers to share the same neck, and overruns the wedge at four. Capping it
+	# at the wedge is what keeps neighbours apart; the authored ratio wins
+	# wherever there is room for it, which at two chambers is always.
+	var narrow := minf(wide * NECK_RATIO, throat * tan(PI / float(count) * WEDGE_FILL))
 	return PackedVector2Array([
 		axis * span.x - side * wide,
 		axis * span.x + side * wide,
