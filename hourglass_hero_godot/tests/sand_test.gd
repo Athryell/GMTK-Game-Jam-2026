@@ -105,6 +105,62 @@ func _ready() -> void:
 	Game.sand = cfg.sand_max
 	_check("flipping on full gives back nothing", Game.flip_sand() < 0.0001)
 
+	# --- The inversion zone reverses the clock --------------------------------
+	# The flow is asked of a Godot group, so a stub in that group drives it and
+	# this bench stays pure. Real containment is smoke_test's job.
+	_check("no zones means the sand flows normally", Game.poll_sand_flow() > 0.0)
+
+	var empty_zone := _StubZone.new(false)
+	var full_zone := _StubZone.new(true)
+	add_child(empty_zone)
+	add_child(full_zone)
+
+	empty_zone.add_to_group(Game.INVERSION_GROUP)
+	_check("a zone the player is NOT in leaves the flow alone",
+		Game.poll_sand_flow() > 0.0)
+
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	_check("standing in a zone reverses the flow", Game.poll_sand_flow() < 0.0)
+
+	# The flow is a direction, not a total: overlapping zones must not stack.
+	var second := _StubZone.new(true)
+	add_child(second)
+	second.add_to_group(Game.INVERSION_GROUP)
+	_check("overlapping zones invert once, not twice",
+		is_equal_approx(Game.poll_sand_flow(), -1.0),
+		"flow = %.2f" % Game.sand_flow)
+	# Out of the group by hand: `queue_free` only lands at the end of the frame,
+	# and a zone still in the group is still asked.
+	second.remove_from_group(Game.INVERSION_GROUP)
+	second.queue_free()
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	_check("leaving every zone restores the normal flow",
+		Game.poll_sand_flow() > 0.0)
+
+	# --- Danger measures the death that is actually active --------------------
+	# `Palette.sand()` feeds the sprite, the HUD and the player's light off this
+	# one number, so reading the wrong end lies in three places at once.
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	Game.sand = cfg.sand_max
+	_check("inverted, a FULL glass is maximum danger",
+		is_equal_approx(Game.danger(), 1.0), "danger = %.3f" % Game.danger())
+	Game.sand = 0.0
+	_check("inverted, an EMPTY glass is safe",
+		is_zero_approx(Game.danger()), "danger = %.3f" % Game.danger())
+
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	Game.sand = 0.0
+	_check("normally, an EMPTY glass is maximum danger",
+		is_equal_approx(Game.danger(), 1.0), "danger = %.3f" % Game.danger())
+	Game.sand = cfg.sand_max
+	_check("normally, a FULL glass is safe", is_zero_approx(Game.danger()),
+		"danger = %.3f" % Game.danger())
+
+	empty_zone.queue_free()
+	full_zone.queue_free()
+
 	_finish()
 
 
@@ -120,3 +176,15 @@ func _finish() -> void:
 	print("")
 	print("All checks passed." if _failures == 0 else "%d check(s) FAILED." % _failures)
 	get_tree().quit(1 if _failures > 0 else 0)
+
+
+## Stands in for an InversionZone: `Game` only ever asks a zone one question,
+## so the flow can be tested without a scene tree full of physics.
+class _StubZone extends Node:
+	var _occupied: bool
+
+	func _init(occupied: bool) -> void:
+		_occupied = occupied
+
+	func contains_player() -> bool:
+		return _occupied

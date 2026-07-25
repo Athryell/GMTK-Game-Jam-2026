@@ -3,6 +3,9 @@
 extends Node
 
 const LEVELS_DIR := "res://scenes/levels"
+## Nodes here are asked `contains_player()` once a frame. A group rather than a
+## registry: unloading a level deregisters every zone for free.
+const INVERSION_GROUP := "inversion_zones"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
@@ -27,6 +30,10 @@ var levels_reached := 0
 var sand: float = 0.0
 var plane: Planes.Kind = Planes.Kind.FRONT
 var status: Status = Status.PLAY
+## Which way the sand runs: +1 normally, -1 inside an inversion zone. Cached
+## once a frame because `danger()` is read several times by the HUD, the sprite
+## and the player's light.
+var sand_flow := 1.0
 
 ## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
 ## `start_level` runs before it is instantiated.
@@ -54,10 +61,32 @@ func _process(delta: float) -> void:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
 		return
-	sand -= delta * Tuning.cfg.sand_drain_rate
-	if sand <= 0.0:
+	# Both ends of the glass kill. Normally the sand drains and an empty top
+	# bulb is death; inside an inversion zone it climbs and a full gauge — an
+	# empty BOTTOM bulb — is death instead. Standing still is never safe.
+	var cfg := Tuning.cfg
+	var flow := poll_sand_flow()
+	sand -= delta * flow * (cfg.sand_reverse_rate if flow < 0.0 else cfg.sand_drain_rate)
+	if flow < 0.0:
+		if sand >= cfg.sand_max:
+			sand = cfg.sand_max
+			set_status(Status.DEAD)
+	elif sand <= 0.0:
 		sand = 0.0
 		set_status(Status.DEAD)
+
+
+## Asks every zone whether it holds the player, caches the answer in
+## `sand_flow` and returns it. Zones never push to `Game`, so the clock keeps a
+## single writer. One containing zone is enough: the flow is a direction, not
+## a total, so overlapping zones do not stack.
+func poll_sand_flow() -> float:
+	sand_flow = 1.0
+	for zone in get_tree().get_nodes_in_group(INVERSION_GROUP):
+		if zone.contains_player():
+			sand_flow = -1.0
+			break
+	return sand_flow
 
 
 ## Scans the levels folder; a .tscn dropped in there is picked up on next run.
@@ -186,12 +215,16 @@ func pad_flash_ratio() -> float:
 	return clampf(pad_flash / duration, 0.0, 1.0)
 
 
-## How close death is, from 0 (safe) to 1 (about to run out).
+## How close death is, from 0 (safe) to 1 (about to run out), measured against
+## whichever end is currently lethal: an empty glass normally, a full one when
+## inverted.
 func danger() -> float:
-	var warn := Tuning.cfg.sand_warn
-	if warn <= 0.0 or sand > warn:
+	var cfg := Tuning.cfg
+	var warn := cfg.sand_warn
+	var left := cfg.sand_max - sand if sand_flow < 0.0 else sand
+	if warn <= 0.0 or left > warn:
 		return 0.0
-	return clampf(1.0 - sand / warn, 0.0, 1.0)
+	return clampf(1.0 - left / warn, 0.0, 1.0)
 
 
 func kill() -> void:
