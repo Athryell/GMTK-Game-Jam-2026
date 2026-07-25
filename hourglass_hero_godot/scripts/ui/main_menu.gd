@@ -18,6 +18,7 @@ func _ready() -> void:
 	_quit.pressed.connect(get_tree().quit)
 	_build_level_buttons()
 	_play.grab_focus()
+	Audio.play_music("menu")
 
 
 func _build_level_buttons() -> void:

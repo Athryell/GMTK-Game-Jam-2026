@@ -22,6 +22,11 @@ Tuning="*res://scripts/autoload/tuning.gd"
 Game="*res://scripts/autoload/game.gd"
 Glass="*res://scripts/autoload/glass.gd"
 Screen="*res://scripts/autoload/screen.gd"
+Audio="*res://scripts/autoload/audio.gd"
+
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 

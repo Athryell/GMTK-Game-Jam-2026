@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings.tscn" id="2_audio"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -43,7 +44,7 @@ text = "Every jump flips the glass and swaps the world."
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Layout"]
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
 [node name="SelectLabel" type="Label" parent="Layout"]
@@ -61,7 +62,7 @@ theme_override_constants/v_separation = 8
 columns = 3
 
 [node name="Spacer2" type="Control" parent="Layout"]
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
 [node name="Actions" type="HBoxContainer" parent="Layout"]
@@ -78,6 +79,13 @@ text = "PLAY"
 custom_minimum_size = Vector2(120, 42)
 layout_mode = 2
 text = "QUIT"
+
+[node name="Spacer3" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+
+[node name="Sound" parent="Layout" instance=ExtResource("2_audio")]
+layout_mode = 2
 
 [node name="Hint" type="Label" parent="Layout"]
 layout_mode = 2

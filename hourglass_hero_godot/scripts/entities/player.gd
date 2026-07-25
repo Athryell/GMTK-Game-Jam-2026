@@ -155,6 +155,7 @@ func _jump() -> void:
 	_jumping = true
 	velocity.y = -Tuning.cfg.jump_velocity
 	Game.jump_flip(velocity.x)
+	Audio.sfx("jump", 0.0, 0.04)
 
 
 # ----- Presentation ----------------------------------------------------------
@@ -168,6 +169,9 @@ func _land(impact_speed: float) -> void:
 		return
 	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0),
 		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
+	# Loud in proportion to the drop, off the same `force` as the dust, so the
+	# two cues can never disagree about how hard that landing was.
+	Audio.sfx("land", linear_to_db(lerpf(0.4, 1.0, force)), 0.06)
 
 
 ## The plane swap, in the colour of the plane you have just arrived in — the
@@ -180,6 +184,7 @@ func _on_flipped(_from_pad: bool) -> void:
 func _on_status_changed(status: Game.Status) -> void:
 	if status == Game.Status.DEAD:
 		Burst.shards(get_parent(), global_position, Palette.GLASS)
+		Audio.sfx("death")
 
 
 ## Launched by a spring: height, but no flip and no plane change. The height is
@@ -188,5 +193,6 @@ func bounce(power: float) -> void:
 	velocity.y = -power
 	_jumping = false
 	_coyote = 0.0
+	Audio.sfx("spring")
 	# A spring hands back your air jump: it is a launch, not a jump you spent.
 	_air_jumps = 1 if Game.double_jump else 0

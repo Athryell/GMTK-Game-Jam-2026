@@ -98,6 +98,7 @@ func _on_pad_body_entered(body: Node2D) -> void:
 	# loop, you have to leave and come back.
 	if body is Player:
 		Game.pad_flip()
+		Audio.sfx("flip_pad")
 
 
 # ----- Setters (live update in the editor) -----------------------------------
