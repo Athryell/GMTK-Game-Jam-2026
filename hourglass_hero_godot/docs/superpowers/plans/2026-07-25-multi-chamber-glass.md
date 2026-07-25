@@ -81,6 +81,23 @@ Read these once; every task assumes them.
 - **A loop over a literal array yields `Variant`.** `for count in [2, 3, 4]`
   makes `count` a Variant, so `var other := (i + 1) % count` fails with "Cannot
   infer the type". Annotate: `var other: int = ...`.
+- **No suite in this repo can see a drawing change.** `sand_test` exercises the
+  geometry helpers directly and `smoke_test` never looks at a pixel, so
+  `draw_glass` could regress completely with everything green. Screenshots of
+  the running game are too noisy to settle it — the sand level and the low-sand
+  pulse both read wall-clock, so frame-to-frame noise swamps the signal. The
+  method that works: a throwaway probe that renders the old and the new code
+  into paired `SubViewport`s at fixed `fills`, `down` and `phase`, and diffs the
+  images. It gives 0-differing-pixels or it does not. **And render N=3 and N=4
+  and look at them** — the three-chamber trickle bug was invisible to every
+  other form of checking and obvious the instant anyone saw the picture.
+- **A comment describing what you meant is worse than no comment.** Task 3
+  shipped a `_trickle` whose header said "one thread to each chamber it pours
+  into" and whose body, twenty lines down, said "one thread per draining
+  chamber, not per target". The header described the behaviour that would have
+  been correct, so anyone checking the file concluded N=3 was handled and moved
+  on. When a comment and the code disagree, the comment is the more expensive
+  bug.
 
 `godot` is at `/opt/homebrew/bin/godot`.
 
