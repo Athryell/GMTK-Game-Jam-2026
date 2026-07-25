@@ -65,6 +65,8 @@ var _firing := false
 ## and nothing past this is drawn.
 var _reach := 0.0
 var _active := true
+## True while a jump would land the player in this plane: brighter, still inert.
+var _next := false
 
 
 func _ready() -> void:
@@ -74,9 +76,11 @@ func _ready() -> void:
 		return
 	_clock = phase * _period()
 	Game.plane_changed.connect(_on_plane_changed)
+	Game.next_plane_changed.connect(_on_next_plane_changed)
 	Tuning.changed.connect(queue_redraw)
 	EntityLight.attach(self, plane, Vector2.ZERO, Palette.MONSTER, 130.0, 0.5)
 	_on_plane_changed(Game.plane)
+	_on_next_plane_changed(Game.next_plane)
 
 
 func _physics_process(delta: float) -> void:
@@ -105,7 +109,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var tint := Palette.ghost(Palette.MONSTER, _active or Engine.is_editor_hint())
+	var tint := Palette.ghost(Palette.MONSTER, _active or Engine.is_editor_hint(), _next)
 	var muzzle := _aim * BARREL_LENGTH
 	# No beam in the editor: without physics the ray has never been cast, so its
 	# collision point is whatever it last happened to hold.
@@ -160,6 +164,11 @@ func _track_player() -> void:
 
 func _on_plane_changed(current: Planes.Kind) -> void:
 	_active = Planes.is_active(plane, current)
+	queue_redraw()
+
+
+func _on_next_plane_changed(next: Planes.Kind) -> void:
+	_next = plane == next
 	queue_redraw()
 
 
