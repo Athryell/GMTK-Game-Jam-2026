@@ -19,6 +19,9 @@ var _coyote := 0.0
 var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
+## Jumps left in mid-air. Refilled on landing, and only ever above zero on a
+## level whose `double_jump` is on.
+var _air_jumps := 0
 
 
 func _ready() -> void:
@@ -53,6 +56,18 @@ func _physics_process(delta: float) -> void:
 
 	if _buffer > 0.0 and _coyote > 0.0:
 		_jump()
+	elif _air_jumps > 0 and Input.is_action_just_pressed("jump"):
+		# Deliberately keyed to the press itself, not to `_buffer`: a buffered
+		# jump that missed the ground would otherwise be spent in the air the
+		# instant it was pressed, which is not what the player asked for.
+		#
+		# This is a second real flip, so it undoes the first — same plane, same
+		# sand, pure height. Double-jump while nearly empty and you throw away
+		# the refuel you just earned, which is exactly the trap level 10 is
+		# built around. No special case here makes that happen; `max - sand`
+		# applied twice does.
+		_air_jumps -= 1
+		_jump()
 
 	velocity.y += cfg.gravity * delta
 	# Variable jump height: releasing early clips the rise.
@@ -64,6 +79,7 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor():
 		_jumping = false
+		_air_jumps = 1 if Game.double_jump else 0
 
 	if global_position.y > death_y:
 		Game.kill()
@@ -83,3 +99,5 @@ func bounce(power: float) -> void:
 	velocity.y = -power
 	_jumping = false
 	_coyote = 0.0
+	# A spring hands back your air jump: it is a launch, not a jump you spent.
+	_air_jumps = 1 if Game.double_jump else 0

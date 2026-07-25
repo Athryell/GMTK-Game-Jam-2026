@@ -14,8 +14,26 @@ extends Node2D
 
 ## Name shown in the HUD.
 @export var level_name := "Untitled"
-## Playable extent. Bounds the camera; falling below it kills.
+## Playable extent. Bounds the camera; falling below it kills. Nothing stops
+## `y` from exceeding one screen — the camera has always clamped both axes, so a
+## tall level scrolls vertically with no code to add.
 @export var world_size := Vector2(960.0, 540.0): set = _set_world_size
+
+@export_group("Rules")
+## Sand the level starts you with, in ms. At 0 it takes `sand_start` from the
+## tuning panel. Set it low and the level is played from the edge of death —
+## which is the whole subject of "The Last Grain".
+@export_range(0.0, 20000.0, 100.0) var sand_start_override := 0.0
+## Grants one extra jump in mid-air, for this level only.
+##
+## Two flips return you to your starting plane AND, since `flip_sand()` is
+## `max - sand`, to your starting sand exactly. So a double jump is pure height
+## — free while you are full, ruinous while you are empty, the exact mirror of
+## the single jump. That asymmetry needs no tuning; it falls out of the formula.
+##
+## It lives on the level rather than on the player so there is no persistent
+## unlock to write, and so earlier levels stay untouched by construction.
+@export var double_jump := false
 
 @onready var spawn: Marker2D = $Spawn
 

@@ -54,6 +54,7 @@ func _load_current_level() -> void:
 
 	_level = Game.level_scenes[Game.level_index].instantiate() as Level
 	_level_root.add_child(_level)
+	_apply_level_rules()
 
 	_player = PLAYER_SCENE.instantiate() as Player
 	# Added to the level rather than to the root: reloading the level wipes
@@ -67,6 +68,15 @@ func _load_current_level() -> void:
 	_camera.reset_smoothing()
 	_on_plane_changed(Game.plane)
 	Game.announce_level(_level.level_name)
+
+
+## The two rules a level may bend for itself. Applied here rather than in
+## `Game.start_level`, which runs before the scene exists and so has nothing to
+## read them from.
+func _apply_level_rules() -> void:
+	Game.double_jump = _level.double_jump
+	if _level.sand_start_override > 0.0:
+		Game.sand = minf(_level.sand_start_override, Tuning.cfg.sand_max)
 
 
 func _on_status_changed(status: Game.Status) -> void:
