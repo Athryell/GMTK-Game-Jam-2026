@@ -23,7 +23,9 @@ extends RefCounted
 const NECK_RATIO := 0.13
 ## Half-height of the throat, as a fraction of the glass's half-height.
 const THROAT_RATIO := 0.07
-## Fraction of a bulb's height the trickle reaches before the pile hides it.
+## Fraction of a chamber's reach from the neck that the trickle covers before the
+## pile hides it. That reach is `_span(...).x` — half the glass's height at two
+## chambers, the rosette's radius above two.
 const STREAM_REACH := 0.82
 ## Bisection steps used to place a free surface. Each one halves the error, so
 ## 16 lands well inside a pixel at any size we draw.
@@ -118,6 +120,11 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 		sand: Color, down: Vector2, phase: float, line_width := 1.5) -> void:
 	var count := fills.size()
 	if count < 2:
+		# Below two there is nowhere for sand to fall, and `chamber` would turn its
+		# own polygon inside out rather than say so. Drawing nothing is the only
+		# safe answer, but doing it quietly would take the player's glass AND the
+		# HUD gauge off the screen with no trace of why.
+		push_error("HourglassShape: a glass needs at least two chambers, got %d" % count)
 		return
 
 	# The glass itself, in one piece.
@@ -154,28 +161,45 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 		fills: PackedFloat32Array, sand: Color, down: Vector2, phase: float,
 		line_width: float) -> void:
 	var span := _span(size, count)
-	var wall := cos(atan2(span.y - span.y * NECK_RATIO, span.x - span.x * THROAT_RATIO))
+	var throat := span.x * THROAT_RATIO
+	# Measured off the polygon that actually gets drawn, not rebuilt from the
+	# ratios: above two chambers `chamber` caps its neck corner at the wedge, so
+	# the authored `NECK_RATIO` is not the wall you can see. Reproduces the
+	# shipped 0.8485 exactly at two.
+	var edge := chamber(size, count, 0)
+	var wall := cos(absf((edge[0] - edge[3]).angle_to(ChamberLayout.axis(count, 0))))
 	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
 	if pouring <= 0.01:
 		return
-	var sideways := Vector2(-down.y, down.x)
-	var throat := span.x * THROAT_RATIO
 	for i in count:
-		if fills[i] <= 0.01 or ChamberLayout.targets(count, i).is_empty():
+		if fills[i] <= 0.01:
 			continue
-		# One thread per DRAINING chamber, not per target. Falling sand follows
-		# gravity and nothing else, so a chamber pouring into two of them is one
-		# fall that parts on the way down — drawing it once per target would rule
-		# the same line twice and read as a thread twice as bright.
-		#
-		# Starts at the UNDERSIDE of the draining chamber, not at the centre of
-		# the glass: the sand stops at the top of the throat, so a trickle
-		# beginning at the origin leaves the height of the throat as a gap of
-		# bare glass, and the fall reads as cut in two right where it should be
-		# one thing.
-		var head := sideways * sin(phase) * 0.6 - down * throat
-		canvas.draw_line(head, head + down * (span.x * STREAM_REACH + throat),
-			Color(sand, sand.a * pouring), line_width * 0.8, true)
+		var below := -ChamberLayout.axis(count, i)
+		for j in ChamberLayout.targets(count, i):
+			# One thread per (draining chamber -> target) pair, and it is aimed by
+			# turning gravity through the angle from straight-below-the-draining-
+			# chamber to where the target actually sits.
+			#
+			# Aiming it along plain `down` is what a two-bulb glass gets away with
+			# and a three-lobed one does not: at three there is no chamber opposite
+			# the top one, so straight down lands in the dead V between the two
+			# receivers and the thread hangs over bare background. Aiming it along
+			# the target's own axis instead would fix the upright case and break
+			# every tilted one, because a tipped glass's sand does not swing round
+			# with the walls. Turning `down` keeps both — the fall still leans with
+			# gravity, and when the target IS straight below (which is every
+			# draining chamber at two and at four) the rotation is zero and this is
+			# bit-for-bit the line that shipped, at any tilt.
+			var dir := down.rotated(below.angle_to(ChamberLayout.axis(count, j)))
+			var sideways := Vector2(-dir.y, dir.x)
+			# Starts at the UNDERSIDE of the draining chamber, not at the centre of
+			# the glass: the sand stops at the top of the throat, so a trickle
+			# beginning at the origin leaves the height of the throat as a gap of
+			# bare glass, and the fall reads as cut in two right where it should be
+			# one thing.
+			var head := sideways * sin(phase) * 0.6 - dir * throat
+			canvas.draw_line(head, head + dir * (span.x * STREAM_REACH + throat),
+				Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 
 ## Sand resting in one bulb, covering `target` area, with a surface square to

@@ -84,7 +84,8 @@ func down() -> Vector2:
 ## size of the array is the chamber count, so this one value tells the shape both
 ## how many chambers to draw and how much is in each.
 func chambers() -> PackedFloat32Array:
-	var frac := clampf(Game.sand / maxf(Tuning.cfg.sand_max, 1.0), 0.0, 1.0)
+	# Two for now; Task 6 gives Game an N-chamber reservoir.
+	var frac := clampf(Game.sand / Tuning.cfg.sand_max, 0.0, 1.0)
 	if Game.flip_anim > 0.0:
 		# Mid-tumble the neck gates the sand and each chamber keeps what it held.
 		# `Game.sand` jumped to the post-flip figure the instant the jump began,
