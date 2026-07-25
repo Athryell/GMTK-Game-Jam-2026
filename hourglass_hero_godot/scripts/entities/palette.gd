@@ -37,7 +37,6 @@ const SAND_LOW := Color("ff4d6d")
 
 # ----- Text ------------------------------------------------------------------
 
-const TEXT := Color("eaf0fb")
 const TEXT_DIM := Color("9aa6c4")
 
 # ----- The room --------------------------------------------------------------
@@ -61,6 +60,24 @@ const BACK_NEAR := Color("362566") ## Near wall.
 static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 	var effective := current if plane == Planes.Kind.BOTH else plane
 	return FRONT_SOLID if effective == Planes.Kind.FRONT else BACK_SOLID
+
+
+## The same colour, faded if the thing wearing it lives in the other plane.
+##
+## The alpha is a tuning value read live, which is why this is a function and
+## not a pair of constants: every ghost in the game has to move together when
+## the slider does.
+static func ghost(base: Color, active: bool) -> Color:
+	if active:
+		return base
+	return Color(base.r, base.g, base.b, Tuning.cfg.ghost_alpha)
+
+
+## The sand's colour at a given `Game.danger()`, from a full glass to an empty
+## one. Shared by the sprite, the HUD gauge and the light the player carries —
+## three readings of one clock, which must never disagree about how bad it is.
+static func sand(danger: float) -> Color:
+	return SAND_FULL.lerp(SAND_LOW, danger)
 
 
 ## The four room depths for a plane, far to near: sky, floor, far wall, near

@@ -95,7 +95,7 @@ static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
 		target: float, colour: Color) -> void:
 	if target <= 0.001:
 		return
-	_fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
+	fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
 
 
 ## Where the free surface sits: how far along `down` to cut so that exactly
@@ -173,16 +173,23 @@ static func _area(poly: PackedVector2Array) -> float:
 ## antialiasing flag and MSAA does not reach it under the Compatibility
 ## renderer, so the edge is redrawn as an antialiased stroke in the fill's own
 ## colour — the slanted walls stop being a staircase.
-static func _fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) -> void:
+##
+## Public because it is not really about hourglasses: anything in this game that
+## draws a diagonal needs it, and `Spikes` used to carry its own copy.
+static func fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) -> void:
 	if poly.size() < 3:
 		return
 	canvas.draw_colored_polygon(poly, colour)
-	var closed := poly.duplicate()
-	closed.append(poly[0])
-	canvas.draw_polyline(closed, colour, 1.0, true)
+	canvas.draw_polyline(_closed(poly), colour, 1.0, true)
 
 
 static func _outline(canvas: CanvasItem, poly: PackedVector2Array, width: float) -> void:
-	var closed := poly.duplicate()
-	closed.append(poly[0])
-	canvas.draw_polyline(closed, Palette.GLASS, width, true)
+	canvas.draw_polyline(_closed(poly), Palette.GLASS, width, true)
+
+
+## `poly` with its first point repeated at the end, which is what `draw_polyline`
+## needs to come all the way back round.
+static func _closed(poly: PackedVector2Array) -> PackedVector2Array:
+	var out := poly.duplicate()
+	out.append(poly[0])
+	return out

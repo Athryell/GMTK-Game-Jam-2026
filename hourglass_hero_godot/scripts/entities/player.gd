@@ -59,9 +59,9 @@ func _process(delta: float) -> void:
 	# Never all the way out. A light that reaches zero is not tension, it is a
 	# player who cannot see the platform they are about to miss.
 	var throb := 1.0 + 0.14 * sin(_pulse * 13.0) * danger
-	_light.color = Palette.SAND_FULL.lerp(Palette.SAND_LOW, danger)
+	_light.color = Palette.sand(danger)
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
-	_light.texture_scale = cfg.player_light_radius * 2.0 / LightKit.TEXTURE_SIZE
+	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius)
 	_sweat(delta, danger)
 
 

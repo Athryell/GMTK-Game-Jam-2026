@@ -15,11 +15,15 @@ class_name EntityLight
 extends PointLight2D
 
 var plane: Planes.Kind = Planes.Kind.BOTH
-var tint := Color.WHITE
-var radius := 90.0
 ## Multiplies `entity_light_energy`, so one slider still moves every light in
 ## the game while a door can stay brighter than a spike.
 var energy_scale := 1.0
+## Breaths per second, and how much of `energy_scale` a breath swings. At rate 0
+## the light is steady and does not tick at all.
+var pulse_rate := 0.0
+var pulse_depth := 0.0
+
+var _pulse := 0.0
 
 
 ## Builds and attaches a light to `host`, centred on its rectangle.
@@ -27,12 +31,15 @@ var energy_scale := 1.0
 ## Entity origins are top-left corners; a light left on the corner lights the
 ## room from outside the object it belongs to.
 static func attach(host: Node2D, entity_plane: Planes.Kind, size: Vector2,
-		tint_: Color, radius_: float, energy_scale_ := 1.0) -> EntityLight:
+		tint: Color, radius: float, scale := 1.0,
+		rate := 0.0, depth := 0.0) -> EntityLight:
 	var light := EntityLight.new()
 	light.plane = entity_plane
-	light.tint = tint_
-	light.radius = radius_
-	light.energy_scale = energy_scale_
+	light.color = tint
+	light.texture_scale = LightKit.scale_for(radius)
+	light.energy_scale = scale
+	light.pulse_rate = rate
+	light.pulse_depth = depth
 	light.position = size / 2.0
 	host.add_child(light)
 	return light
@@ -40,12 +47,16 @@ static func attach(host: Node2D, entity_plane: Planes.Kind, size: Vector2,
 
 func _ready() -> void:
 	texture = LightKit.falloff()
-	texture_scale = radius * 2.0 / LightKit.TEXTURE_SIZE
-	color = tint
 	shadow_enabled = false
+	set_process(pulse_rate > 0.0)
 	Game.plane_changed.connect(_on_plane_changed)
 	Tuning.changed.connect(_refresh)
 	_on_plane_changed(Game.plane)
+
+
+func _process(delta: float) -> void:
+	_pulse += delta
+	_refresh()
 
 
 func _on_plane_changed(current: Planes.Kind) -> void:
@@ -54,5 +65,8 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	_refresh()
 
 
+## The one place a scale becomes a brightness. Every light in the game passes
+## through here, which is what lets a single slider move all of them at once.
 func _refresh() -> void:
-	energy = Tuning.cfg.entity_light_energy * energy_scale
+	var breath := 1.0 + pulse_depth * sin(_pulse * pulse_rate)
+	energy = Tuning.cfg.entity_light_energy * energy_scale * breath

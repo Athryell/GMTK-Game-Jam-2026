@@ -45,20 +45,20 @@ static func falloff() -> GradientTexture2D:
 	return _texture
 
 
-## A light reaching `radius` px, ready to be added as a child.
-##
-## `offset` moves it off its parent's origin, which every entity here needs:
-## entity origins are top-left corners, and a light hanging off a corner lights
-## the room lopsidedly.
-## Never casts. Godot's 2D shadow map cannot be made clean for a lamp that sits
+## How much to scale the falloff texture by to reach `radius` px. The texture is
+## a fixed size and every light has to divide by it; leaving that division to the
+## callers is how the convention leaks into three files.
+static func scale_for(radius: float) -> float:
+	return radius * 2.0 / TEXTURE_SIZE
+
+
+## A light reaching `radius` px, ready to be added as a child. Never casts. Godot's 2D shadow map cannot be made clean for a lamp that sits
 ## on the floor it lights — see [CastShadows], which draws the terrain's shadows
 ## by hand instead.
-static func point(colour: Color, radius: float, energy := 1.0,
-		offset := Vector2.ZERO) -> PointLight2D:
+static func point(colour: Color, radius: float, energy := 1.0) -> PointLight2D:
 	var light := PointLight2D.new()
 	light.texture = falloff()
-	light.texture_scale = radius * 2.0 / TEXTURE_SIZE
+	light.texture_scale = scale_for(radius)
 	light.color = colour
 	light.energy = energy
-	light.position = offset
 	return light

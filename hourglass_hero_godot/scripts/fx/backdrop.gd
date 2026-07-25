@@ -3,11 +3,6 @@
 ## It exists so a level stops reading as rectangles floating in a void. Nothing
 ## here is collidable, nothing here is authored — hand it a `world_size` and it
 ## builds a room to fit.
-##
-## The foreground pillars are NOT here. They have to draw over the level, so
-## they are a `ParallaxWall` sitting after `LevelRoot` in `main.tscn`; putting
-## them in this node would bury them behind the thing they are supposed to pass
-## in front of.
 class_name Backdrop
 extends Node2D
 
@@ -17,7 +12,6 @@ extends Node2D
 ## move through space.
 const RECOLOUR_TIME := 0.26
 
-var _sky: TextureRect
 var _gradient: Gradient
 var _far: ParallaxWall
 var _near: ParallaxWall
@@ -74,19 +68,19 @@ func _build_sky() -> void:
 	texture.fill_from = Vector2(0.0, 0.0)
 	texture.fill_to = Vector2(0.0, 1.0)
 
-	_sky = TextureRect.new()
-	_sky.texture = texture
-	_sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_sky.stretch_mode = TextureRect.STRETCH_SCALE
-	_sky.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sky := TextureRect.new()
+	sky.texture = texture
+	sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sky.stretch_mode = TextureRect.STRETCH_SCALE
+	sky.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Its own layer, below everything: the sky must not scroll with the world,
 	# and being outside the default canvas also keeps it clear of the
 	# `CanvasModulate` that darkens the playfield for the lights.
 	var layer := CanvasLayer.new()
 	layer.layer = -100
-	layer.add_child(_sky)
+	layer.add_child(sky)
 	add_child(layer)
 
 
