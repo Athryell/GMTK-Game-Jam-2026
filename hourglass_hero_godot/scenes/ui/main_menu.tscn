@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://b657brexskrap"]
+[gd_scene load_steps=3 format=3 uid="uid://b657brexskrap"]
 
 [ext_resource type="Script" uid="uid://1gy2wnvp4tcv" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings.tscn" id="2_audio"]
 
 [node name="MainMenu" type="Control" unique_id=318210579]
 layout_mode = 3
@@ -84,6 +85,14 @@ text = "PLAY"
 custom_minimum_size = Vector2(120, 42)
 layout_mode = 2
 text = "QUIT"
+
+
+[node name="Spacer3" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+
+[node name="Sound" parent="Layout" instance=ExtResource("2_audio")]
+layout_mode = 2
 
 [node name="Hint" type="Label" parent="Layout" unique_id=1708571913]
 layout_mode = 2

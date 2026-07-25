@@ -46,7 +46,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var motion := Glass.motion
-	var sand_colour := Palette.SAND_FULL.lerp(Palette.SAND_LOW, Game.danger())
+	var sand_colour := Palette.sand(Game.danger())
 	# Same routine, same motion as the HUD gauge: one hourglass, two sizes.
 	HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
 		motion.down(), motion.stream_phase)

@@ -79,10 +79,8 @@ func _draw() -> void:
 func _colour() -> Color:
 	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.FRONT
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)
-	if _active or Engine.is_editor_hint():
-		return base
-	# Ghost: it lives in the other plane — visible, but you fall right through.
-	return Color(base.r, base.g, base.b, Tuning.cfg.ghost_alpha)
+	# A ghost lives in the other plane: visible, but you fall right through it.
+	return Palette.ghost(base, _active or Engine.is_editor_hint())
 
 
 # ----- Plane -----------------------------------------------------------------
@@ -100,6 +98,7 @@ func _on_pad_body_entered(body: Node2D) -> void:
 	# loop, you have to leave and come back.
 	if body is Player:
 		Game.pad_flip()
+		Audio.sfx("flip_pad")
 
 
 # ----- Setters (live update in the editor) -----------------------------------
@@ -133,8 +132,7 @@ func _apply_size() -> void:
 	_pad_detector_shape.position = Vector2(size.x / 2.0, 0.0)
 
 
+## `monitoring` is deliberately NOT set here: it depends on the plane as well as
+## on the kind, and `_on_plane_changed` is the one place that knows both.
 func _apply_kind() -> void:
 	queue_redraw()
-	if not is_node_ready():
-		return
-	_pad_detector.monitoring = kind == Kind.FLIP_PAD

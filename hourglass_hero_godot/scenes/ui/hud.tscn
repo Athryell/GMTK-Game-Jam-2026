@@ -20,7 +20,7 @@ offset_right = 520.0
 offset_bottom = 74.0
 theme_override_colors/font_color = Color(0.918, 0.941, 0.984, 1)
 theme_override_font_sizes/font_size = 16
-text = "1/6"
+text = "1/12"
 
 [node name="PlaneLabel" type="Label" parent="Root"]
 layout_mode = 0

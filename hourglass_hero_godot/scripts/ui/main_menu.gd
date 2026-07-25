@@ -7,7 +7,6 @@
 extends Control
 
 const GAME_SCENE := "res://scenes/main.tscn"
-const COLUMNS := 3
 
 @onready var _grid: GridContainer = $Layout/Levels
 @onready var _quit: Button = $Layout/Actions/Quit
@@ -15,17 +14,14 @@ const COLUMNS := 3
 
 
 func _ready() -> void:
-	_grid.columns = COLUMNS
 	_play.pressed.connect(_on_play_pressed)
 	_quit.pressed.connect(get_tree().quit)
 	_build_level_buttons()
 	_play.grab_focus()
+	Audio.play_music("menu")
 
 
 func _build_level_buttons() -> void:
-	for child in _grid.get_children():
-		child.queue_free()
-
 	for i in Game.level_scenes.size():
 		var button := Button.new()
 		button.text = "%d — %s" % [i + 1, Game.level_names[i]]

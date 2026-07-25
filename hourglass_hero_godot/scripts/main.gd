@@ -85,6 +85,9 @@ func _load_current_level() -> void:
 	_camera.snap()
 	_backdrop.sync(_camera.global_position)
 
+	# One track for the whole run: `play_music` ignores the track already playing,
+	# so moving to the next level does not restart the music under the player.
+	Audio.play_music("level")
 	Game.announce_level(_level.level_name)
 
 
@@ -130,5 +133,6 @@ func _on_status_changed(status: Game.Status) -> void:
 			_advance_timer = 0.0
 		Game.Status.LEVEL_CLEAR:
 			_advance_timer = Tuning.cfg.level_clear_delay
+			Audio.sfx("win")
 		Game.Status.DEAD:
 			_advance_timer = Tuning.cfg.death_delay

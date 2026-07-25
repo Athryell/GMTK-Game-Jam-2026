@@ -17,22 +17,22 @@ enum Kind {
 }
 
 const GRAVITY := 900.0
+## How far the plane-swap ring reaches, in px. Sized to read at a glance without
+## covering the platform you are about to land on.
+const RING_RADIUS := 58.0
 
 var kind: Kind = Kind.RING
 var colour := Color.WHITE
 var duration := 0.35
-var radius := 46.0
 
 var _elapsed := 0.0
 var _bits: Array[Vector2] = []
 var _velocities: Array[Vector2] = []
 
 
-## The plane swap. Sized to read at a glance without covering the platform you
-## are about to land on.
+## The plane swap.
 static func ring(parent: Node, at: Vector2, tint: Color) -> void:
-	var b := _make(parent, at, Kind.RING, tint, 0.38)
-	b.radius = 58.0
+	_make(parent, at, Kind.RING, tint, 0.38)
 
 
 ## Landing. `force` is 0 at a gentle touchdown and 1 at terminal velocity, and
@@ -102,7 +102,7 @@ func _draw() -> void:
 			# Eased out: the ring leaps away from the player and then settles,
 			# which reads as an impulse rather than as a growing circle.
 			var eased := 1.0 - pow(1.0 - t, 3.0)
-			draw_arc(Vector2.ZERO, radius * eased, 0.0, TAU, 48,
+			draw_arc(Vector2.ZERO, RING_RADIUS * eased, 0.0, TAU, 48,
 				Color(colour, fade * 0.85), 3.0 * fade + 1.0, true)
 		Kind.DUST:
 			for p in _bits:

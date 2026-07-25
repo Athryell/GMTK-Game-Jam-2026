@@ -30,7 +30,7 @@ func _draw() -> void:
 	# tumble, same slosh, same trickle. Run right and the sand banks against the
 	# left wall here exactly as it does down on the sprite.
 	var motion := Glass.motion
-	var colour := Palette.SAND_FULL.lerp(Palette.SAND_LOW, Game.danger())
+	var colour := Palette.sand(Game.danger())
 
 	draw_set_transform(gauge_centre, motion.tilt, Vector2.ONE)
 	HourglassShape.draw_glass(self, gauge_size, motion.chambers(), colour,
