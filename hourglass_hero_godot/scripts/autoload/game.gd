@@ -78,6 +78,15 @@ var flow_blend := 0.0
 ## `start_level` runs before it is instantiated.
 var double_jump := false
 
+## Screen-y of "down" for the level being played: +1 normally, -1 where gravity
+## is inverted and the ceiling is the floor.
+##
+## A sign rather than a second set of rules. Every vertical quantity in the game
+## — the pull, the jump, the fall cap, which way you land, where you fall out of
+## the world — is written as a downward component times this, so the inverted
+## level is the same code with one number changed and cannot drift from it.
+var gravity_sign := 1.0
+
 ## Seconds left on the flip animation, and which way it tumbles.
 var flip_anim: float = 0.0
 var flip_dir: float = 1.0

@@ -8,6 +8,12 @@ extends CharacterBody2D
 
 ## Depth past which you have fallen out of the level. Set by `main.gd`.
 var death_y := 10000.0
+## Screen-y of "down" for this glass: +1 normally, -1 in an inverted level.
+##
+## Copied from `Game` once rather than read every frame, and for the same reason
+## `death_y` is a field: a level is freed a frame after the next one is armed, so
+## a player still winding down must keep judging by the world it was born in.
+var pull := 1.0
 
 var _coyote := 0.0
 var _buffer := 0.0
@@ -47,6 +53,11 @@ func _ready() -> void:
 	# Godot's own 45° stays: past that a face is a wall, which is what the
 	# vertical sides of every ledge in the game rely on being.
 	floor_snap_length = FLOOR_SNAP
+	# Which way is up for this level. Set once: a level does not change its mind
+	# about gravity halfway through, and the player is spawned after the rule is
+	# applied.
+	pull = Game.gravity_sign
+	up_direction = Vector2(0.0, -pull)
 	# Named in one place, so a group typed into a .tscn cannot drift from it.
 	add_to_group(Game.PLAYER_GROUP)
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
@@ -82,7 +93,8 @@ func _sweat(delta: float, danger: float) -> void:
 	var urgency := inverse_lerp(SWEAT_FROM, 1.0, danger)
 	_sweat_timer = lerpf(SWEAT_SLOWEST, SWEAT_FASTEST, urgency)
 	var from := global_position + Vector2(
-		_rng.randf_range(-11.0, 11.0), _rng.randf_range(-15.0, -4.0))
+		_rng.randf_range(-11.0, 11.0),
+		_rng.randf_range(-15.0, -4.0) * pull)
 	Burst.sweat(get_parent(), from, Palette.GLASS)
 
 
@@ -93,10 +105,13 @@ func _physics_process(delta: float) -> void:
 	# frame's `move_and_slide` — zero against a wall.
 	Glass.travel = velocity.x
 
+	# Every vertical line below reads the DOWNWARD component — `velocity.y * pull`
+	# — and writes it back the same way, so an inverted level runs the identical
+	# arithmetic rather than a mirrored copy.
 	if Game.status != Game.Status.PLAY:
 		# Dead or cleared: freeze, but keep gravity.
 		velocity.x = 0.0
-		velocity.y = minf(velocity.y + cfg.gravity * delta, cfg.max_fall_speed)
+		velocity.y = pull * minf(velocity.y * pull + cfg.gravity * delta, cfg.max_fall_speed)
 		move_and_slide()
 		return
 
@@ -115,14 +130,14 @@ func _physics_process(delta: float) -> void:
 		_air_jumps -= 1
 		_jump()
 
-	velocity.y += cfg.gravity * delta
+	velocity.y += cfg.gravity * pull * delta
 	# Variable jump height.
-	if _jumping and not Input.is_action_pressed("jump") and velocity.y < 0.0:
-		velocity.y = maxf(velocity.y, -cfg.jump_cut_velocity)
-	velocity.y = minf(velocity.y, cfg.max_fall_speed)
+	if _jumping and not Input.is_action_pressed("jump") and velocity.y * pull < 0.0:
+		velocity.y = pull * maxf(velocity.y * pull, -cfg.jump_cut_velocity)
+	velocity.y = pull * minf(velocity.y * pull, cfg.max_fall_speed)
 
 	var was_airborne := not is_on_floor()
-	var impact := velocity.y
+	var impact := velocity.y * pull
 	move_and_slide()
 
 	if is_on_floor():
@@ -131,7 +146,7 @@ func _physics_process(delta: float) -> void:
 		_jumping = false
 		_air_jumps = 1 if Game.double_jump else 0
 
-	if global_position.y > death_y:
+	if (global_position.y - death_y) * pull > 0.0:
 		Game.kill()
 
 
@@ -146,7 +161,7 @@ func _jump() -> void:
 	_buffer = 0.0
 	_coyote = 0.0
 	_jumping = true
-	velocity.y = -Tuning.cfg.jump_velocity
+	velocity.y = -Tuning.cfg.jump_velocity * pull
 	Game.jump_flip(Input.get_axis("move_left", "move_right"))
 	Audio.sfx("jump")
 
@@ -159,7 +174,7 @@ func _land(impact_speed: float) -> void:
 	var force := clampf(impact_speed / maxf(Tuning.cfg.max_fall_speed, 1.0) * 2.4, 0.0, 1.0)
 	if force < 0.08:
 		return
-	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0),
+	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0 * pull),
 		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
 	Audio.sfx("land")
 
@@ -191,7 +206,7 @@ func _on_status_changed(status: Game.Status) -> void:
 
 ## Launched by a spring: no flip, no plane change, and no variable-height cut.
 func bounce(power: float) -> void:
-	velocity.y = -power
+	velocity.y = -power * pull
 	_jumping = false
 	_coyote = 0.0
 	Audio.sfx("spring")

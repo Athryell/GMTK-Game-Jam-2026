@@ -18,7 +18,9 @@ var _shiver := 0.0
 func _process(delta: float) -> void:
 	_shiver += delta
 	# Shared with the HUD gauge. `Glass` is an autoload, already ticked by now.
-	rotation = Glass.motion.tilt
+	# Half a turn where gravity is inverted: the glass hangs the other way up, so
+	# its sand pools towards the ceiling it is now falling to.
+	rotation = Glass.motion.tilt + (0.0 if Game.gravity_sign > 0.0 else PI)
 	# Squared, so the shake only arrives at the very end.
 	var fear := Game.danger()
 	var amount := TREMBLE * fear * fear

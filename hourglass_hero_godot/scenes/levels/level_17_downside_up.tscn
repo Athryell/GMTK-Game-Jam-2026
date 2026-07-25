@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "Downside Up"
+chambers = 3
+inverted_gravity = true
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(53, 61)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground"]
+polygon = PackedVector2Array(0, 0, 960, 0, 960, 91, 700, 91, 620, 64, 380, 64, 300, 38, 0, 38)
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(901, 91)

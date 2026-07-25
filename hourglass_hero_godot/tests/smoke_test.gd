@@ -192,7 +192,60 @@ func _ready() -> void:
 	# --- The inversion zone, in the real game ---------------------------------
 	await _check_inversion_zone()
 
+	# --- Gravity the other way up ---------------------------------------------
+	await _check_inverted_gravity()
+
 	_finish()
+
+
+## The upside-down level is a real level: you stand on its ceiling, and walking
+## and jumping get you to its door exactly as they do anywhere else.
+func _check_inverted_gravity() -> void:
+	var index := -1
+	for i in Game.level_scenes.size():
+		var packed := Game.level_scenes[i].instantiate() as Level
+		var inverted: bool = packed != null and packed.inverted_gravity
+		if packed != null:
+			packed.free()
+		if inverted:
+			index = i
+			break
+	_check("some level turns gravity the other way up", index >= 0)
+	if index < 0:
+		return
+
+	Game.start_level(index)
+	await _load_level_scene()
+	var player := _find_player()
+	if player == null:
+		_check("inverted: player spawned", false)
+		return
+	_check("inverted: the pull is reversed", is_equal_approx(player.pull, -1.0),
+		"pull=%.1f" % player.pull)
+
+	# Falling towards the ceiling, then held there.
+	var start := player.global_position.y
+	await _frames(30)
+	_check("inverted: the glass falls upwards and settles on the ceiling",
+		player.is_on_floor() and player.global_position.y <= start,
+		"y %.0f → %.0f floor=%s" % [start, player.global_position.y, player.is_on_floor()])
+
+	var level_before := Game.level_index
+	Input.action_press("move_right")
+	var reached := false
+	for i in 900:
+		if i % 90 == 0:
+			Input.action_press("jump")
+		elif i % 90 == 6:
+			Input.action_release("jump")
+		await get_tree().physics_frame
+		if Game.status == Game.Status.LEVEL_CLEAR or Game.level_index != level_before:
+			reached = true
+			break
+	Input.action_release("move_right")
+	Input.action_release("jump")
+	_check("inverted: walking the ceiling reaches the door", reached,
+		"status=%s x=%.0f sand=%.0f" % [Game.status, player.global_position.x, Game.sand])
 
 
 ## A spring launch is the fastest the player ever moves. Asserted in px against
