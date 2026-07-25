@@ -68,6 +68,14 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, Vector2(size.x, 3.0)), _colour().lightened(0.35))
 
 
+## The outline this casts a shadow from, in this node's own space: its four
+## corners. `Terrain` answers the same question with as many points as its
+## ground has, and `CastShadows` cannot tell them apart.
+func shadow_outline() -> PackedVector2Array:
+	return PackedVector2Array([
+		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
+
+
 func _colour() -> Color:
 	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)

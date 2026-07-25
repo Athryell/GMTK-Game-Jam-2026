@@ -33,9 +33,20 @@ var _sweat_timer := 0.0
 var _rng := RandomNumberGenerator.new()
 
 
+## How far below its feet the glass reaches for the ground, in px. Only slopes
+## need it: run down a ramp without a snap and you leave the floor at every
+## crest, which costs a frame of contact — and with it the coyote window, the
+## landing dust, and the right to jump. Kept well under the shortest step in any
+## level, so it never glues you to a ledge you meant to walk off.
+const FLOOR_SNAP := 8.0
+
+
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
 	collision_mask = Layers.SOLID
+	# Godot's own 45° stays: past that a face is a wall, which is what the
+	# vertical sides of every ledge in the game rely on being.
+	floor_snap_length = FLOOR_SNAP
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
 		Tuning.cfg.player_light_energy)
 	add_child(_light)

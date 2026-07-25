@@ -85,16 +85,22 @@ would bury the dozen sliders that actually change how the game plays.
 2. On the root node, set `level_name` (shown in the HUD) and `world_size`
    (bounds the camera; falling below it kills). The editor draws the bounds.
 3. Move the `Spawn` marker to where the hourglass should appear.
-4. Drag scenes from `scenes/entities/` into the `Entities` node and lay them
+4. Draw the ground. Add a **`Terrain`** node under `Entities` — it arrives with
+   a `Shape` child holding a rectangle. Select that child and Godot's own
+   polygon tool takes over: drag a handle to move a point, ctrl-click an edge to
+   insert one. What you draw is what you stand on, slopes included; there is no
+   second shape to keep in sync.
+5. Drag scenes from `scenes/entities/` into the `Entities` node and lay them
    out. Each has `size` and `plane` in the Inspector and redraws live.
-5. Run. Levels are discovered by scanning the folder — there is no list to
+6. Run. Levels are discovered by scanning the folder — there is no list to
    update anywhere.
 
 ### The building blocks
 
-| Scene | What it is | Key properties |
+| Node / Scene | What it is | Key properties |
 |---|---|---|
-| `platform.tscn` | Floor, wall or platform. `kind = FLIP_PAD` turns it into a refuel pad. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
+| **`Terrain`** (node) | The ground, as a polygon: floor, ledge, wall and **slope** in one node. Edit the points on its `Shape` child. | `plane` |
+| `platform.tscn` | A rectangle that MOVES, or a refuel pad (`kind = FLIP_PAD`). Static ground belongs in a `Terrain`. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
 | `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = use the tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
@@ -154,6 +160,7 @@ scripts/
   hourglass_shape.gd      Draws the glass — shared by the player and the HUD gauge
   hourglass_motion.gd     The tumble, the sand's slosh, the trickle's wobble
   planes.gd               FRONT / BACK / BOTH and the "is it active?" rule
+  polygons.gd             Winding, outward normals, offset — ground and its shadow
   level.gd                Level root: name, bounds, spawn
   main.gd                 Loads levels, spawns the player, drives the camera
   autoload/
@@ -163,6 +170,7 @@ scripts/
     screen.gd    (Screen) The window: launches fullscreen, Alt+Enter toggles
   entities/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
+    terrain.gd            StaticBody2D drawn FROM its own collision polygon
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
     spring.gd  monster.gd  spikes.gd  door.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
@@ -212,6 +220,17 @@ The chamber layout test checks the maths underneath the multi-chamber glass
 with nothing drawn and no game running: which chambers drain, receive, or seal
 shut at each chamber count, who pours into whom, and the two- and three-turn
 lessons the three- and four-chamber levels are built to teach.
+
+```bash
+godot --path hourglass_hero_godot --headless tests/polygon_test.tscn
+```
+
+The polygon test checks the geometry the drawn ground and its shadow both stand
+on — which way a polygon winds, which of its edges face the sky, and that the
+offset giving a shadow its penumbra grows a long thin slab on all four sides.
+Then it walks every level's ground and fails on any slope steeper than the 45°
+`move_and_slide` will still call a floor: a ramp one degree past that is not a
+slope, it is a wall you can see over.
 
 ## How the sand moves
 
