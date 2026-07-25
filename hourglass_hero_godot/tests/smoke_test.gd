@@ -141,11 +141,11 @@ func _ready() -> void:
 
 	# --- Spikes obey the plane, like every other entity -----------------------
 	var spikes := preload("res://scenes/entities/spikes.tscn").instantiate() as Spikes
-	spikes.plane = Planes.Kind.FRONT
+	spikes.plane = Planes.Kind.P0
 	add_child(spikes)
-	Game.set_plane(Planes.Kind.FRONT)
+	Game.set_plane(Planes.Kind.P0)
 	_check("spikes are armed inside their own plane", spikes.monitoring)
-	Game.set_plane(Planes.Kind.BACK)
+	Game.set_plane(Planes.Kind.P1)
 	_check("spikes go inert in the other plane", not spikes.monitoring)
 	spikes.queue_free()
 

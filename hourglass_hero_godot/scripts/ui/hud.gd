@@ -49,9 +49,9 @@ func _on_level_loaded(index: int, level_name: String) -> void:
 
 
 func _on_plane_changed(plane: Planes.Kind) -> void:
-	var front := plane == Planes.Kind.FRONT
+	var front := plane == Planes.Kind.P0
 	_plane_label.text = "FRONT" if front else "BACK"
-	_plane_label.modulate = Palette.FRONT_SOLID if front else Palette.BACK_SOLID
+	_plane_label.modulate = Palette.solid(plane, plane)
 
 
 func _on_status_changed(status: Game.Status) -> void:

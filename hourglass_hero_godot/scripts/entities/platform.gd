@@ -77,7 +77,7 @@ func _draw() -> void:
 
 
 func _colour() -> Color:
-	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.FRONT
+	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)
 	# A ghost lives in the other plane: visible, but you fall right through it.
 	return Palette.ghost(base, _active or Engine.is_editor_hint())

@@ -30,7 +30,7 @@ var unlock_all := true
 var levels_reached := 0
 
 var sand: float = 0.0
-var plane: Planes.Kind = Planes.Kind.FRONT
+var plane: Planes.Kind = Planes.Kind.P0
 var status: Status = Status.PLAY
 
 ## Does the current level grant an extra jump in mid-air? Set by `main.gd` from
@@ -124,7 +124,7 @@ func start_level(index: int) -> void:
 	# Off until the level says otherwise, so a level that grants it cannot leak
 	# into the next one.
 	double_jump = false
-	set_plane(Planes.Kind.FRONT)
+	set_plane(Planes.Kind.P0)
 	set_status(Status.PLAY)
 
 
@@ -175,12 +175,13 @@ func flip_sand() -> float:
 ## A jump: swaps the plane AND flips the hourglass.
 func jump_flip(travel_dir: float) -> void:
 	sand = flip_sand()
-	set_plane(Planes.opposite(plane))
-	flip_anim = Tuning.cfg.flip_duration
 	# Tumble rolls the way you travel — moving right spins clockwise, like a
-	# wheel. Keep the last direction on a straight-up jump.
+	# wheel. Keep the last direction on a straight-up jump. This has to settle
+	# before the plane moves, because `step` turns the way the glass turns.
 	if not is_zero_approx(travel_dir):
 		flip_dir = signf(travel_dir)
+	set_plane(Planes.step(plane, int(flip_dir), 2))
+	flip_anim = Tuning.cfg.flip_duration
 	flipped.emit(false)
 
 

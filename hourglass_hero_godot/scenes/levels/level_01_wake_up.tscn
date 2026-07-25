@@ -17,12 +17,12 @@ position = Vector2(53, 479)
 [node name="Door" parent="Entities" instance=ExtResource("2_door")]
 position = Vector2(902, 438)
 size = Vector2(34, 64)
-plane = 2
+plane = 4
 
 [node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(960, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]

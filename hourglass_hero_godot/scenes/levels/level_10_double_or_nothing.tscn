@@ -19,40 +19,40 @@ position = Vector2(50, 479)
 [node name="Door" parent="Entities" instance=ExtResource("2_door")]
 position = Vector2(1330, 438)
 size = Vector2(34, 64)
-plane = 2
+plane = 4
 
 [node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(300, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(540, 502)
 size = Vector2(260, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(900, 310)
 size = Vector2(140, 18)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(1120, 502)
 size = Vector2(280, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
 position = Vector2(300, 505)
 size = Vector2(240, 35)
-plane = 2
+plane = 4
 facing = 0
 
 [node name="Spikes2" parent="Entities" instance=ExtResource("6_spikes")]
 position = Vector2(800, 505)
 size = Vector2(320, 35)
-plane = 2
+plane = 4
 facing = 0

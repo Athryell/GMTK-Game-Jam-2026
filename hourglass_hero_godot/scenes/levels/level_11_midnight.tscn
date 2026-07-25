@@ -24,7 +24,7 @@ plane = 1
 [node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(220, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
@@ -63,7 +63,7 @@ kind = 0
 [node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
 position = Vector2(220, 505)
 size = Vector2(780, 35)
-plane = 2
+plane = 4
 facing = 0
 
 [node name="Monster1" parent="Entities" instance=ExtResource("4_monster")]

@@ -59,7 +59,8 @@ func sync(camera_position: Vector2) -> void:
 func _build_sky() -> void:
 	_gradient = Gradient.new()
 	_gradient.offsets = PackedFloat32Array([0.0, 1.0])
-	_gradient.colors = PackedColorArray([Palette.FRONT_SKY, Palette.FRONT_FLOOR])
+	var opening := Palette.room(Planes.Kind.P0)
+	_gradient.colors = PackedColorArray([opening[0], opening[1]])
 
 	var texture := GradientTexture2D.new()
 	texture.gradient = _gradient

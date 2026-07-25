@@ -18,24 +18,24 @@ position = Vector2(50, 479)
 [node name="Door" parent="Entities" instance=ExtResource("2_door")]
 position = Vector2(1330, 438)
 size = Vector2(34, 64)
-plane = 2
+plane = 4
 
 [node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(260, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(1140, 502)
 size = Vector2(260, 38)
-plane = 2
+plane = 4
 kind = 0
 
 [node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(280, 350)
 size = Vector2(110, 18)
-plane = 2
+plane = 4
 kind = 0
 move_axis = 2
 move_distance = 100.0
@@ -44,7 +44,7 @@ move_speed = 100.0
 [node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(470, 350)
 size = Vector2(110, 18)
-plane = 2
+plane = 4
 kind = 0
 move_axis = 2
 move_distance = 100.0
@@ -54,7 +54,7 @@ move_phase = 0.2
 [node name="Platform5" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(660, 350)
 size = Vector2(110, 18)
-plane = 2
+plane = 4
 kind = 0
 move_axis = 2
 move_distance = 100.0
@@ -64,7 +64,7 @@ move_phase = 0.4
 [node name="Platform6" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(850, 350)
 size = Vector2(110, 18)
-plane = 2
+plane = 4
 kind = 0
 move_axis = 2
 move_distance = 100.0
@@ -74,7 +74,7 @@ move_phase = 0.6
 [node name="Platform7" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(1020, 350)
 size = Vector2(110, 18)
-plane = 2
+plane = 4
 kind = 0
 move_axis = 2
 move_distance = 100.0
@@ -84,5 +84,5 @@ move_phase = 0.8
 [node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
 position = Vector2(260, 505)
 size = Vector2(880, 35)
-plane = 2
+plane = 4
 facing = 0

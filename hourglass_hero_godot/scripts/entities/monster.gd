@@ -21,7 +21,7 @@ var _elapsed := 0.0
 
 func _init() -> void:
 	size = Vector2(30.0, 34.0)
-	plane = Planes.Kind.FRONT
+	plane = Planes.Kind.P0
 	light_tint = Palette.MONSTER
 	light_radius = 105.0
 	light_energy = 0.8
