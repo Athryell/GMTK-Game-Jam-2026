@@ -45,6 +45,13 @@ Read these once; every task assumes them.
   parse with "Cannot infer the type"; write `var x: PlaneArea = ...`.
 - **A subclass cannot redeclare a parent `const` or `@export var`.** Per-entity
   defaults go in `_init()`.
+- **`==` binds tighter than `as`.** `x == [1] as Array[int]` parses as
+  `(x == [1]) as Array[int]` and is a hard parse error, not a failing test.
+  Parenthesise the cast: `x == ([1] as Array[int])`.
+- **A test that never calls the thing it is testing is not a test.** Several
+  claims in this plan are about a turn sequence, and a turn sequence is `posmod`
+  — it is easy to write a check that re-derives the rule and would stay green
+  with the class deleted. Every check must go through the code under test.
 
 `godot` is at `/opt/homebrew/bin/godot`.
 
@@ -140,52 +147,61 @@ func _roles() -> void:
 ## The "opposite chambers only" rule and the "half and half" rule are the same
 ## rule seen at two chamber counts. Neither is written down anywhere.
 func _pour_map() -> void:
+	# The cast is parenthesised because `==` binds TIGHTER than `as` in GDScript:
+	# `x == [1] as Array[int]` parses as `(x == [1]) as Array[int]` and is a hard
+	# parse error, "Cannot convert from bool to Array[int]".
 	_check("N=2: the top pours straight into the bottom",
-		ChamberLayout.targets(2, 0) == [1] as Array[int])
+		ChamberLayout.targets(2, 0) == ([1] as Array[int]))
 	_check("N=4: the top pours into the bottom and into neither side",
-		ChamberLayout.targets(4, 0) == [2] as Array[int])
+		ChamberLayout.targets(4, 0) == ([2] as Array[int]))
 	var three := ChamberLayout.targets(3, 0)
 	three.sort()
-	_check("N=3: the top splits half and half", three == [1, 2] as Array[int],
+	_check("N=3: the top splits half and half", three == ([1, 2] as Array[int]),
 		"got %s" % [three])
 
 
-## The three-chamber lesson: turning the same way visits every chamber; going
-## back and forth starves one of them for good.
+## The three-chamber lesson: whichever way you turn, you turn INTO a chamber
+## that just caught sand — but only one of them, and the sand in the other is
+## stranded until you come back round. Turning the same way three times collects
+## both halves; alternating between two chambers never touches the third.
 func _trefoil_lesson() -> void:
+	var caught := ChamberLayout.targets(3, 0)
+	_check("N=3: turning either way lands on a chamber that caught sand",
+		caught.has(posmod(1, 3)) and caught.has(posmod(-1, 3)),
+		"the top pours into %s" % [caught])
+
+	# Alternating visits {0, 1} forever. Slot 2 caught half of everything that
+	# drained and is never turned into — which is the whole trap.
 	var visited := {}
 	var slot := 0
-	for turn in 3:
-		slot = posmod(slot + 1, 3)
-		visited[slot] = true
-	_check("N=3: three turns the same way visit all three chambers",
-		visited.size() == 3)
-
-	visited = {}
-	slot = 0
 	for turn in 6:
 		slot = posmod(slot + (1 if turn % 2 == 0 else -1), 3)
 		visited[slot] = true
-	_check("N=3: alternating never reaches the third chamber", visited.size() == 2,
-		"reached %d chambers" % visited.size())
+	var stranded: Array[int] = []
+	for i in caught:
+		if not visited.has(i):
+			stranded.append(i)
+	_check("N=3: alternating strands the sand in a chamber it never turns into",
+		stranded.size() == 1 and visited.size() == 2,
+		"visited %s, stranded %s" % [visited.keys(), stranded])
 
 
-## The four-chamber lesson: the sand you drained is whole, but it has to travel
-## through a sealed side chamber, so it is two turns away — and turning back
-## undoes exactly the turn before it.
+## The four-chamber lesson: the sand you drained arrives whole rather than split,
+## but it lands two turns away, behind a chamber that is sealed. So a refill has
+## to be committed to one turn ahead of needing it — and turning back does not
+## just waste a turn, it returns the glass to the arrangement before it.
 func _quarters_lesson() -> void:
-	var bottom := ChamberLayout.lowers(4)[0]
-	var after_one := posmod(bottom + 1, 4)
-	var after_two := posmod(bottom + 2, 4)
-	_check("N=4: one turn parks the drained sand in a sealed chamber",
-		ChamberLayout.role(4, after_one) == ChamberLayout.Role.LEVEL)
-	_check("N=4: two turns the same way bring it back to the top",
-		ChamberLayout.role(4, after_two) == ChamberLayout.Role.UPPER)
+	var caught := ChamberLayout.targets(4, 0)
+	_check("N=4: the fall arrives whole, in one chamber", caught.size() == 1)
+	_check("N=4: and that chamber is two turns away, not one",
+		caught[0] == posmod(0 + 2, 4), "it landed in %d" % caught[0])
 
-	var slot := 1
-	slot = posmod(slot + 1, 4)
-	slot = posmod(slot - 1, 4)
-	_check("N=4: turning back undoes the turn exactly", slot == 1)
+	# The two chambers you pass through on the way are sealed: they catch
+	# nothing, and they hand nothing on.
+	for i in [posmod(1, 4), posmod(-1, 4)]:
+		_check("N=4: chamber %d is sealed, so passing through it gains nothing" % i,
+			ChamberLayout.role(4, i) == ChamberLayout.Role.LEVEL
+				and not caught.has(i) and ChamberLayout.targets(4, i).is_empty())
 
 
 func _check(label: String, ok: bool, detail := "") -> void:
