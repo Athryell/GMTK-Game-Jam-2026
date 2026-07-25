@@ -42,7 +42,7 @@ func _draw() -> void:
 	var motion := Glass.motion
 	var sand_colour := Palette.sand(Game.danger())
 	HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
-		motion.down(), motion.stream_phase, 1.5, motion.invert())
+		motion.down(), 1.5, motion.invert(), motion.plane_tints())
 
 	if Game.pad_flash > 0.0:
 		var a := Game.pad_flash_ratio()

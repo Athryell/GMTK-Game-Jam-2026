@@ -99,11 +99,12 @@ static func shell(size: Vector2, count: int) -> PackedVector2Array:
 ## chamber is, 0 to 1, indexed by the slot it is drawn in — and its SIZE is the
 ## number of chambers, so one array says both how many and how much. `down` is
 ## gravity in the glass's own frame; pass `Vector2.DOWN` for a glass at rest.
-## `phase` animates the trickle's wobble. `invert` is how far the flow has turned
-## over, 0 (down the glass) to 1 (up it).
+## `invert` is how far the flow has turned over, 0 (down the glass) to 1 (up it). `tints` optionally gives one colour per
+## chamber for its end plate — the plane each side of the glass stands for; empty
+## leaves every plate plain glass.
 static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
-		sand: Color, down: Vector2, phase: float, line_width := 1.5,
-		invert := 0.0) -> void:
+		sand: Color, down: Vector2, line_width := 1.5,
+		invert := 0.0, tints := PackedColorArray()) -> void:
 	var count := fills.size()
 	if count < 2:
 		# Below two there is nowhere for sand to fall, and `chamber` would turn its
@@ -128,15 +129,19 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 		if fills[i] > 0.001:
 			fill(canvas, pile(poly, down, fills[i] * capacity, invert), sand)
 
-	_trickle(canvas, size, count, fills, sand, down, phase, line_width, invert)
+	_trickle(canvas, size, count, fills, sand, down, line_width, invert)
 
-	# Frame: the outline, then a plate capping each chamber.
+	# Frame: the outline, then a plate capping each chamber. A tinted plate is
+	# drawn heavier than a plain one — at the size the HUD gauge runs, a plane's
+	# hue laid on at hairline width reads as a smudge rather than as a label.
 	_outline(canvas, ring, line_width)
 	for i in count:
 		var poly := chamber(size, count, i)
-		var overhang := (poly[1] - poly[0]).normalized() * (line_width * 1.35)
-		canvas.draw_line(poly[0] - overhang, poly[1] + overhang, Palette.GLASS,
-			line_width * 1.35, true)
+		var tinted := i < tints.size()
+		var weight := line_width * (2.1 if tinted else 1.35)
+		var overhang := (poly[1] - poly[0]).normalized() * weight
+		canvas.draw_line(poly[0] - overhang, poly[1] + overhang,
+			tints[i] if tinted else Palette.GLASS, weight, true)
 
 
 ## The sand in the air: one thread from each draining chamber to each chamber it
@@ -148,15 +153,18 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 ## wall — which is exactly the tilt at which falling sand would start missing the
 ## chamber below, so a trickle can never be drawn outside the glass.
 ##
-## `invert` runs the same falls backwards. The thread occupies the same segment
-## either way, so all that turns over is which end has to hold sand for there to
-## be anything to draw — plus the wobble, which stops: a column still shimmying
-## reads as still running.
+## `invert` runs the same falls backwards, and the thread has to turn over with
+## them: sand in flight sits between the neck and whichever chamber it is heading
+## for, so a climbing fall belongs ABOVE the neck, in the chamber being filled.
+## Drawn on the falling side throughout, it reads as still pouring downwards
+## while every pile around it climbs.
+##
+## Turned over through a signed reach rather than a branch, so the column
+## shortens into the neck, vanishes as the flow hands over, and grows back out
+## the other side.
 static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
-		fills: PackedFloat32Array, sand: Color, down: Vector2, phase: float,
+		fills: PackedFloat32Array, sand: Color, down: Vector2,
 		line_width: float, invert: float) -> void:
-	var span := _span(size, count)
-	var throat := span.x * THROAT_RATIO
 	# Measured off the polygon that actually gets drawn, not rebuilt from the
 	# ratios: above two chambers `chamber` caps its neck corner at the wedge, so
 	# the authored `NECK_RATIO` is not the wall you can see. Reproduces the
@@ -170,34 +178,39 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 	for i in count:
 		if fills[i] <= 0.01 and not climbing:
 			continue
-		var below := -ChamberLayout.axis(count, i)
 		for j in ChamberLayout.targets(count, i):
 			if climbing and fills[j] <= 0.01:
 				continue
-			# One thread per (draining chamber -> target) pair, and it is aimed by
-			# turning gravity through the angle from straight-below-the-draining-
-			# chamber to where the target actually sits.
-			#
-			# Aiming it along plain `down` is what a two-bulb glass gets away with
-			# and a three-lobed one does not: at three there is no chamber opposite
-			# the top one, so straight down lands in the dead V between the two
-			# receivers and the thread hangs over bare background. Aiming it along
-			# the target's own axis instead would fix the upright case and break
-			# every tilted one, because a tipped glass's sand does not swing round
-			# with the walls. Turning `down` keeps both — the fall still leans with
-			# gravity, and when the target IS straight below (which is every
-			# draining chamber at two and at four) the rotation is zero and this is
-			# bit-for-bit the line that shipped, at any tilt.
-			var dir := down.rotated(below.angle_to(ChamberLayout.axis(count, j)))
-			var sideways := Vector2(-dir.y, dir.x)
-			# Starts at the UNDERSIDE of the draining chamber, not at the centre of
-			# the glass: the sand stops at the top of the throat, so a trickle
-			# beginning at the origin leaves the height of the throat as a gap of
-			# bare glass, and the fall reads as cut in two right where it should be
-			# one thing.
-			var head := sideways * sin(phase) * 0.6 * absf(1.0 - 2.0 * invert) - dir * throat
-			canvas.draw_line(head, head + dir * (span.x * STREAM_REACH + throat),
+			# One thread per (draining chamber -> target) pair.
+			var seg := trickle_segment(size, count, i, j, down, invert)
+			canvas.draw_line(seg[0], seg[1],
 				Color(sand, sand.a * pouring), line_width * 0.8, true)
+
+
+## The thread of sand in flight from chamber `index` into chamber `target`, as
+## its two endpoints in the glass's own frame.
+##
+## Split out of the drawing so the reversal can be measured rather than merely
+## looked at; `tests/sand_test.gd` holds it to mirroring through the neck.
+##
+## It starts at the UNDERSIDE of the draining chamber, not at the centre of the
+## glass: the sand stops at the top of the throat, so a thread beginning at the
+## origin leaves the height of the throat as a gap of bare glass, and the fall
+## reads as cut in two right where it should be one thing.
+##
+## `way` is +1 running down the glass, 0 at the hand-over and -1 running up it,
+## and every term is signed by it — so the column mirrors through the neck as the
+## flow turns over instead of hanging on the falling side, shrinking away to
+## nothing as it changes its mind.
+static func trickle_segment(size: Vector2, count: int, index: int, target: int,
+		down: Vector2, invert := 0.0) -> PackedVector2Array:
+	var span := _span(size, count)
+	var throat := span.x * THROAT_RATIO
+	var below := -ChamberLayout.axis(count, index)
+	var dir := down.rotated(below.angle_to(ChamberLayout.axis(count, target)))
+	var way := 1.0 - 2.0 * invert
+	var head := -dir * throat * way
+	return PackedVector2Array([head, head + dir * way * (span.x * STREAM_REACH + throat)])
 
 
 ## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips,

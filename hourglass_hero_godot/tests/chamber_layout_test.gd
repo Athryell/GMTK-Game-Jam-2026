@@ -17,6 +17,7 @@ func _ready() -> void:
 	_trefoil_lesson()
 	_quarters_lesson()
 	_tumble_mirror()
+	_plane_tints()
 	_sand_budget()
 	_aim()
 	_finish()
@@ -165,6 +166,73 @@ func _tumble_mirror() -> void:
 
 	Game.gravity_sign = 1.0
 	Game.flip_anim = 0.0
+
+
+## Which side of the glass stands for which plane, at three and four chambers.
+##
+## Two claims. At rest the top chamber is the plane you are IN, and the chamber a
+## jump brings up is the plane it lands you in — that is the whole promise the
+## colours make to the player. And mid-turn the colours ride the same step back
+## through the array as the sand, so a plate can never come adrift from the sand
+## behind it while the glass is spinning.
+func _plane_tints() -> void:
+	for count in [3, 4]:
+		Game.chamber_count = count
+		Game.flip_anim = 0.0
+		Game.gravity_sign = 1.0
+		var motion := HourglassMotion.new()
+
+		for plane in count:
+			Game.plane = plane as Planes.Kind
+			var tints := motion.plane_tints()
+			_check("N=%d: plane %d — the top chamber is the plane you are in"
+				% [count, plane],
+				tints.size() == count and tints[0] == Palette.PLANE_SOLIDS[plane],
+				"top plate is %s, wanted %s" % [tints[0], Palette.PLANE_SOLIDS[plane]])
+
+			# A jump of direction d brings slot -d to the top and moves you to
+			# plane+d, so that slot has to already be wearing plane+d's colour.
+			for d in [1, -1]:
+				var landing := posmod(plane + d, count)
+				_check("N=%d: plane %d — turning %s shows the plane it lands in"
+					% [count, plane, "right" if d > 0 else "left"],
+					tints[posmod(-d, count)] == Palette.PLANE_SOLIDS[landing],
+					"slot %d is %s, wanted %s"
+						% [posmod(-d, count), tints[posmod(-d, count)],
+							Palette.PLANE_SOLIDS[landing]])
+
+	# Two chambers keeps the plain glass plates it shipped with.
+	Game.chamber_count = 2
+	Game.plane = Planes.Kind.P0
+	_check("N=2: no plates are tinted, the glass is left as it shipped",
+		HourglassMotion.new().plane_tints().is_empty())
+
+	# Mid-turn, colour and sand take the SAME step back — checked against
+	# `chambers()` rather than recomputed, so the two cannot be right apart.
+	var count_mid := 4
+	Game.chamber_count = count_mid
+	Game.plane = Planes.Kind.P1
+	Game.chambers = PackedFloat32Array([0.1, 0.2, 0.3, 0.4])
+	Game.flip_dir = 1.0
+	for mirror in [1.0, -1.0]:
+		Game.gravity_sign = mirror
+		var spinning := HourglassMotion.new()
+		Game.flip_anim = 0.0001
+		spinning.update(1.0 / 60.0)
+		var mid := spinning.plane_tints()
+		Game.flip_anim = 0.0
+		spinning.update(1.0 / 60.0)
+		var after := spinning.plane_tints()
+		var step := int(mirror * Game.flip_dir)
+		var seamless := true
+		for i in count_mid:
+			seamless = seamless and mid[i] == after[posmod(i - step, count_mid)]
+		_check("gravity %+.0f: the plates do not jump at the seam either" % mirror,
+			seamless, "%s became %s" % [mid, after])
+
+	Game.gravity_sign = 1.0
+	Game.flip_anim = 0.0
+	Game.plane = Planes.Kind.P0
 
 
 ## What the glass is allowed to hold. Same runway before the first turn at every

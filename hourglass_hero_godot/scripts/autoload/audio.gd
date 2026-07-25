@@ -53,17 +53,27 @@ func _ready() -> void:
 # ----- Playing ---------------------------------------------------------------
 
 ## A one-shot, played exactly as the bank has it set up.
-func sfx(sound_name: String) -> void:
+##
+## `pitch_jitter` spreads the pitch by up to that fraction either way, so a sound
+## that fires over and over — a footfall, a landing — does not machine-gun on one
+## note. It MULTIPLIES the authored pitch rather than replacing it, and always
+## plays through a copy, so the bank player keeps the value set on it and the
+## Inspector stays the only place the base lives.
+func sfx(sound_name: String, pitch_jitter := 0.0) -> void:
 	var player := _bank_player(_sfx_bank, "Sfx", sound_name)
 	if player == null:
 		return
-	if not player.playing:
+	var jittered := not is_zero_approx(pitch_jitter)
+	if not jittered and not player.playing:
 		player.play()
 		return
-	# Already ringing. Play a copy so the running voice is not cut off, and keep
-	# the bank player as the template — the Inspector stays the only place these
-	# values live, and there is no pool size to guess at.
+	# Already ringing, or wanted off-pitch. Play a copy so the running voice is
+	# not cut off and the template is left alone, and there is no pool size to
+	# guess at.
 	var voice := player.duplicate() as AudioStreamPlayer
+	if jittered:
+		voice.pitch_scale = maxf(
+			player.pitch_scale * (1.0 + randf_range(-pitch_jitter, pitch_jitter)), 0.01)
 	add_child(voice)
 	voice.finished.connect(voice.queue_free)
 	voice.play()

@@ -36,7 +36,7 @@ func _draw() -> void:
 
 	draw_set_transform(gauge_centre, motion.tilt, Vector2.ONE)
 	HourglassShape.draw_glass(self, gauge_size, motion.chambers(), colour,
-		motion.down(), motion.stream_phase, 2.0, motion.invert())
+		motion.down(), 2.0, motion.invert(), motion.plane_tints())
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	if Game.danger() > 0.0:

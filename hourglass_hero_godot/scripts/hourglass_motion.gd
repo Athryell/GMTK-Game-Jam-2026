@@ -1,4 +1,4 @@
-## How one drawn hourglass moves: flip tumble, sand slosh, trickle wobble. One
+## How one drawn hourglass moves: flip tumble and sand slosh. One
 ## instance per glass; reads `Game` for the flip state and feeds `HourglassShape`.
 class_name HourglassMotion
 extends RefCounted
@@ -15,14 +15,11 @@ const STIFFNESS := 45.0
 const DAMPING := 7.0
 ## Max lean, in radians.
 const MAX_LEAN := 0.45
-## Wobble speed of the falling trickle.
-const STREAM_SPEED := 6.0
 
 ## Rotation of the glass, in radians. 0 is upright.
 var tilt := 0.0
 ## Extra tilt of the sand's surfaces on top of `tilt` — the slosh.
 var lean := 0.0
-var stream_phase := 0.0
 
 var _lean_speed := 0.0
 ## Which way round the tumble is drawn: +1 normally, -1 while the world is
@@ -36,8 +33,6 @@ var _mirror := 1.0
 func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	if delta <= 0.0:
 		return
-	stream_phase += delta * STREAM_SPEED
-
 	# A turn is one chamber over `flip_duration`. The glass being regular, it
 	# lands visually upright. The spin is read off the config rather than
 	# differenced frame to frame, which would spike on the reset to 0.
@@ -83,14 +78,44 @@ func invert() -> float:
 func chambers() -> PackedFloat32Array:
 	var count := Game.chamber_count
 	var cap := maxf(Tuning.cfg.sand_max, 1.0)
-	# Mid-turn every chamber keeps what it held. `Game.chambers` moved to the
-	# post-turn arrangement the instant the jump began, so drawing it one step
-	# BACK puts each chamber's sand where the chamber still is. The glass snaps
-	# upright at the end and the two agree, which is what lands it seamlessly.
-	# Through `_mirror`, like the tilt it cancels.
-	var back := -int(_mirror * Game.flip_dir) if Game.flip_anim > 0.0 else 0
+	var back := _back()
 	var out := PackedFloat32Array()
 	out.resize(count)
 	for i in count:
 		out[i] = clampf(Game.chambers[posmod(i + back, count)] / cap, 0.0, 1.0)
 	return out
+
+
+## One colour per drawn slot: the hue of the plane that slot's chamber puts you
+## in once it reaches the top. Empty at two chambers, where FRONT/BACK is already
+## unambiguous and the glass is kept pixel-identical to the one that shipped.
+##
+## Slot `i` sits `i` turns short of the top and a turn carries the plane with it,
+## so that slot is plane `Game.plane - i`. A jump of direction `d` brings slot
+## `-d` up, whose colour is therefore `Game.plane + d` — precisely the plane you
+## are about to land in, which is the whole point of showing them.
+##
+## Indexed through the same `_back` as [method chambers], so a colour can never
+## come adrift from the sand it belongs to mid-turn.
+func plane_tints() -> PackedColorArray:
+	var count := Game.chamber_count
+	if count <= 2:
+		return PackedColorArray()
+	var back := _back()
+	var out := PackedColorArray()
+	out.resize(count)
+	for i in count:
+		out[i] = Palette.PLANE_SOLIDS[posmod(int(Game.plane) - (i + back), count)]
+	return out
+
+
+## The step back through the chamber arrays that cancels the step round the
+## glass, mid-turn.
+##
+## Every chamber keeps what it held. `Game.chambers` moved to the post-turn
+## arrangement the instant the jump began, so reading it one step BACK puts each
+## chamber's contents where the chamber still is. The glass snaps upright at the
+## end and the two agree, which is what lands it seamlessly. Through `_mirror`,
+## like the tilt it cancels.
+func _back() -> int:
+	return -int(_mirror * Game.flip_dir) if Game.flip_anim > 0.0 else 0

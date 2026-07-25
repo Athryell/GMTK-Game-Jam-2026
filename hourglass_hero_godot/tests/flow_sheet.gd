@@ -40,5 +40,5 @@ func _draw() -> void:
 		# Two chambers: this sheet is about `invert`, and the reversal is easiest to
 		# read against the glass everyone already knows.
 		HourglassShape.draw_glass(self, GLASS, PackedFloat32Array([_fill, 1.0 - _fill]),
-			Palette.SAND_FULL, Vector2.DOWN, 0.0, 1.5, invert)
+			Palette.SAND_FULL, Vector2.DOWN, 1.5, invert)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

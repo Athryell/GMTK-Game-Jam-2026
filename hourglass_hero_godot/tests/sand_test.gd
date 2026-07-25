@@ -437,6 +437,32 @@ func _ready() -> void:
 	_check("and its length barely changes on the way",
 		longest - shortest < hh * 0.12, "%.1f px to %.1f px" % [shortest, longest])
 
+	# --- And it turns over with the flow --------------------------------------
+	# Sand in flight sits between the neck and the chamber it is heading FOR, so
+	# reversing the flow has to carry the thread across the neck with it. Left on
+	# the falling side it reads as still pouring downwards while every pile around
+	# it climbs, which is the one thing the reversal must not look like.
+	var falls: PackedVector2Array = HourglassShape.trickle_segment(
+		glass, 2, 0, 1, Vector2.DOWN, 0.0)
+	var climbs: PackedVector2Array = HourglassShape.trickle_segment(
+		glass, 2, 0, 1, Vector2.DOWN, 1.0)
+	_check("the falling thread hangs below the neck",
+		falls[1].y > 0.0 and falls[1].y > falls[0].y,
+		"runs %v to %v" % [falls[0], falls[1]])
+	_check("and the climbing one is carried above it",
+		climbs[1].y < 0.0 and climbs[1].y < climbs[0].y,
+		"runs %v to %v" % [climbs[0], climbs[1]])
+	_check("the reversal is a mirror through the neck, not a shift",
+		falls[0].is_equal_approx(-climbs[0]) and falls[1].is_equal_approx(-climbs[1]),
+		"%v/%v against %v/%v" % [falls[0], falls[1], climbs[0], climbs[1]])
+	# Straight from one side to the other would pop a whole column across the neck
+	# in a frame; it has to shrink away and grow back instead.
+	var handover: PackedVector2Array = HourglassShape.trickle_segment(
+		glass, 2, 0, 1, Vector2.DOWN, 0.5)
+	_check("and it passes through nothing at the hand-over",
+		handover[0].distance_to(handover[1]) < 0.001,
+		"still %.3f px long" % handover[0].distance_to(handover[1]))
+
 	empty_zone.queue_free()
 	full_zone.queue_free()
 

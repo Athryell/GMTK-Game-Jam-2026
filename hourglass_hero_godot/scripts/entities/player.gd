@@ -48,6 +48,11 @@ var _rng := RandomNumberGenerator.new()
 ## level, so it never glues you to a ledge you meant to walk off.
 const FLOOR_SNAP := 8.0
 
+## How far the landing thud is detuned each time, either way. Small on purpose:
+## enough that a run of hops stops sounding like one sample on repeat, not so
+## much that the glass sounds like a different object each time it touches down.
+const LAND_PITCH_JITTER := 0.06
+
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
@@ -183,7 +188,7 @@ func _land(impact_speed: float) -> void:
 		return
 	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0 * pull),
 		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
-	Audio.sfx("land")
+	Audio.sfx("land", LAND_PITCH_JITTER)
 
 
 func _on_flipped(_from_pad: bool) -> void:
