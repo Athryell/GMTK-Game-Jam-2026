@@ -18,37 +18,19 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-; NOTE: the Godot editor rewrites this file when project settings are saved, and
-; it strips comments as it goes. If these vanish again, the reasoning is kept in
-; README.md, which the editor cannot touch.
-
 Tuning="*res://scripts/autoload/tuning.gd"
 Game="*res://scripts/autoload/game.gd"
-; After Game: it connects to Game's level_loaded on ready.
 Glass="*res://scripts/autoload/glass.gd"
 Screen="*res://scripts/autoload/screen.gd"
 
 [display]
 
-; 960x540 is the DESIGN resolution: every coordinate in the levels is in these
-; units, and it must not change.
 window/size/viewport_width=960
 window/size/viewport_height=540
-; Launches fullscreen. F11 toggles back — see scripts/autoload/screen.gd.
 window/size/mode=3
-; The size it takes when you leave fullscreen. Twice the design resolution, so
-; the vector art still has real pixels to be drawn into.
 window/size/window_width_override=1920
 window/size/window_height_override=1080
-; Canvas items are rasterized at the screen's true pixel count rather than at
-; 960x540 and then blown up. The game is all vector shapes, so this is what
-; makes the hourglass look drawn instead of pixelated.
 window/stretch/mode="canvas_items"
-; window/stretch/aspect is absent because "keep" is Godot 4's default and the
-; editor omits defaults. Letterbox, not reveal: `expand` would hand taller
-; screens extra world to see, and main.gd derives the camera limits from the
-; viewport size — the aspect ratio would quietly change how much of a level you
-; can read.
 
 [input]
 

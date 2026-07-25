@@ -1,66 +1,58 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://blxu5jhybn7me"]
 
-[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
 [ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_monster"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=710595343]
 script = ExtResource("1_level")
 level_name = "The Fountain"
 world_size = Vector2(1320, 540)
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=1375000440]
 position = Vector2(53, 479)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=182260849]
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+[node name="Door" parent="Entities" unique_id=63401977 instance=ExtResource("2_door")]
 position = Vector2(1250, 440)
 size = Vector2(34, 62)
 plane = 0
 
-[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform1" parent="Entities" unique_id=896671949 instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(320, 38)
-plane = 0
-kind = 0
 
-[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform2" parent="Entities" unique_id=1258586113 instance=ExtResource("3_platform")]
 position = Vector2(580, 502)
 size = Vector2(300, 38)
 plane = 0
-kind = 0
 
-[node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform3" parent="Entities" unique_id=1276152309 instance=ExtResource("3_platform")]
 position = Vector2(1140, 502)
 size = Vector2(180, 38)
-plane = 0
-kind = 0
 
-[node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform4" parent="Entities" unique_id=761862925 instance=ExtResource("3_platform")]
 position = Vector2(320, 502)
 size = Vector2(120, 38)
-plane = 0
+plane = 1
 kind = 1
 move_axis = 1
 move_distance = 140.0
 move_speed = 200.0
 
-[node name="Platform5" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform5" parent="Entities" unique_id=1268343342 instance=ExtResource("3_platform")]
 position = Vector2(880, 502)
 size = Vector2(120, 38)
-plane = 0
+plane = 1
 kind = 1
 move_axis = 1
 move_distance = 140.0
 move_speed = 200.0
 move_phase = 0.5
 
-[node name="Monster1" parent="Entities" instance=ExtResource("4_monster")]
+[node name="Monster1" parent="Entities" unique_id=128266018 instance=ExtResource("4_monster")]
 position = Vector2(700, 380)
-size = Vector2(30, 34)
-plane = 0
 move_axis = 2
-move_distance = 90.0
 move_speed = 130.0
