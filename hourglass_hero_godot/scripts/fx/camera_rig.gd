@@ -11,6 +11,18 @@
 ## nudges the frame, a climb moves it. That is the whole trick, and it is why
 ## "Ten" (climbing) and "The Well" (descending) both read without either being
 ## special-cased.
+##
+## The slack is a WINDOW, not a wall. Read literally it was a wall: the goal
+## stopped dead at the edge of the slack, so a spring — which launches 445 px,
+## more than three times a jump — carried the player clean out of the frame and
+## left them there. Measured, that was 350 px off centre in a 348 px view.
+##
+## Two rules keep that from happening again, and they are deliberately different
+## in kind. The window is the FEEL: it is what the player is pushing against,
+## and it moves only when they push it. The leash is the GUARANTEE: applied
+## last, after easing and clamping, it is the promise that whatever the physics
+## does, the player stays on screen. Feel is tunable, the guarantee is not
+## negotiable, so they must not be the same mechanism.
 class_name CameraRig
 extends Camera2D
 
@@ -75,6 +87,14 @@ func _physics_process(delta: float) -> void:
 	if target != null and is_instance_valid(target):
 		if target.is_on_floor():
 			_anchor_y = target.global_position.y
+		else:
+			# Airborne, the window is dragged rather than set: it stays put while
+			# the player moves inside it, and travels only once they reach an
+			# edge. A jump lives inside the window and moves nothing; a spring or
+			# a long drop pushes it, and the view goes along.
+			var slack := Tuning.cfg.camera_vertical_slack
+			_anchor_y = clampf(_anchor_y,
+				target.global_position.y - slack, target.global_position.y + slack)
 		# Lead the player by where they are going, not by where they are. Eased
 		# on its own clock so that turning around sweeps the view across
 		# instead of snapping it.
@@ -87,6 +107,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		global_position = global_position.lerp(
 			goal, 1.0 - exp(-cfg.camera_smoothing * delta))
+	global_position = _leashed(global_position)
 
 	# Trauma decays linearly but is applied squared: a hard hit reads as a hard
 	# hit, and the tail dies away instead of buzzing at low amplitude.
@@ -104,10 +125,10 @@ func add_trauma(amount: float) -> void:
 func _raw_target() -> Vector2:
 	if target == null or not is_instance_valid(target):
 		return global_position
-	var slack := Tuning.cfg.camera_vertical_slack
-	return Vector2(
-		target.global_position.x + _lead,
-		clampf(target.global_position.y, _anchor_y - slack, _anchor_y + slack))
+	# `_anchor_y` outright, with no second clamp against the player: the window
+	# is already the whole vertical rule, and clamping the player into it here as
+	# well was what made the slack behave as a wall.
+	return Vector2(target.global_position.x + _lead, _anchor_y)
 
 
 ## What the camera can actually show, which is the viewport divided by the zoom.
@@ -129,6 +150,30 @@ func _clamped(point: Vector2) -> Vector2:
 	return Vector2(
 		clampf(point.x, half.x, maxf(limit_right - half.x, half.x)),
 		clampf(point.y, half.y, maxf(limit_bottom - half.y, half.y)))
+
+
+## The guarantee: the player is never further from the centre than the frame can
+## show, less `camera_edge_margin` so they are never welded to the bezel either.
+##
+## Applied AFTER the easing, which is the entire point. Smoothing exists to make
+## the view feel unhurried, and an unhurried view loses a 1400 px/s launch — at
+## `camera_smoothing` 7 that is 200 px of lag on its own, before any slack. So
+## the easing is allowed to fall behind, and this catches it. During the fast
+## part of a launch the camera is dragged rigidly; the moment the player slows,
+## the leash goes loose and the easing has the frame back.
+##
+## Not clamped against the level limits afterwards: `_clamped` already put the
+## goal inside them, and the leash only ever pulls TOWARDS the player, who is
+## inside the level. Re-clamping here would silently reinstate the bug at the
+## top of a level, where being on screen matters most.
+func _leashed(point: Vector2) -> Vector2:
+	if target == null or not is_instance_valid(target):
+		return point
+	var reach := _visible_size() / 2.0 - Vector2.ONE * Tuning.cfg.camera_edge_margin
+	var player := target.global_position
+	return Vector2(
+		clampf(point.x, player.x - maxf(reach.x, 0.0), player.x + maxf(reach.x, 0.0)),
+		clampf(point.y, player.y - maxf(reach.y, 0.0), player.y + maxf(reach.y, 0.0)))
 
 
 func _on_status_changed(status: Game.Status) -> void:
