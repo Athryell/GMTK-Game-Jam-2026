@@ -234,3 +234,34 @@ steps 5 and 6, breaking nothing downstream.
 - **A flip budget per level** ("7 FLIPS LEFT"). Competes with the sand: two
   draining resources and the player reads neither.
 - **Spending sand for a power-up.** Reads as a mana bar, not as a countdown.
+
+## As built
+
+Three things the plan did not foresee, recorded here so the next pass starts from
+what is true rather than from what was intended:
+
+- **`move_phase` had to be added.** Every mover derives its position from one
+  shared clock, so two entities of equal period sit in lockstep forever and no
+  amount of nudging positions breaks them apart. `Metronome` is five movers of
+  one period at five phases; without the export it is five movers in unison,
+  which is not a metronome. It lives on `PingPong.offset_vector`, so platforms
+  and monsters both get it for one line each.
+- **Nothing was cut.** All twelve levels are in, so the `Metronome` / `The Well`
+  cut line was never reached.
+- **The vertical probe was deleted** once it had answered its question, as
+  planned. Its answer: `limit_bottom` 1600 on a 960×1600 level, camera tracking
+  y 270 → 1330. Verticality needed no engine change at all.
+
+One real bug surfaced, and it was in the test rather than in the game.
+`_load_current_level` only `queue_free`s the level it replaces, so for the rest
+of that frame **both** are in the tree and `find_children` hands back the old
+one. The existing suite hid this by always sleeping 60 frames before looking; the
+new per-level rule check looks immediately, and so read every level's rules off
+its predecessor — and, in `_check_air_jump`, touched a freed player. The fix is a
+single `await` inside `_load_level_scene`, and the reason is written down there.
+
+`Spikes` also needs Godot's global class cache to have seen it, which only the
+editor writes and `.godot/` is gitignored. A clone that has never opened the
+project fails the smoke test on a parse error. That is pre-existing and
+project-wide — every `class_name` in the repo has it — not something the spikes
+introduced.
