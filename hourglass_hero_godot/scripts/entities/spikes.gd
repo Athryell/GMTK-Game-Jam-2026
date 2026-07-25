@@ -13,11 +13,33 @@ enum Facing { UP, DOWN, LEFT, RIGHT }
 
 ## Target width of one tooth, in px. The band fits a whole number of teeth into
 ## its length, so the row always ends flush with the band's edge.
+##
+## Held at 16 deliberately. Narrower teeth read as delicate on a short band and
+## as a comb on a long one, and the longest band in the game is 880px — at 11px
+## that is eighty teeth, the bevel below collapses into a single tone, and the
+## row goes back to being the flat stripe this shape exists to stop being.
 const TOOTH_SIZE := 16.0
+
+## How much of the band's depth the teeth actually occupy, measured from the
+## base. Short teeth in a tall box: the level author's rectangle is load-bearing
+## — at a ceiling it sets the corridor the player squeezes through — so the way
+## to make spikes lighter is to draw less of it, never to shrink it.
+const TOOTH_DEPTH := 0.62
+
 ## Fraction of the band's depth that actually kills, measured from the base.
 ## The tips are visual overhang: you die once you are properly into the teeth,
 ## not when you brush a point. Spikes that kill on their outline feel cheap.
-const LETHAL_DEPTH := 0.75
+##
+## MUST stay below `TOOTH_DEPTH`. Above it the kill zone reaches past the drawn
+## tips and the band starts killing through empty air, which is the same unfair
+## death read from the other side.
+const LETHAL_DEPTH := 0.50
+
+## How far the lit and shadow faces sit either side of the base colour. One
+## tooth split down its spine reads as a solid object; a single fill reads as a
+## paper cut-out, which is what the flat version looked like.
+const BEVEL_LIGHT := 0.22
+const BEVEL_DARK := 0.36
 
 @export var facing: Facing = Facing.UP: set = _set_facing
 
@@ -34,9 +56,11 @@ func _touched(_player: Player) -> void:
 
 
 func _draw() -> void:
-	var colour := _shade(Palette.MONSTER)
+	var lit := _shade(Palette.MONSTER.lightened(BEVEL_LIGHT))
+	var dark := _shade(Palette.MONSTER.darkened(BEVEL_DARK))
 	for tooth in _teeth():
-		HourglassShape.fill(self, tooth, colour)
+		HourglassShape.fill(self, tooth[0], lit)
+		HourglassShape.fill(self, tooth[1], dark)
 
 
 ## Which way this band points, as numbers: whether the teeth run along x, and
@@ -53,26 +77,40 @@ func _axis() -> Array:
 		_: return [false, 0.0, size.x]
 
 
-## One triangle per tooth, base flat on the band's back edge, tip on the front.
-func _teeth() -> Array[PackedVector2Array]:
+## Where the tips land: `TOOTH_DEPTH` of the way from the back edge to the far
+## one, so the teeth stop short of the box the level declares.
+func _tip() -> float:
+	return lerpf(_axis()[1], _axis()[2], TOOTH_DEPTH)
+
+
+## Two half-triangles per tooth — the lit face then the shadow face, split down
+## the spine from base to tip. Returned as halves rather than as whole teeth
+## because the split IS the shape: there is no caller that wants one triangle.
+func _teeth() -> Array[Array]:
 	var along_x: bool = _axis()[0]
 	var base: float = _axis()[1]
-	var tip: float = _axis()[2]
+	var tip := _tip()
 	var span := size.x if along_x else size.y
 	var count := maxi(1, int(round(span / TOOTH_SIZE)))
 	var step := span / float(count)
 
-	var out: Array[PackedVector2Array] = []
+	var out: Array[Array] = []
 	for i in count:
 		var a := i * step
 		var b := a + step
 		var mid := a + step / 2.0
 		if along_x:
-			out.append(PackedVector2Array([
-				Vector2(a, base), Vector2(b, base), Vector2(mid, tip)]))
+			out.append([
+				PackedVector2Array([
+					Vector2(a, base), Vector2(mid, base), Vector2(mid, tip)]),
+				PackedVector2Array([
+					Vector2(mid, base), Vector2(b, base), Vector2(mid, tip)])])
 		else:
-			out.append(PackedVector2Array([
-				Vector2(base, a), Vector2(base, b), Vector2(tip, mid)]))
+			out.append([
+				PackedVector2Array([
+					Vector2(base, a), Vector2(base, mid), Vector2(tip, mid)]),
+				PackedVector2Array([
+					Vector2(base, mid), Vector2(base, b), Vector2(tip, mid)])])
 	return out
 
 
