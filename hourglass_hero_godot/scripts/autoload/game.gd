@@ -6,6 +6,11 @@ const LEVELS_DIR := "res://scenes/levels"
 ## Nodes here are asked `contains_player()` once a frame. A group rather than a
 ## registry: unloading a level deregisters every zone for free.
 const INVERSION_GROUP := "inversion_zones"
+## The player puts itself here. Entities that need to know where it IS — rather
+## than merely whether it has touched them — look it up through this. A group
+## rather than a reference on `Game`: the level owns the player, so nothing here
+## has to be cleared when the level goes.
+const PLAYER_GROUP := "player"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
@@ -14,6 +19,8 @@ signal plane_changed(plane: Planes.Kind)
 ## The hourglass was flipped; `from_pad` distinguishes a flip-pad from a jump.
 signal flipped(from_pad: bool)
 signal status_changed(status: Status)
+## Which way the world pulls has changed. `sign` is the new [member gravity_sign].
+signal gravity_changed(sign: float)
 signal level_loaded(index: int, level_name: String)
 
 ## Level scenes, sorted by filename (level_01_… before level_02_…).
@@ -73,11 +80,29 @@ var flow_blend := 0.0
 ## `start_level` runs before it is instantiated.
 var double_jump := false
 
+## Screen-y of "down" right now: +1 normally, -1 while the world is upside down.
+## Changed mid-level by a [GravityPad]. Every vertical quantity is written as a
+## downward component times this, so an inverted world is the same code.
+##
+## Set through `set_gravity`, never assigned directly: the player has to be told.
+var gravity_sign := 1.0
+
 ## Seconds left on the flip animation, and which way it tumbles.
 var flip_anim: float = 0.0
 var flip_dir: float = 1.0
 ## Seconds left on the "flip-pad triggered" flash.
 var pad_flash: float = 0.0
+
+
+
+## Idempotent: a pad fires every time it is touched, and standing on one must
+## not flutter the world.
+func set_gravity(sign: float) -> void:
+	var wanted := signf(sign) if not is_zero_approx(sign) else 1.0
+	if is_equal_approx(wanted, gravity_sign):
+		return
+	gravity_sign = wanted
+	gravity_changed.emit(gravity_sign)
 
 
 func _ready() -> void:
@@ -235,18 +260,28 @@ func set_plane(new_plane: Planes.Kind) -> void:
 ## The glass a level is played on: `count` chambers, `top` sand in the one on
 ## top, the rest of the glass split evenly among the others.
 ##
-## The split needs no tuning. `sand_start` is half of `sand_max` and the glass
-## holds `sand_max * count / 2`, so the remainder divides into exactly
-## `sand_start` per chamber whatever the count — every glass in the game gives
-## you the same runway before the first turn is compulsory.
+## The glass carries one bulb of sand per turn it takes to get a drained bulb
+## back on top, and no more. Three chambers split every drain in two and hand
+## back only the half you turn into, which is why they get one bulb and not one
+## and a half.
 func arm_glass(count: int, top: float) -> void:
 	chamber_count = clampi(count, 2, Planes.COUNT)
 	chambers = PackedFloat32Array()
 	chambers.resize(chamber_count)
 	chambers[0] = clampf(top, 0.0, capacity())
-	var rest := (capacity() * chamber_count / 2.0 - chambers[0]) / float(chamber_count - 1)
+	var rest := (capacity() * reach() - chambers[0]) / float(chamber_count - 1)
 	for i in range(1, chamber_count):
 		chambers[i] = maxf(rest, 0.0)
+
+
+## Turns before a bulb drained from the top can be on top again.
+func reach() -> int:
+	var targets := ChamberLayout.targets(chamber_count, 0)
+	for step in range(1, chamber_count):
+		if targets.has(posmod(step, chamber_count)) \
+			or targets.has(posmod(-step, chamber_count)):
+			return step
+	return 1
 
 
 ## One chamber's capacity. `sand_max` has always meant this — at two chambers all

@@ -64,7 +64,9 @@ func _load_current_level() -> void:
 	# Child of the level, not the root, so a reload wipes it with everything else.
 	_level.add_child(_player)
 	_player.global_position = _level.spawn.global_position
-	_player.death_y = _level.world_size.y + Tuning.cfg.fall_death_margin
+	# Both edges: a gravity pad can send you out through the top.
+	_player.death_top = -Tuning.cfg.fall_death_margin
+	_player.death_bottom = _level.world_size.y + Tuning.cfg.fall_death_margin
 
 	_backdrop.configure(_level.world_size)
 	_shadows.configure(_level)
@@ -84,6 +86,8 @@ func _load_current_level() -> void:
 ## before the level scene exists.
 func _apply_level_rules() -> void:
 	Game.double_jump = _level.double_jump
+	# Every level starts the right way up; only a pad turns the world.
+	Game.set_gravity(1.0)
 	var top := _level.sand_start_override if _level.sand_start_override > 0.0 \
 		else Tuning.cfg.sand_start
 	Game.arm_glass(_level.chambers, top)

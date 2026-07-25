@@ -16,6 +16,8 @@ func _ready() -> void:
 	_pour_map()
 	_trefoil_lesson()
 	_quarters_lesson()
+	_tumble_mirror()
+	_sand_budget()
 	_finish()
 
 
@@ -121,6 +123,72 @@ func _quarters_lesson() -> void:
 	# silently skip whatever came after it.
 	_check("N=4: and that chamber is two turns away, not one",
 		caught.size() == 1 and caught[0] == posmod(0 + 2, 4), "it landed in %s" % [caught])
+
+
+## The tumble seen in a mirror: upside down the glass rolls the other way, and
+## the sand drawn mid-turn follows the drawing. One claim, really — the turn ends
+## a whole chamber round and then snaps upright, and that seam is only invisible
+## if the step back through the array cancels the step round the glass.
+func _tumble_mirror() -> void:
+	var count := 4
+	var cap: float = Tuning.cfg.sand_max
+	Game.chamber_count = count
+	# All different, so a wrong step by any amount shows up.
+	Game.chambers = PackedFloat32Array([0.1 * cap, 0.2 * cap, 0.3 * cap, 0.4 * cap])
+	Game.flip_dir = 1.0
+	var motion := HourglassMotion.new()
+	var turn := TAU / float(count)
+
+	for mirror in [1.0, -1.0]:
+		Game.gravity_sign = mirror
+		# The last instant of the turn, then the first instant after it.
+		Game.flip_anim = 0.0001
+		motion.update(1.0 / 60.0)
+		var mid := motion.chambers()
+		var tilt := motion.tilt
+		Game.flip_anim = 0.0
+		motion.update(1.0 / 60.0)
+		var after := motion.chambers()
+
+		_check("gravity %+.0f: the glass rolls the way the world does" % mirror,
+			is_equal_approx(signf(tilt), mirror * Game.flip_dir)
+				and absf(absf(tilt) - turn) < 0.01,
+			"tilt %.3f, a turn being %.3f" % [tilt, turn])
+
+		var step := int(mirror * Game.flip_dir)
+		var seamless := true
+		for i in count:
+			seamless = seamless and is_equal_approx(mid[i], after[posmod(i - step, count)])
+		_check("gravity %+.0f: and the sand does not jump at the seam" % mirror,
+			seamless, "%s became %s" % [mid, after])
+
+	Game.gravity_sign = 1.0
+	Game.flip_anim = 0.0
+
+
+## What the glass is allowed to hold. Same runway before the first turn at every
+## count, and no turn ever puts more than a bulb on the clock — which is what
+## three chambers used to do, peaking a whole bulb and a quarter.
+func _sand_budget() -> void:
+	var cap: float = Tuning.cfg.sand_max
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, Tuning.cfg.sand_start)
+		var total := 0.0
+		for c in Game.chambers:
+			total += c
+		_check("N=%d: the glass carries a bulb per turn out of reach" % count,
+			is_equal_approx(total, cap * Game.reach()), "it holds %.0f" % total)
+		_check("N=%d: and the first turn is as far off as at any other count" % count,
+			is_equal_approx(Game.sand, Tuning.cfg.sand_start), "%.0f on the clock" % Game.sand)
+
+		# Turning the same way forever is the most generous route there is.
+		var peak := 0.0
+		for turn in 40:
+			peak = maxf(peak, Game.sand)
+			Game.drain(Game.sand)
+			Game.rotate_glass(1)
+		_check("N=%d: and no turn ever hands you more than a bulb" % count,
+			peak <= cap + 1.0, "peaked at %.0f, a bulb being %.0f" % [peak, cap])
 
 
 func _check(label: String, ok: bool, detail := "") -> void:

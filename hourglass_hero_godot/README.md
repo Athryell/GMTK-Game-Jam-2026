@@ -104,6 +104,8 @@ would bury the dozen sliders that actually change how the game plays.
 | `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = use the tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
+| `cannon.tscn` | A laser that tracks you while it charges, then fires along the line it held at the shot. Blocked by anything solid, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
+| `gravity_pad.tscn` | Turns the world over: touch it and gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
@@ -115,17 +117,46 @@ break two movers of equal period out of lockstep.
 Spikes kill on the inner 75% of the band, not on the outline — the tips are
 visual overhang, because spikes that kill on their silhouette feel cheap.
 
-### Two rules a level may bend for itself
+### The rules a level may bend for itself
 
 On the level root, under **Rules**:
 
 | Property | Effect |
 |---|---|
+| `chambers` | How many chambers the glass has, 2 to 4 — and so how many planes, and how far a jump turns you. |
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
 | `double_jump` | Grants one extra jump in mid-air, for this level only. |
 
-Both are applied by `main.gd` after the scene exists, and both reset between
+All are applied by `main.gd` after the scene exists, and all reset between
 levels, so a level cannot leak its rules into the next one.
+
+### Turning the world over
+
+Gravity is not a level rule — it is a pad you place, so any level can gain one
+without being rebuilt. Underneath it is a single signed number,
+`Game.gravity_sign`, which the player follows through `gravity_changed` and
+keeps as its own `pull`. Every vertical quantity — the pull, the jump, the fall
+cap, which way you land — is written as a downward component times that sign,
+so an upside-down world runs the same arithmetic as every other and cannot
+drift from it.
+
+The player keeps its own copy rather than reading `Game` each frame for the
+same reason it keeps its own death band: a level is freed a frame after the
+next one is armed, and a player still winding down must keep judging by the
+world it was born in, not the one that has just been armed.
+
+A pad SETS a direction and never toggles one. That is what makes it safe to
+stand on, lets two pads facing the same way agree instead of cancelling, and
+lets a pad you are already obeying go dim rather than lie. Every level starts
+the right way up.
+
+The glass carries one bulb of sand per turn it takes to get a drained bulb back
+on top — one at two and three chambers, two at four, where the sand lands
+opposite and a turn has to be paid for in between. The top always opens at
+`sand_start`, so the runway before the first turn is the same everywhere; what
+the count changes is what comes back. Three chambers split every drain in two
+and hand you back only the half you turn into, which is why they carry one bulb
+and not one and a half.
 
 The air jump needs no balancing of its own. `sand_flip_base` is 0, so on a
 two-chamber glass a turn gives back exactly `max - sand`: an involution. Two
@@ -151,6 +182,11 @@ rather than out of a tuning pass. `sand_test.gd` guards the identity.
 | 10 | Double or Nothing | The air jump buys reach and costs time, never sand. |
 | 11 | Midnight | The gauntlet: everything so far, over a spike pit, finishing in `BACK`. |
 | 12 | The Last Grain | 1.2 s on the clock. Empty is not a problem, it is the resource. |
+| 13 | The Updraft | An inversion zone runs the glass backwards: standing still fills you, and a full glass shatters. |
+| 14 | Trefoil | Three chambers, three planes. A jump turns you a third of the way, so coming home takes three. |
+| 15 | Quarters | Four chambers, four planes, and sand that can be stranded two turns from where you need it. |
+| 16 | Crossfire | Two lasers lock on before they fire. Dodging the shot is the jump, and the jump is the refuel. |
+| 17 | Downside Up | A pad turns the world over. The ceiling is the only bridge across the pit, and a second pad puts you back down. |
 
 ## Architecture
 
@@ -172,7 +208,7 @@ scripts/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
     terrain.gd            StaticBody2D drawn FROM its own collision polygon
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
-    spring.gd  monster.gd  spikes.gd  door.gd
+    spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
     ping_pong.gd  palette.gd  layers.gd
   ui/

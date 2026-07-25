@@ -25,6 +25,9 @@ var lean := 0.0
 var stream_phase := 0.0
 
 var _lean_speed := 0.0
+## Which way round the tumble is drawn: +1 normally, -1 while the world is
+## upside down. Sampled once per frame so the spin and the sand cannot disagree.
+var _mirror := 1.0
 
 
 ## `speed` is sideways travel in px/s, `shove` its change since the last call —
@@ -40,18 +43,24 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	# differenced frame to frame, which would spike on the reset to 0.
 	var cfg := Tuning.cfg
 	var spin := 0.0
+	# An upside-down world is seen in a mirror, so the glass tumbles the other way
+	# round on screen or it rolls against its own travel. Which chamber the turn
+	# lands on is untouched: right is one step round either way up.
+	_mirror = Game.gravity_sign
+	var mirror := _mirror
 	if Game.flip_anim > 0.0 and cfg.flip_duration > 0.0:
 		var turn := TAU / float(Game.chamber_count)
-		tilt = Game.flip_dir * turn * (1.0 - Game.flip_anim / cfg.flip_duration)
-		spin = Game.flip_dir * turn / cfg.flip_duration
+		tilt = mirror * Game.flip_dir * turn * (1.0 - Game.flip_anim / cfg.flip_duration)
+		spin = mirror * Game.flip_dir * turn / cfg.flip_duration
 	else:
 		tilt = 0.0
 
 	# `lean` is the surface's angle in world space, so both terms take the sign of
-	# the thing they lag behind.
+	# the thing they lag behind — and `mirror` on the travel terms, which arrive
+	# as screen-x rather than through the already-mirrored spin.
 	var target := clampf(
-		spin * SPIN_LAG + speed * DRAG_LEAN / 1000.0, -MAX_LEAN, MAX_LEAN)
-	_lean_speed += shove * LEAN_KICK
+		spin * SPIN_LAG + mirror * speed * DRAG_LEAN / 1000.0, -MAX_LEAN, MAX_LEAN)
+	_lean_speed += mirror * shove * LEAN_KICK
 	_lean_speed += (target - lean) * STIFFNESS * delta
 	_lean_speed *= exp(-DAMPING * delta)
 	lean = clampf(lean + _lean_speed * delta, -MAX_LEAN, MAX_LEAN)
@@ -78,7 +87,8 @@ func chambers() -> PackedFloat32Array:
 	# post-turn arrangement the instant the jump began, so drawing it one step
 	# BACK puts each chamber's sand where the chamber still is. The glass snaps
 	# upright at the end and the two agree, which is what lands it seamlessly.
-	var back := -int(Game.flip_dir) if Game.flip_anim > 0.0 else 0
+	# Through `_mirror`, like the tilt it cancels.
+	var back := -int(_mirror * Game.flip_dir) if Game.flip_anim > 0.0 else 0
 	var out := PackedFloat32Array()
 	out.resize(count)
 	for i in count:

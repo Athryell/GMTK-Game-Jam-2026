@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="4_gravity_pad"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "Downside Up"
+chambers = 3
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(53, 479)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="GroundNear" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/GroundNear"]
+polygon = PackedVector2Array(0, 502, 380, 502, 380, 560, 0, 560)
+
+[node name="GroundFar" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/GroundFar"]
+polygon = PackedVector2Array(620, 502, 960, 502, 960, 560, 620, 560)
+
+[node name="Ceiling" type="StaticBody2D" parent="Entities"]
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ceiling"]
+polygon = PackedVector2Array(200, 64, 420, 64, 500, 38, 960, 38, 960, 0, 200, 0)
+
+[node name="PadUp" parent="Entities" instance=ExtResource("4_gravity_pad")]
+position = Vector2(290, 486)
+
+[node name="PadDown" parent="Entities" instance=ExtResource("4_gravity_pad")]
+position = Vector2(660, 38)
+pulls_up = false
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(880, 438)
