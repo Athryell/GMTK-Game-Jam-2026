@@ -1,16 +1,20 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/tuning_panel.tscn" id="3_tuner"]
 [ext_resource type="Script" path="res://scripts/fx/backdrop.gd" id="4_backdrop"]
 [ext_resource type="Script" path="res://scripts/fx/camera_rig.gd" id="6_camera"]
+[ext_resource type="Script" path="res://scripts/fx/cast_shadows.gd" id="7_shadow"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
 [node name="Backdrop" type="Node2D" parent="."]
 script = ExtResource("4_backdrop")
+
+[node name="CastShadows" type="Node2D" parent="."]
+script = ExtResource("7_shadow")
 
 [node name="LevelRoot" type="Node2D" parent="."]
 

@@ -12,6 +12,9 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
+# Between the backdrop and the level in the tree, which is what keeps a slab
+# drawn over its own shadow. Order here is not cosmetic.
+@onready var _shadows: CastShadows = $CastShadows
 @onready var _world_light: CanvasModulate = $WorldLight
 
 var _level: Level
@@ -74,6 +77,8 @@ func _load_current_level() -> void:
 	_player.death_y = _level.world_size.y + Tuning.cfg.fall_death_margin
 
 	_backdrop.configure(_level.world_size)
+	_shadows.configure(_level)
+	_shadows.lamp = _player
 
 	_camera.target = _player
 	_camera.frame(_level.world_size)

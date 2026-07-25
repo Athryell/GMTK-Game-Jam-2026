@@ -108,6 +108,12 @@ extends Resource
 @export_range(0.0, 4.0, 0.05) var player_light_energy: float = 1.35
 ## Brightness of the lights on doors, springs, pads and hazards.
 @export_range(0.0, 4.0, 0.05) var entity_light_energy: float = 1.1
+## How far a platform's shadow is thrown at the player's feet, in px. It shrinks
+## to nothing at the edge of the light, the way a shadow does as its caster
+## drifts away from the lamp.
+@export_range(0.0, 90.0, 1.0) var shadow_throw: float = 26.0
+## How dark a shadow gets at its strongest.
+@export_range(0.0, 1.0, 0.01) var shadow_strength: float = 0.55
 
 @export_group("Feedback")
 
