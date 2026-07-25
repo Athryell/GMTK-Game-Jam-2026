@@ -12,7 +12,6 @@ config_version=5
 
 config/name="Hourglass Hero"
 config/description="A platformer where the player IS an hourglass. Every jump flips the glass, swaps plane and launches you."
-run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -23,10 +22,6 @@ Game="*res://scripts/autoload/game.gd"
 Glass="*res://scripts/autoload/glass.gd"
 Screen="*res://scripts/autoload/screen.gd"
 Audio="*res://scripts/autoload/audio.gd"
-
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 
