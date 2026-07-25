@@ -33,6 +33,7 @@ func _ready() -> void:
 		return
 	Game.plane_changed.connect(_on_plane_changed)
 	body_entered.connect(_on_body_entered)
+	EntityLight.attach(self, plane, size, Palette.MONSTER, 105.0, 0.8)
 	_on_plane_changed(Game.plane)
 
 
