@@ -1,15 +1,10 @@
 ## Volume sliders — one per audio bus, generated from `Audio.BUSES`.
-##
-## Self-contained on purpose: drop this scene into the menu, a pause screen and
-## the tuning panel and all three work, without those three having to agree
-## about anything. It talks to `Audio` and to nothing else.
-##
-## It also listens to `Audio.volume_changed`, so two copies on screen at once
-## cannot drift apart — moving a slider in one moves it in the other.
+## Talks only to `Audio`, and follows `Audio.volume_changed` so several copies
+## on screen stay in sync.
 class_name AudioSettings
 extends VBoxContainer
 
-## Bus name → its slider, so a change from elsewhere can resync the widget.
+## Bus name → { slider, render }, so an external change can resync the widget.
 var _sliders: Dictionary = {}
 
 
@@ -59,7 +54,6 @@ func _make_row(bus: String) -> Control:
 func _on_volume_changed(bus: String, linear: float) -> void:
 	if not _sliders.has(bus):
 		return
-	# `set_value_no_signal`: `Audio` is already holding this value, and routing
-	# back through `set_volume` would bounce between two copies of this panel.
+	# No signal: `Audio` already holds this value; re-emitting would ping-pong.
 	_sliders[bus].slider.set_value_no_signal(linear)
 	_sliders[bus].render.call(linear)

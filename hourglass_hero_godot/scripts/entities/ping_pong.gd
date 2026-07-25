@@ -1,7 +1,5 @@
-## Back-and-forth motion, shared by moving platforms and patrolling monsters.
-##
-## The offset is derived from elapsed time rather than accumulated frame by
-## frame: no drift, and a re-placed entity lands exactly where it should.
+## Back-and-forth motion for moving platforms and patrolling monsters. Derived
+## from elapsed time, not accumulated per frame, so it never drifts.
 class_name PingPong
 extends RefCounted
 
@@ -19,8 +17,7 @@ static func cycle(distance: float, speed: float) -> float:
 	return distance * 2.0 / speed
 
 
-## Offset from the starting position at time `elapsed`. Starts at 0, climbs to
-## `distance`, comes back, and repeats.
+## Offset from the start at time `elapsed`: 0 to `distance` and back, repeating.
 static func offset(elapsed: float, distance: float, speed: float) -> float:
 	if distance <= 0.0 or speed <= 0.0:
 		return 0.0
@@ -29,13 +26,8 @@ static func offset(elapsed: float, distance: float, speed: float) -> float:
 	return t * speed if t <= half else distance - (t - half) * speed
 
 
-## The offset projected onto the requested axis.
-##
-## `phase` shifts the start along the cycle, as a fraction of a full there-and-
-## back. Every mover derives its position from the same clock, so without it two
-## entities of equal period are locked in step forever — which is exactly what
-## "Metronome" needs to break, and is not something a level author can fake by
-## nudging positions.
+## The offset projected onto `axis`. `phase` shifts the start along the cycle;
+## all movers share one clock, so equal-period entities are otherwise in step.
 static func offset_vector(axis: Axis, elapsed: float, distance: float, speed: float,
 		phase := 0.0) -> Vector2:
 	var t := elapsed + phase * cycle(distance, speed)

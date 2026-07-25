@@ -1,15 +1,9 @@
 ## The room behind the level: a graded sky and two walls at different depths.
-##
-## It exists so a level stops reading as rectangles floating in a void. Nothing
-## here is collidable, nothing here is authored — hand it a `world_size` and it
-## builds a room to fit.
+## Nothing here is collidable or authored — hand it a `world_size`.
 class_name Backdrop
 extends Node2D
 
-## How long the room takes to recolour when you flip. Slightly slower than the
-## plane swap itself: the walls are far away, and having the whole world snap in
-## step with the player makes the flip feel like a palette swap instead of a
-## move through space.
+## Recolour time on a flip, in seconds. Deliberately slower than the plane swap.
 const RECOLOUR_TIME := 0.26
 
 var _gradient: Gradient
@@ -40,8 +34,8 @@ func _ready() -> void:
 	_apply(1.0)
 
 
-## Fits the room to a level. Called on every load, before the first frame is
-## drawn, so the walls never flash at the previous level's size.
+## Fits the room to a level. Must be called before the first frame of a load,
+## or the walls flash at the previous level's size.
 func configure(world_size: Vector2) -> void:
 	var colours := Palette.room(Game.plane)
 	_from = colours
@@ -63,7 +57,7 @@ func _build_sky() -> void:
 
 	var texture := GradientTexture2D.new()
 	texture.gradient = _gradient
-	texture.width = 8 # A vertical ramp needs no horizontal resolution at all.
+	texture.width = 8 # A vertical ramp needs no horizontal resolution.
 	texture.height = 256
 	texture.fill_from = Vector2(0.0, 0.0)
 	texture.fill_to = Vector2(0.0, 1.0)
@@ -75,9 +69,8 @@ func _build_sky() -> void:
 	sky.set_anchors_preset(Control.PRESET_FULL_RECT)
 	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Its own layer, below everything: the sky must not scroll with the world,
-	# and being outside the default canvas also keeps it clear of the
-	# `CanvasModulate` that darkens the playfield for the lights.
+	# Its own layer, below everything: keeps the sky from scrolling with the
+	# world and out of reach of the `CanvasModulate` that darkens the playfield.
 	var layer := CanvasLayer.new()
 	layer.layer = -100
 	layer.add_child(sky)
@@ -93,9 +86,8 @@ func _on_plane_changed(plane: Planes.Kind) -> void:
 	_tween.tween_method(_apply, 0.0, 1.0, RECOLOUR_TIME)
 
 
-## Where the four colours stand right now. Read back off the live nodes rather
-## than remembered, so a flip that interrupts a flip starts from what is on
-## screen instead of from where the last one was heading.
+## The four colours currently on screen, read back off the live nodes so a flip
+## interrupting a flip starts from where the last one had got to.
 func _current() -> Array[Color]:
 	if _far == null:
 		return _from

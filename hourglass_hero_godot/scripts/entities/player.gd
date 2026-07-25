@@ -1,40 +1,29 @@
 ## The player — an hourglass.
 ##
-## Signature mechanic: a jump does THREE things at once.
-##   1. It flips the hourglass (the drained sand comes back: a refuel).
-##   2. It swaps the plane (front ⇄ back), at an identical (x, y).
-##   3. It launches you upwards.
-##
-## The consequence: you can only refuel by NET-changing plane. The two
-## exceptions are the spring (jump without flip) and the flip-pad (flip without
-## jump).
+## A jump does three things at once: flip (refuel), swap plane, and launch. So
+## refuelling requires a NET plane change. Exceptions: spring (jump, no flip)
+## and flip-pad (flip, no jump).
 class_name Player
 extends CharacterBody2D
 
-## Depth past which you have fallen out of the level. Filled in by `main.gd`
-## from the loaded level's size.
+## Depth past which you have fallen out of the level. Set by `main.gd`.
 var death_y := 10000.0
 
 var _coyote := 0.0
 var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
-## Jumps left in mid-air. Refilled on landing, and only ever above zero on a
-## level whose `double_jump` is on.
+## Jumps left in mid-air; above zero only when the level has `double_jump`.
 var _air_jumps := 0
 
-## The light the glass gives off. Its brightness IS the sand: the room closes in
-## around you as the clock runs down, so "how long have I got" is answerable
-## without ever looking at the gauge.
+## The light the glass gives off; its brightness is the remaining sand.
 var _light: PointLight2D
 var _pulse := 0.0
 
-## The drawn hourglass. Held so death can hide it and read the size it broke at.
+## The drawn hourglass.
 @onready var _visual: Node2D = $Visual
 
-## Below this much danger the glass is nervous but dry. Set so the sweat starts
-## noticeably AFTER the light has already begun to redden — two cues arriving
-## together read as one, and the point of the second is that things got worse.
+## Danger below which the glass does not sweat.
 const SWEAT_FROM := 0.4
 ## Seconds between beads at `SWEAT_FROM` and at bone dry.
 const SWEAT_SLOWEST := 0.34
@@ -59,24 +48,18 @@ func _process(delta: float) -> void:
 	var cfg := Tuning.cfg
 	var danger := Game.danger()
 	var fuel: float = clampf(Game.sand / maxf(cfg.sand_max, 1.0), 0.0, 1.0)
-	# Never all the way out. A light that reaches zero is not tension, it is a
-	# player who cannot see the platform they are about to miss.
 	var throb := 1.0 + 0.14 * sin(_pulse * 13.0) * danger
 	_light.color = Palette.sand(danger)
+	# The 0.42 floor keeps an empty glass still lighting the way.
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
 	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius)
 	_sweat(delta, danger)
 
 
-## Beads shaken off the glass as the sand runs out, faster the closer it gets.
-##
-## Driven off the same `danger()` as the tremble and the light, so all three
-## arrive as one rising state rather than as three effects with their own ideas
-## about when things are bad.
+## Beads shed as the sand runs out.
 func _sweat(delta: float, danger: float) -> void:
 	if Game.status != Game.Status.PLAY or danger < SWEAT_FROM:
-		# Reset rather than pause: refuel and the next bead should wait its turn,
-		# not fire the instant you drop back into the warning.
+		# Reset, not pause: a bead must not fire the instant danger returns.
 		_sweat_timer = 0.0
 		return
 
@@ -85,8 +68,6 @@ func _sweat(delta: float, danger: float) -> void:
 		return
 	var urgency := inverse_lerp(SWEAT_FROM, 1.0, danger)
 	_sweat_timer = lerpf(SWEAT_SLOWEST, SWEAT_FASTEST, urgency)
-	# Off the shoulders of the glass, never dead centre: a bead leaving from the
-	# middle of the sprite looks like it came out of the sand rather than off it.
 	var from := global_position + Vector2(
 		_rng.randf_range(-11.0, 11.0), _rng.randf_range(-15.0, -4.0))
 	Burst.sweat(get_parent(), from, Palette.GLASS)
@@ -95,15 +76,12 @@ func _sweat(delta: float, danger: float) -> void:
 func _physics_process(delta: float) -> void:
 	var cfg := Tuning.cfg
 
-	# Hand the glass our travel speed so the sand can slosh with us — both the
-	# sprite and the HUD gauge read it. Sampled here, at the top, because this
-	# still holds the speed *after* last frame's `move_and_slide`: run into a
-	# wall and it reads zero, so the sand pitches forward the way it should.
+	# Sand slosh (sprite + HUD). Sampled here so it is the speed *after* last
+	# frame's `move_and_slide` — zero against a wall.
 	Glass.travel = velocity.x
 
 	if Game.status != Game.Status.PLAY:
-		# Dead or level cleared: freeze, but keep gravity pinning us down so
-		# the final pose stays believable.
+		# Dead or cleared: freeze, but keep gravity.
 		velocity.x = 0.0
 		velocity.y = minf(velocity.y + cfg.gravity * delta, cfg.max_fall_speed)
 		move_and_slide()
@@ -111,8 +89,7 @@ func _physics_process(delta: float) -> void:
 
 	velocity.x = Input.get_axis("move_left", "move_right") * cfg.move_speed
 
-	# Coyote time: you can still jump for a moment after leaving a ledge.
-	# Jump buffer: a jump pressed too early fires on landing.
+	# Coyote time, then jump buffer.
 	_coyote = cfg.coyote_time if is_on_floor() else maxf(0.0, _coyote - delta)
 	_buffer = cfg.jump_buffer if Input.is_action_just_pressed("jump") \
 		else maxf(0.0, _buffer - delta)
@@ -120,20 +97,13 @@ func _physics_process(delta: float) -> void:
 	if _buffer > 0.0 and _coyote > 0.0:
 		_jump()
 	elif _air_jumps > 0 and Input.is_action_just_pressed("jump"):
-		# Deliberately keyed to the press itself, not to `_buffer`: a buffered
-		# jump that missed the ground would otherwise be spent in the air the
-		# instant it was pressed, which is not what the player asked for.
-		#
-		# This is a second real flip, so it undoes the first — same plane, same
-		# sand, pure height. Double-jump while nearly empty and you throw away
-		# the refuel you just earned, which is exactly the trap level 10 is
-		# built around. No special case here makes that happen; `max - sand`
-		# applied twice does.
+		# Keyed to the press, not `_buffer`: a buffered jump must not be spent in
+		# the air. A second real flip, so it undoes the first: pure height.
 		_air_jumps -= 1
 		_jump()
 
 	velocity.y += cfg.gravity * delta
-	# Variable jump height: releasing early clips the rise.
+	# Variable jump height.
 	if _jumping and not Input.is_action_pressed("jump") and velocity.y < 0.0:
 		velocity.y = maxf(velocity.y, -cfg.jump_cut_velocity)
 	velocity.y = minf(velocity.y, cfg.max_fall_speed)
@@ -162,9 +132,8 @@ func _jump() -> void:
 
 
 # ----- Presentation ----------------------------------------------------------
-# Effects are spawned into the LEVEL, not onto the player. A burst parented here
-# would be dragged along by the thing that made it — dust would follow you off
-# the ledge — and would be freed with the player on a restart, mid-animation.
+# Effects are parented to the LEVEL (`get_parent()`), not the player, so they
+# neither follow it nor die with it.
 
 func _land(impact_speed: float) -> void:
 	var force := clampf(impact_speed / maxf(Tuning.cfg.max_fall_speed, 1.0) * 2.4, 0.0, 1.0)
@@ -172,48 +141,33 @@ func _land(impact_speed: float) -> void:
 		return
 	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0),
 		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
-	# Loud in proportion to the drop, off the same `force` as the dust, so the
-	# two cues can never disagree about how hard that landing was.
 	Audio.sfx("land", linear_to_db(lerpf(0.4, 1.0, force)), 0.06)
 
 
-## The plane swap, in the colour of the plane you have just arrived in — the
-## ring is the clearest read of "which side am I on now" in the whole game.
 func _on_flipped(_from_pad: bool) -> void:
 	Burst.ring(get_parent(), global_position,
 		Palette.solid(Planes.Kind.BOTH, Game.plane))
 
 
-## Death: the glass breaks and what was in it goes on the floor.
-##
-## The visual is hidden on the same frame the fragments appear, and that order
-## is the whole trick — an intact hourglass still standing behind its own
-## wreckage is the difference between "it shattered" and "something shattered
-## near it". The body is left alone: hiding is not dying, and `main.gd` still
-## owns when this node goes away.
-##
-## Both halves are given the death pause as their lifetime, because the level —
-## and every effect parented to it — is freed the moment that pause ends. An
-## effect that outlasts it is an effect the player never sees the end of.
+## Death: shatter and spill. Hide the visual on the frame the fragments appear,
+## and cap their lifetime at `death_delay` — the level is freed then.
 func _on_status_changed(status: Game.Status) -> void:
 	if status != Game.Status.DEAD:
 		return
 	var life: float = Tuning.cfg.death_delay
 	var chambers := Glass.motion.chambers()
 	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life)
-	# Both bulbs: the sand does not care which end of the glass it was in.
 	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
 		chambers.x + chambers.y, life)
 	_visual.hide()
 	Audio.sfx("death")
 
 
-## Launched by a spring: height, but no flip and no plane change. The height is
-## fixed, so no variable-height cut applies.
+## Launched by a spring: no flip, no plane change, and no variable-height cut.
 func bounce(power: float) -> void:
 	velocity.y = -power
 	_jumping = false
 	_coyote = 0.0
 	Audio.sfx("spring")
-	# A spring hands back your air jump: it is a launch, not a jump you spent.
+	# A launch, not a jump spent: the air jump is handed back.
 	_air_jumps = 1 if Game.double_jump else 0

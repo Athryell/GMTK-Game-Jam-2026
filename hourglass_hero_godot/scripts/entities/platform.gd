@@ -1,12 +1,7 @@
 @tool
 ## A solid: floor, wall, platform, static or moving, plus the flip-pad variant.
 ##
-## Authoring in Godot: drag `platform.tscn` into a level, set `size` and `plane`
-## in the Inspector. The rectangle and its collision update live in the editor —
-## what you see is what you play.
-##
-## The node's origin is the TOP-LEFT corner of the rectangle (matching the JS
-## prototype's data), not its centre.
+## The node's origin is the TOP-LEFT corner of the rectangle, not its centre.
 class_name Platform
 extends AnimatableBody2D
 
@@ -24,13 +19,12 @@ const PAD_DETECT_HEIGHT := 8.0
 
 @export_group("Movement")
 @export var move_axis: PingPong.Axis = PingPong.Axis.NONE
-## Travel of the back-and-forth, in px, from where you placed it in the editor.
+## Travel, in px, from the editor-placed position.
 @export_range(0.0, 800.0, 1.0) var move_distance := 0.0
-## Speed of the back-and-forth, in px/s.
+## Speed, in px/s.
 @export_range(0.0, 400.0, 1.0) var move_speed := 0.0
-## Where in the cycle it starts, as a fraction of a full there-and-back. Movers
-## share one clock, so two of equal period sit in lockstep at 0 — set this to
-## spread them into a wave.
+## Start offset in the cycle. All movers share one clock, so equal-period
+## entities are locked in step at 0.
 @export_range(0.0, 1.0, 0.05) var move_phase := 0.0
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
@@ -57,7 +51,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# Otherwise platforms would drift around while you edit the level.
+	# Otherwise platforms drift while the level is being edited.
 	if Engine.is_editor_hint():
 		return
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
@@ -70,8 +64,6 @@ func _physics_process(delta: float) -> void:
 func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, size)
 	draw_rect(rect, _colour())
-	# A light lip along the top face: you can read where your feet will land,
-	# even on a thin platform.
 	if size.y >= 6.0:
 		draw_rect(Rect2(Vector2.ZERO, Vector2(size.x, 3.0)), _colour().lightened(0.35))
 
@@ -79,7 +71,7 @@ func _draw() -> void:
 func _colour() -> Color:
 	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.FRONT
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)
-	# A ghost lives in the other plane: visible, but you fall right through it.
+	# A ghost lives in the other plane: visible, but not solid.
 	return Palette.ghost(base, _active or Engine.is_editor_hint())
 
 
@@ -87,15 +79,14 @@ func _colour() -> Color:
 
 func _on_plane_changed(current: Planes.Kind) -> void:
 	_active = Planes.is_active(plane, current)
-	# An inactive solid sits on no layer at all: the player passes through it.
+	# An inactive solid sits on no layer: the player passes through it.
 	collision_layer = Layers.SOLID if _active else 0
 	_pad_detector.monitoring = _active and kind == Kind.FLIP_PAD
 	queue_redraw()
 
 
 func _on_pad_body_entered(body: Node2D) -> void:
-	# `body_entered` only fires on entry: standing on a pad does not refuel on
-	# loop, you have to leave and come back.
+	# `body_entered` fires on entry only: standing on a pad does not re-refuel.
 	if body is Player:
 		Game.pad_flip()
 		Audio.sfx("flip_pad")
@@ -126,13 +117,11 @@ func _apply_size() -> void:
 	var rect := _shape.shape as RectangleShape2D
 	rect.size = size
 	_shape.position = size / 2.0
-	# Detection strip flush with the pad's top face.
 	var det := _pad_detector_shape.shape as RectangleShape2D
 	det.size = Vector2(size.x, PAD_DETECT_HEIGHT)
 	_pad_detector_shape.position = Vector2(size.x / 2.0, 0.0)
 
 
-## `monitoring` is deliberately NOT set here: it depends on the plane as well as
-## on the kind, and `_on_plane_changed` is the one place that knows both.
+## `monitoring` is NOT set here: it depends on plane, so `_on_plane_changed` owns it.
 func _apply_kind() -> void:
 	queue_redraw()

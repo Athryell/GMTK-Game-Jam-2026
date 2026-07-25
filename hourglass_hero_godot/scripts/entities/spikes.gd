@@ -1,43 +1,23 @@
 @tool
 ## Spikes: a static hazard that kills on contact, within its own plane only.
-##
-## A monster that does not walk — same contract, same signals, different head.
-## It exists to say "do not jump here" in a way the player can see. A low ceiling
-## would forbid the jump; spikes show why it is forbidden, and that teaches.
 class_name Spikes
 extends PlaneArea
 
-## Which way the teeth point — i.e. which side the player comes from. `UP` is a
-## floor of spikes, `DOWN` a ceiling of them.
+## Which way the teeth point — `UP` is a floor of spikes, `DOWN` a ceiling.
 enum Facing { UP, DOWN, LEFT, RIGHT }
 
-## Target width of one tooth, in px. The band fits a whole number of teeth into
-## its length, so the row always ends flush with the band's edge.
-##
-## Held at 16 deliberately. Narrower teeth read as delicate on a short band and
-## as a comb on a long one, and the longest band in the game is 880px — at 11px
-## that is eighty teeth, the bevel below collapses into a single tone, and the
-## row goes back to being the flat stripe this shape exists to stop being.
+## Target width of one tooth, in px; the count is rounded so the row ends flush.
 const TOOTH_SIZE := 16.0
 
-## How much of the band's depth the teeth actually occupy, measured from the
-## base. Short teeth in a tall box: the level author's rectangle is load-bearing
-## — at a ceiling it sets the corridor the player squeezes through — so the way
-## to make spikes lighter is to draw less of it, never to shrink it.
+## Fraction of the band's depth the teeth are drawn over, from the base. The
+## author's rectangle sets the corridor, so draw less of it rather than shrink it.
 const TOOTH_DEPTH := 0.62
 
-## Fraction of the band's depth that actually kills, measured from the base.
-## The tips are visual overhang: you die once you are properly into the teeth,
-## not when you brush a point. Spikes that kill on their outline feel cheap.
-##
-## MUST stay below `TOOTH_DEPTH`. Above it the kill zone reaches past the drawn
-## tips and the band starts killing through empty air, which is the same unfair
-## death read from the other side.
+## Fraction of the band's depth that kills, from the base. MUST stay below
+## `TOOTH_DEPTH`, or the hitbox reaches past the drawn tips.
 const LETHAL_DEPTH := 0.50
 
-## How far the lit and shadow faces sit either side of the base colour. One
-## tooth split down its spine reads as a solid object; a single fill reads as a
-## paper cut-out, which is what the flat version looked like.
+## Lighten/darken amounts for the two faces of a tooth.
 const BEVEL_LIGHT := 0.22
 const BEVEL_DARK := 0.36
 
@@ -63,12 +43,8 @@ func _draw() -> void:
 		HourglassShape.fill(self, tooth[1], dark)
 
 
-## Which way this band points, as numbers: whether the teeth run along x, and
-## the two coordinates on the pointing axis — the flat back edge, and the tips.
-##
-## One source for both the drawing and the hitbox. They used to be two `match`
-## blocks over the same enum, which is how you end up with spikes whose teeth
-## and whose lethal slab face opposite ways, with nothing on screen to show it.
+## `[teeth_run_along_x, base_edge, far_edge]` on the pointing axis. `far_edge`
+## is the far side of the box, not the tips — see `_tip()`.
 func _axis() -> Array:
 	match facing:
 		Facing.UP: return [true, size.y, 0.0]
@@ -77,15 +53,12 @@ func _axis() -> Array:
 		_: return [false, 0.0, size.x]
 
 
-## Where the tips land: `TOOTH_DEPTH` of the way from the back edge to the far
-## one, so the teeth stop short of the box the level declares.
+## Where the tips land: `TOOTH_DEPTH` of the way from the base to the far edge.
 func _tip() -> float:
 	return lerpf(_axis()[1], _axis()[2], TOOTH_DEPTH)
 
 
-## Two half-triangles per tooth — the lit face then the shadow face, split down
-## the spine from base to tip. Returned as halves rather than as whole teeth
-## because the split IS the shape: there is no caller that wants one triangle.
+## One `[lit_half, dark_half]` triangle pair per tooth.
 func _teeth() -> Array[Array]:
 	var along_x: bool = _axis()[0]
 	var base: float = _axis()[1]
@@ -127,7 +100,6 @@ func _apply_size() -> void:
 	var along_x: bool = _axis()[0]
 	var base: float = _axis()[1]
 	var rect := _shape.shape as RectangleShape2D
-	# The slab hangs off the base edge, into the band.
 	var depth := (size.y if along_x else size.x) * LETHAL_DEPTH
 	var inward := -depth / 2.0 if base > 0.0 else depth / 2.0
 	if along_x:
