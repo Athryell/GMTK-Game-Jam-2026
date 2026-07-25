@@ -8,8 +8,6 @@ extends RefCounted
 const NECK_RATIO := 0.13
 ## Half-height of the throat, as a fraction of the glass's half-height.
 const THROAT_RATIO := 0.07
-## Fraction of a bulb's height the trickle reaches before the pile hides it.
-const STREAM_REACH := 0.82
 ## Bisection steps used to place a free surface; 16 lands inside a pixel.
 const LEVEL_STEPS := 16
 
@@ -58,21 +56,27 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	# square to `down` the whole way through. What moves is the pile, which lets
 	# go of the floor of its bulb and rises to the ceiling in one piece.
 	var up := -down
-	_pour(canvas, upper, down, chambers.x * bulb_area, sand, invert)
-	_pour(canvas, lower, down, chambers.y * bulb_area, sand, invert)
+	var upper_sand := pile(upper, down, chambers.x * bulb_area, invert)
+	var lower_sand := pile(lower, down, chambers.y * bulb_area, invert)
+	fill(canvas, upper_sand, sand)
+	fill(canvas, lower_sand, sand)
 
-	# The trickle runs whichever way the sand is going, and which bulb feeds it
-	# follows from that alone. Past the halfway point the flow has committed to
-	# the other direction, and `trickle_rate` has it stopped dead at the crossing.
+	# The trickle is drawn as the gap between the two piles, so it stays joined to
+	# both whatever the sand is doing: throat to surface at rest, stretched taut
+	# mid-turn as the slabs pull away from each other. Fading it out instead left
+	# the two blocks hanging with nothing between them.
 	var flow := down if invert < 0.5 else up
 	var source: float = chambers.x if flow.y >= 0.0 else chambers.y
-	var pouring := trickle_rate(size, flow, invert)
+	var pouring := trickle_rate(size, flow)
 	if source > 0.01 and pouring > 0.01:
-		var sideways := Vector2(-flow.y, flow.x)
-		# Starts at the underside of the source bulb, not the origin, or the
-		# throat's height shows as a gap of bare glass.
-		var head := sideways * sin(phase) * 0.6 - flow * nh
-		canvas.draw_line(head, head + flow * (hh * STREAM_REACH + nh),
+		# An empty bulb has no face to reach from, so the throat stands in.
+		var from := _reach(upper_sand, down, true, -nh)
+		var to := _reach(lower_sand, down, false, nh)
+		# The wobble is the only part that stops: a column of sand still shimmying
+		# while the flow is held at zero says it is moving when it is not.
+		var sideways := Vector2(-down.y, down.x)
+		var wobble := sideways * sin(phase) * 0.6 * absf(1.0 - 2.0 * invert)
+		canvas.draw_line(down * from + wobble, down * to + wobble,
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 	_outline(canvas, shell, line_width)
@@ -81,22 +85,25 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	canvas.draw_line(Vector2(-lip, hh), Vector2(lip, hh), Palette.GLASS, line_width * 1.35, true)
 
 
-## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips —
-## spent at the bulb wall's own angle, so it is never drawn outside the glass —
-## and again as `invert` crosses the middle, where the sand has slowed to a halt
-## and has not yet picked up the other way. Public so the tests measure the rate
-## the drawing actually uses.
-static func trickle_rate(size: Vector2, flow: Vector2, invert: float) -> float:
+## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips,
+## spent at the bulb wall's own angle so it is never drawn outside the glass.
+## Public so the tests measure the rate the drawing actually uses.
+static func trickle_rate(size: Vector2, flow: Vector2) -> float:
 	var wall := cos(atan2(size.x * (1.0 - NECK_RATIO), size.y * (1.0 - THROAT_RATIO)))
-	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0) * absf(1.0 - 2.0 * invert)
+	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0)
 
 
-## Sand resting in one bulb, covering `target` area, surfaces square to `down`.
-static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
-		target: float, colour: Color, lift := 0.0) -> void:
-	if target <= 0.001:
-		return
-	fill(canvas, pile(bulb, down, target, lift), colour)
+## How far a pile reaches along `down` (`far`) or against it, in that axis alone.
+## `fallback` answers for an empty pile, which has no face to measure.
+static func _reach(poly: PackedVector2Array, down: Vector2, far: bool,
+		fallback: float) -> float:
+	if poly.size() < 3:
+		return fallback
+	var best := -INF if far else INF
+	for v in poly:
+		var d := v.dot(down)
+		best = maxf(best, d) if far else minf(best, d)
+	return best
 
 
 ## The sand lying in one bulb: `target` area of it, both surfaces square to

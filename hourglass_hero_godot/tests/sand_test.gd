@@ -189,16 +189,12 @@ func _ready() -> void:
 	_check("leaving the zone runs the sand back down the glass",
 		is_zero_approx(motion.invert()), "invert = %.3f" % motion.invert())
 
-	# The trickle slows, stops, then pours again — read off the same maths
-	# `draw_glass` uses, so a change there cannot pass this by.
+	# The trickle survives the reversal. Read off the same maths `draw_glass`
+	# uses, so a change there cannot pass this by.
 	var glass := Vector2(hw * 2.0, hh * 2.0)
-	for settled in [0.0, 1.0]:
-		_check("the trickle pours at full rate with the flow settled at %.0f" % settled,
-			HourglassShape.trickle_rate(glass, Vector2.DOWN, settled) > 0.99)
-	_check("the trickle is half spent a quarter of the way over",
-		absf(HourglassShape.trickle_rate(glass, Vector2.DOWN, 0.25) - 0.5) < 0.01)
-	_check("the trickle stops dead in the middle of the turn",
-		HourglassShape.trickle_rate(glass, Vector2.DOWN, 0.5) < 0.001)
+	for dir in [Vector2.DOWN, Vector2.UP]:
+		_check("the trickle pours at full rate with gravity %v" % dir,
+			HourglassShape.trickle_rate(glass, dir) > 0.99)
 
 	# The pile rises in one piece and keeps its sand the whole way. The version
 	# before this drew a share at each end of the bulb and crossfaded, which cut
@@ -228,6 +224,26 @@ func _ready() -> void:
 	_check("turned over it clings to the ceiling of its bulb",
 		_centre(settled_high).y < _centre(settled_low).y - 1.0,
 		"%.1f vs %.1f" % [_centre(settled_high).y, _centre(settled_low).y])
+
+	# The trickle is the gap the two piles leave, so it is joined to both at every
+	# step. Fading it out across the middle instead left the two blocks hanging
+	# with nothing between them.
+	var shortest := INF
+	var longest := 0.0
+	for step in 21:
+		var lift: float = step / 20.0
+		var top: PackedVector2Array = HourglassShape.pile(upper, Vector2.DOWN, held, lift)
+		var bottom: PackedVector2Array = HourglassShape.pile(lower, Vector2.DOWN, held, lift)
+		var span: float = HourglassShape._reach(bottom, Vector2.DOWN, false, nh) \
+			- HourglassShape._reach(top, Vector2.DOWN, true, -nh)
+		shortest = minf(shortest, span)
+		longest = maxf(longest, span)
+	_check("the trickle always has both piles to hold on to", shortest > 0.0,
+		"shortest span %.2f px" % shortest)
+	# It rides the sand rather than stretching between it, so the gap the slabs
+	# leave stays close to fixed the whole way up.
+	_check("and its length barely changes on the way",
+		longest - shortest < hh * 0.12, "%.1f px to %.1f px" % [shortest, longest])
 
 	empty_zone.queue_free()
 	full_zone.queue_free()
