@@ -68,7 +68,7 @@ func _load_current_level() -> void:
 	_player.death_top = -Tuning.cfg.fall_death_margin
 	_player.death_bottom = _level.world_size.y + Tuning.cfg.fall_death_margin
 
-	_backdrop.configure(_level.world_size)
+	_backdrop.configure(_level, Game.level_index)
 	_shadows.configure(_level)
 	_shadows.lamp = _player
 
