@@ -29,6 +29,8 @@ var plane: Planes.Kind = Planes.Kind.BOTH
 ## than at `-size / 2`.
 static func attach(host: Node2D, entity_plane: Planes.Kind, size: Vector2) -> EntityOccluder:
 	var shape := OccluderPolygon2D.new()
+	# Wound clockwise on screen (y grows downward), which is what the cull mode
+	# below is chosen against.
 	shape.polygon = PackedVector2Array([
 		Vector2.ZERO,
 		Vector2(size.x, 0.0),
@@ -36,10 +38,19 @@ static func attach(host: Node2D, entity_plane: Planes.Kind, size: Vector2) -> En
 		Vector2(0.0, size.y),
 	])
 	shape.closed = true
-	# Both faces. Culled to one, a platform would stop the light from above and
-	# let it straight through from below, so standing under a floor would light
-	# the ceiling you are hanging from.
-	shape.cull_mode = OccluderPolygon2D.CULL_DISABLED
+	# Only the face turned AWAY from the lamp casts, and that is the whole fix.
+	#
+	# With both faces casting, the edge nearest the light throws a shadow across
+	# the very rectangle it belongs to: a platform blacked out its own underside
+	# down to the floor, and the floor shadowed everything below its own surface.
+	# Both read as hard rectangles of darkness with nothing casting them.
+	#
+	# Culled to the far face, a shape can no longer shadow itself — the near edge
+	# is transparent, the far edge stops the light — so a lit body still blocks
+	# everything behind it. Which is what a solid slab looks like, and it works
+	# from either side because the polygon is closed: stand under a platform and
+	# its top edge is the far one.
+	shape.cull_mode = OccluderPolygon2D.CULL_COUNTER_CLOCKWISE
 
 	var node := EntityOccluder.new()
 	node.plane = entity_plane
