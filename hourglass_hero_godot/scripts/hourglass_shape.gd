@@ -74,8 +74,12 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
 	if chambers.x > 0.01 and pouring > 0.01:
 		var sideways := Vector2(-down.y, down.x)
-		var head := sideways * sin(phase) * 0.6
-		canvas.draw_line(head, head + down * hh * STREAM_REACH,
+		# Starts at the UNDERSIDE of the upper bulb, not at the centre of the glass.
+		# The bulb's sand stops at the top of the throat, so a trickle beginning at
+		# the origin leaves the height of the throat as a gap of bare glass — the
+		# sand reads as cut in two right where it should be one continuous fall.
+		var head := sideways * sin(phase) * 0.6 - down * nh
+		canvas.draw_line(head, head + down * (hh * STREAM_REACH + nh),
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 	# Frame: the outline, then the plates capping it.

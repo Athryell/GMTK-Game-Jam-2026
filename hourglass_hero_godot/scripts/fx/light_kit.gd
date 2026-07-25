@@ -50,23 +50,15 @@ static func falloff() -> GradientTexture2D:
 ## `offset` moves it off its parent's origin, which every entity here needs:
 ## entity origins are top-left corners, and a light hanging off a corner lights
 ## the room lopsidedly.
-## `shadows` is off by default: an emissive object sits inside its own outline
-## and would shadow itself into blackness. Only a lamp in a room wants them.
+## Never casts. Godot's 2D shadow map cannot be made clean for a lamp that sits
+## on the floor it lights — see [CastShadows], which draws the terrain's shadows
+## by hand instead.
 static func point(colour: Color, radius: float, energy := 1.0,
-		offset := Vector2.ZERO, shadows := false) -> PointLight2D:
+		offset := Vector2.ZERO) -> PointLight2D:
 	var light := PointLight2D.new()
 	light.texture = falloff()
 	light.texture_scale = radius * 2.0 / TEXTURE_SIZE
 	light.color = colour
 	light.energy = energy
 	light.position = offset
-	light.shadow_enabled = shadows
-	if shadows:
-		light.shadow_item_cull_mask = EntityOccluder.SHADOW_MASK
-		# Softened, because the terrain is drawn as hard rectangles and a hard
-		# shadow off a hard rectangle reads as a second rectangle rather than
-		# as an absence of light.
-		light.shadow_filter = PointLight2D.SHADOW_FILTER_PCF13
-		light.shadow_filter_smooth = 6.0
-		light.shadow_color = Color(0.0, 0.0, 0.0, 0.72)
 	return light
