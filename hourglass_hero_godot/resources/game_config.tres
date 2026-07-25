@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="GameConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/game_config.gd" id="1_cfg"]
+
+[resource]
+script = ExtResource("1_cfg")
+gravity = 2200.0
+move_speed = 260.0
+jump_velocity = 760.0
+jump_cut_velocity = 280.0
+coyote_time = 0.09
+jump_buffer = 0.12
+max_fall_speed = 1800.0
+sand_max = 6000.0
+sand_start = 3000.0
+sand_warn = 2000.0
+sand_flip_base = 0.0
+flip_duration = 0.5
+fall_death_margin = 60.0
+spring_power = 1400.0
+ghost_alpha = 0.26
+level_clear_delay = 0.9
+camera_zoom = 1.55
+camera_smoothing = 7.0
+camera_lead = 78.0
+camera_lead_speed = 2.6
+camera_vertical_slack = 84.0
+camera_shake_strength = 16.0
+camera_shake_decay = 0.55
+world_light = 0.58
+player_light_radius = 270.0
+player_light_energy = 1.35
+entity_light_energy = 1.1
+pad_flash_duration = 0.4
+spring_recovery_speed = 4.0

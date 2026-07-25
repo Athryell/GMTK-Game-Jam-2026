@@ -1,0 +1,51 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_spring"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "The Spring"
+world_size = Vector2(960, 1400)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(180, 1300)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(560, 538)
+size = Vector2(34, 62)
+plane = 2
+
+[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(160, 1340)
+size = Vector2(640, 60)
+plane = 2
+kind = 0
+
+[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(200, 960)
+size = Vector2(320, 20)
+plane = 2
+kind = 0
+
+[node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(420, 600)
+size = Vector2(240, 20)
+plane = 2
+kind = 0
+
+[node name="Spring1" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(240, 1324)
+size = Vector2(160, 22)
+plane = 2
+power = 1400.0
+
+[node name="Spring2" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(280, 944)
+size = Vector2(140, 22)
+plane = 2
+power = 1400.0

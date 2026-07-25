@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tuning_panel.tscn" id="3_tuner"]
+[ext_resource type="Script" path="res://scripts/fx/backdrop.gd" id="4_backdrop"]
+[ext_resource type="Script" path="res://scripts/fx/camera_rig.gd" id="6_camera"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("4_backdrop")
+
+[node name="LevelRoot" type="Node2D" parent="."]
+
+[node name="WorldLight" type="CanvasModulate" parent="."]
+color = Color(0.58, 0.58, 0.65, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("6_camera")
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="TuningPanel" parent="." instance=ExtResource("3_tuner")]

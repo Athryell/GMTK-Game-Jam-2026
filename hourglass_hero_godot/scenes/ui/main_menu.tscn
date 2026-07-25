@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.047, 0.102, 0.169, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 32.0
+offset_right = -40.0
+offset_bottom = -24.0
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.69, 0.227, 1)
+theme_override_font_sizes/font_size = 46
+text = "HOURGLASS HERO"
+horizontal_alignment = 1
+
+[node name="Tagline" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.604, 0.651, 0.769, 1)
+theme_override_font_sizes/font_size = 15
+text = "Every jump flips the glass and swaps the world."
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+
+[node name="SelectLabel" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.282, 0.792, 0.894, 1)
+theme_override_font_sizes/font_size = 14
+text = "SELECT A LEVEL"
+horizontal_alignment = 1
+
+[node name="Levels" type="GridContainer" parent="Layout"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="Spacer2" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 10
+
+[node name="Play" type="Button" parent="Layout/Actions"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+text = "PLAY"
+
+[node name="Quit" type="Button" parent="Layout/Actions"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+text = "QUIT"
+
+[node name="Hint" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.604, 0.651, 0.769, 1)
+theme_override_font_sizes/font_size = 12
+text = "← → move    SPACE jump    R restart    ESC back to menu    F1 tuning"
+horizontal_alignment = 1

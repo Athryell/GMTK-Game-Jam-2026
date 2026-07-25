@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "Double or Nothing"
+world_size = Vector2(1400, 540)
+double_jump = true
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(50, 479)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(1330, 438)
+size = Vector2(34, 64)
+plane = 2
+
+[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(0, 502)
+size = Vector2(300, 38)
+plane = 2
+kind = 0
+
+[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(540, 502)
+size = Vector2(260, 38)
+plane = 2
+kind = 0
+
+[node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(900, 310)
+size = Vector2(140, 18)
+plane = 2
+kind = 0
+
+[node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(1120, 502)
+size = Vector2(280, 38)
+plane = 2
+kind = 0
+
+[node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(300, 505)
+size = Vector2(240, 35)
+plane = 2
+facing = 0
+
+[node name="Spikes2" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(800, 505)
+size = Vector2(320, 35)
+plane = 2
+facing = 0

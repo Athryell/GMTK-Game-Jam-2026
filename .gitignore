@@ -28,3 +28,4 @@ mono_crash.*.json
 .claude/
 .DS_Store
 .DS_store
+.superpowers/
