@@ -121,9 +121,10 @@ On the level root, under **Rules**:
 Both are applied by `main.gd` after the scene exists, and both reset between
 levels, so a level cannot leak its rules into the next one.
 
-The air jump needs no balancing of its own. `sand_flip_base` is 0, so
-`flip_sand()` is exactly `max - sand`: an involution. Two flips return you to
-your starting plane **and** to your starting sand, so a double jump is pure
+The air jump needs no balancing of its own. `sand_flip_base` is 0, so on a
+two-chamber glass a turn gives back exactly `max - sand`: an involution. Two
+turns return you to your starting plane **and** to your starting sand, so a
+double jump is pure
 height and pure time — free while you are full, ruinous while you are empty.
 That is the exact mirror of the single jump, and it falls out of the formula
 rather than out of a tuning pass. `sand_test.gd` guards the identity.

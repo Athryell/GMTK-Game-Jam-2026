@@ -1,9 +1,6 @@
-## The level's superimposed planes — one per chamber of its glass.
-##
-## Every entity belongs to one plane (or to all of them). The player moves to the
-## next one on every jump, so a `P1` platform is only solid while the glass has
-## chamber 1 on top. Two planes is the original game; three and four are the same
-## rule with more places to be.
+## The level's superimposed planes, one per chamber of its glass. Every entity
+## belongs to one or to all; the player moves to the next plane on every jump,
+## and only the current one is solid.
 class_name Planes
 extends RefCounted
 

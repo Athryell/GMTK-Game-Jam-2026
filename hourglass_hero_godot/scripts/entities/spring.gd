@@ -1,21 +1,29 @@
 @tool
-## Spring: launches the player upwards WITHOUT flipping the hourglass and
-## without changing plane. Free height and reach, but no refuel — the exception
-## that decouples "jumping" from "refuelling".
-##
-## It is an Area2D rather than a solid: you don't bump into it sideways, you
-## walk into its column and get launched, exactly like the JS prototype.
+## Spring: launches upwards WITHOUT flipping or changing plane, so it gives
+## height but no refuel. An Area2D, not a solid.
 class_name Spring
 extends PlaneArea
+
+## FOOT and PLATE are fractions of the pad's height. TRAVEL is not: it is a
+## fraction of the gap left over, `(size.y - foot - plate) * TRAVEL`.
+const FOOT := 0.14
+const PLATE := 0.30
+const TRAVEL := 0.62
+
+## Post width and inset from each end, as fractions of the pad's width.
+const POST := 0.045
+const POST_INSET := 0.08
 
 ## Impulse, in px/s. At 0 it takes `spring_power` from the tuning panel.
 @export_range(0.0, 3000.0, 10.0) var power := 0.0
 
-var _compress := 0.0 ## Visual cue: the spring squashes, then springs back.
+var _compress := 0.0 ## 1 on impact, decays back to 0.
 
 
 func _init() -> void:
-	size = Vector2(84.0, 22.0)
+	# Origin is the TOP-LEFT corner: a pad on a floor sits at the floor's top
+	# minus its own height.
+	size = Vector2(56.0, 14.0)
 	light_tint = Palette.SPRING
 	light_radius = 120.0
 	light_energy = 0.9
@@ -29,8 +37,7 @@ func _process(delta: float) -> void:
 
 
 func _touched(player: Player) -> void:
-	# Only bounce when coming down onto it: passing up through it from below
-	# must not re-launch.
+	# Only bounce coming down: passing up through it from below must not launch.
 	if player.velocity.y < 0.0:
 		return
 	player.bounce(power if power > 0.0 else Tuning.cfg.spring_power)
@@ -38,16 +45,20 @@ func _touched(player: Player) -> void:
 	queue_redraw()
 
 
+## A plate on two fixed posts: on impact only the plate moves down, so the
+## silhouette holds still and the closing gap reads as compression.
 func _draw() -> void:
-	# On impact the spring flattens, then recovers as it extends.
-	var squash := 1.0 - 0.45 * _compress
-	var h := size.y * squash
-	var top := size.y - h
 	var colour := _shade(Palette.SPRING)
-	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, h)), colour)
-	# Three upward chevrons: the launch direction reads at a glance.
-	var mid := size.x / 2.0
-	for i in 3:
-		var y := top + h * (0.25 + 0.25 * i)
-		draw_line(Vector2(mid - 14.0, y + 6.0), Vector2(mid, y), colour.darkened(0.5), 2.0)
-		draw_line(Vector2(mid, y), Vector2(mid + 14.0, y + 6.0), colour.darkened(0.5), 2.0)
+	var foot := maxf(2.0, size.y * FOOT)
+	var plate := maxf(4.0, size.y * PLATE)
+	var top := (size.y - foot - plate) * TRAVEL * _compress
+
+	draw_rect(Rect2(Vector2(0.0, size.y - foot), Vector2(size.x, foot)),
+		colour.darkened(0.55))
+	var post := maxf(3.0, size.x * POST)
+	var inset := size.x * POST_INSET
+	for x in [inset, size.x - inset - post]:
+		draw_rect(Rect2(Vector2(x, top + plate),
+			Vector2(post, size.y - foot - top - plate)), colour.darkened(0.38))
+	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, plate)), colour)
+	draw_rect(Rect2(Vector2(0.0, top), Vector2(size.x, 2.0)), colour.lightened(0.45))

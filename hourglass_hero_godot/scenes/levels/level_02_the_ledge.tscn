@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://csptf1n172nbh"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_h42ef"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_7tcmr"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_eyiv3"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="4_sed4g"]
+
+[node name="Level" type="Node2D" unique_id=2024215292]
+script = ExtResource("1_h42ef")
+level_name = "The Ledge"
+world_size = Vector2(1200, 540)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=687475050]
+position = Vector2(53, 479)
+
+[node name="Entities" type="Node2D" parent="." unique_id=133605769]
+
+[node name="Door" parent="Entities" unique_id=306638810 instance=ExtResource("2_7tcmr")]
+position = Vector2(1120, 438)
+size = Vector2(34, 64)
+
+[node name="Platform1" parent="Entities" unique_id=697397651 instance=ExtResource("3_eyiv3")]
+position = Vector2(0, 502)
+size = Vector2(1160, 38)
+
+[node name="Spikes1" parent="Entities" unique_id=1149232076 instance=ExtResource("4_sed4g")]
+position = Vector2(360, 403)
+facing = 1
+size = Vector2(800, 24)

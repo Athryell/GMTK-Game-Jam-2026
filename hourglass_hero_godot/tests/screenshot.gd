@@ -1,22 +1,14 @@
 ## Screenshot harness: boots the real game and saves frames to disk.
 ##
-## The rest of the suite asks "does it still work". This one is the only way to
-## ask "does it still look right", which for a game made entirely of `_draw()`
-## calls is not a question you can answer by reading code.
-##
 ##   godot --path hourglass_hero_godot tests/screenshot.tscn -- <out_dir> [flip] [dry] [levels…]
 ##
-## Levels are 1-based; with none given it shoots every level. Pass `flip` to
-## jump once before posing, which is the only way to see the BACK plane: the
-## room recolours on the swap, and half the art in this game is never on screen
-## until you have flipped into it. It needs a real
-## window — `--headless` has no rendering device, so the viewport comes back
-## blank.
+## Levels are 1-based; none given shoots every level. `flip` jumps once first,
+## the only way to see the BACK plane. Needs a real window — under `--headless`
+## the viewport comes back blank.
 extends Node
 
 const MAIN := preload("res://scenes/main.tscn")
-## Frames to let a level settle before shooting: the camera eases in, the
-## backdrop parallax resolves, and the first flip tween has to land.
+## Frames to let the camera, parallax and flip tween settle before shooting.
 const SETTLE_FRAMES := 45
 
 var _out_dir := "res://../shots"
@@ -40,8 +32,7 @@ func _ready() -> void:
 	for index in _levels:
 		Game.start_level(index)
 		main._load_current_level()
-		# Nudge the player right so the shot catches the game in motion rather
-		# than at rest on the spawn point, where nothing is lit or moving.
+		# Nudge right so the shot catches the game in motion, not at rest on spawn.
 		Input.action_press("move_right")
 		if _flip:
 			# Early, so the backdrop's recolour tween has landed by the shot.
@@ -51,10 +42,8 @@ func _ready() -> void:
 			Input.action_release("jump")
 		for i in SETTLE_FRAMES:
 			await get_tree().process_frame
-			# The clock keeps running while we pose: hold it steady so a slow
-			# level does not die mid-shoot and reload under us. `dry` holds it
-			# just above empty instead, which is the only way to photograph what
-			# the last seconds look like — the tremble, the sweat, the red light.
+			# Hold the clock steady so a slow level does not die mid-shoot; `dry`
+			# holds it just above empty to photograph the last-seconds look.
 			Game.sand = Tuning.cfg.sand_warn * 0.08 if _dry else Tuning.cfg.sand_max
 		Input.action_release("move_right")
 		await RenderingServer.frame_post_draw

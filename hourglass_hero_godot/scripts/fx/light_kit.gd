@@ -1,16 +1,6 @@
-## Builds the game's 2D lights, texture and all, from nothing but numbers.
-##
-## Every other asset in this project is drawn at runtime by a `_draw()` call, and
-## the lights are no exception: a `PointLight2D` needs a texture, so this bakes a
-## radial falloff into a `GradientTexture2D` instead of adding a PNG to a repo
-## that has none. One texture is shared by every light in the game — the colour,
-## the reach and the brightness are per-light properties, not per-texture, so
-## caching it costs one 256×256 buffer for the whole run.
-##
-## The falloff is deliberately not linear. A straight ramp reads as a flat disc
-## with a hard rim; squaring it puts most of the brightness in the middle and
-## lets the edge dissolve, which is what makes a pool of light look like light
-## rather than like a circle someone drew.
+## Builds the game's 2D lights from numbers: a radial falloff baked into a
+## `GradientTexture2D`, shared by every light (colour, reach and energy are
+## per-light properties). The ramp is squared, not linear, so the edge dissolves.
 class_name LightKit
 extends RefCounted
 
@@ -26,7 +16,7 @@ static func falloff() -> GradientTexture2D:
 		return _texture
 
 	var gradient := Gradient.new()
-	# `Gradient` starts with two points of its own; they are in the way.
+	# `Gradient` starts with two points of its own; clear them first.
 	gradient.offsets = PackedFloat32Array()
 	gradient.colors = PackedColorArray()
 	for i in FALLOFF_STOPS + 1:
@@ -45,16 +35,14 @@ static func falloff() -> GradientTexture2D:
 	return _texture
 
 
-## How much to scale the falloff texture by to reach `radius` px. The texture is
-## a fixed size and every light has to divide by it; leaving that division to the
-## callers is how the convention leaks into three files.
+## `texture_scale` needed for a light to reach `radius` px. Always go through
+## this rather than dividing by TEXTURE_SIZE at the call site.
 static func scale_for(radius: float) -> float:
 	return radius * 2.0 / TEXTURE_SIZE
 
 
-## A light reaching `radius` px, ready to be added as a child. Never casts. Godot's 2D shadow map cannot be made clean for a lamp that sits
-## on the floor it lights — see [CastShadows], which draws the terrain's shadows
-## by hand instead.
+## A light reaching `radius` px, ready to be added as a child. Never casts
+## shadows — terrain shadows are drawn by hand, see [CastShadows].
 static func point(colour: Color, radius: float, energy := 1.0) -> PointLight2D:
 	var light := PointLight2D.new()
 	light.texture = falloff()

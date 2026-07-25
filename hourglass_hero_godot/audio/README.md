@@ -1,16 +1,26 @@
 # Audio
 
-Drop a file in, and it plays. There is no list to register it in.
+Every sound is an `AudioStreamPlayer` in `sound_bank.tscn`, under `Sfx` or
+`Music`. The node's name is the id the game asks for; its stream, `volume_db`,
+`pitch_scale` and bus are set on it in the Inspector. `Audio.sfx("jump")` looks
+up `Sfx/jump` and plays that player as it stands — the code passes no volume and
+no pitch, so mixing is done entirely by ear in the editor.
 
-`Audio.sfx("jump")` looks for `audio/sfx/jump.ogg`, then `.wav`, then `.mp3`, and
-plays the first one it finds. `Audio.play_music("level")` does the same in
-`audio/music/`. A name with no file behind it warns once in the console and
-plays silence — which is what lets the call sites be wired before the audio
-exists, and the audio to arrive in any order.
+To add a sound: drop the file in `sfx/` or `music/`, open `sound_bank.tscn`, add
+an `AudioStreamPlayer` named after the id, assign the stream and the bus.
+
+A name with no player behind it warns once in the console and plays silence —
+which is what lets the call sites be wired before the audio exists, and the audio
+to arrive in any order.
+
+Repeated one-shots do not cut each other off: a sound asked for while it is still
+ringing is duplicated for that one voice, and the copy frees itself when it ends.
+Music is the exception — the bank player is only read for its stream and volume,
+because a single owned player is what makes the crossfade possible.
 
 ## Names the game already asks for
 
-These calls are live. Each one is silent until you add the matching file.
+These calls are live. Each one is silent until the bank has a player for it.
 
 ### `sfx/`
 
@@ -33,8 +43,8 @@ These calls are live. Each one is silent until you add the matching file.
 ## Formats
 
 `.ogg` for music (it streams, and loops seamlessly). `.wav` for short effects
-(no decode cost on a one-shot). Looping is turned on for music by `Audio`
-itself, so there is no per-file import setting to remember.
+(no decode cost on a one-shot). `Audio` turns looping on for the `.ogg` and
+`.mp3` it plays as music; a `.wav` track needs its loop set in the import dock.
 
 ## Volume
 

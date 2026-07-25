@@ -1,59 +1,43 @@
-## How one drawn hourglass moves: the flip tumble, the sand lagging behind it,
-## the trickle's wobble.
-##
-## One instance per glass — the player has one, the HUD gauge has another — so
-## they animate independently while sharing the maths. It reads `Game` for the
-## flip state; `HourglassShape` stays pure drawing and is told the answers.
+## How one drawn hourglass moves: flip tumble, sand slosh, trickle wobble. One
+## instance per glass; reads `Game` for the flip state and feeds `HourglassShape`.
 class_name HourglassMotion
 extends RefCounted
 
-## Radians the sand leans per rad/s of spin. Signed WITH the spin, so the sand
-## trails the tumble instead of turning with the walls.
+## Radians the sand leans per rad/s of spin. Signed WITH the spin, so it trails.
 const SPIN_LAG := 0.05
-## The shove the sand gets from a sudden change of sideways speed, in rad/s of
-## lean speed per px/s gained or lost. This is an impulse, not a force: the
-## player's `velocity.x` snaps straight to full speed, so there is no sustained
-## acceleration to read — only the jolt at the moment it changes.
+## Impulse from a change of sideways speed, in rad/s of lean speed per px/s.
 const LEAN_KICK := 0.009
-## Radians of lean per 1000 px/s of travel. Thick sand keeps trailing while you
-## run, long after the jolt has died; without this the glass sits dead level
-## mid-sprint. The player feeds both of these; the HUD gauge, bolted to the
-## screen, feeds neither.
+## Radians of lean per 1000 px/s of travel. Only the player feeds this and
+## `LEAN_KICK`; the screen-fixed HUD gauge feeds neither.
 const DRAG_LEAN := 0.23
-## The lean is a damped spring back to level. Slack and fairly damped on
-## purpose — this is syrup, not water: it swings over about a second and settles
-## after one soft overshoot.
+## The lean is a damped spring back to level.
 const STIFFNESS := 45.0
 const DAMPING := 7.0
-## Sand holds a slope, unlike water. This is where it stops leaning.
+## Max lean, in radians.
 const MAX_LEAN := 0.45
-## Wobble speed of the falling trickle. Cosmetic, never varies.
+## Wobble speed of the falling trickle.
 const STREAM_SPEED := 6.0
 
 ## Rotation of the glass, in radians. 0 is upright.
 var tilt := 0.0
-## Extra tilt of the sand's surfaces, on top of `tilt`. This is the slosh.
+## Extra tilt of the sand's surfaces on top of `tilt` — the slosh.
 var lean := 0.0
 var stream_phase := 0.0
 
 var _lean_speed := 0.0
 
 
-## `speed` is how fast the glass is travelling sideways, in px/s, and `shove` how
-## much that changed since the last call. Both are 0 for a glass that stays put.
-##
-## `shove` is a speed *difference*, deliberately not divided by `delta`: the
-## whole change goes into the spring as one impulse, so the same jolt lands
-## whatever the frame rate.
+## `speed` is sideways travel in px/s, `shove` its change since the last call —
+## a raw speed *difference*, NOT divided by `delta`: it enters as one impulse.
+## Both are 0 for a glass that stays put.
 func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	if delta <= 0.0:
 		return
 	stream_phase += delta * STREAM_SPEED
 
-	# A turn is one chamber over the animation's duration. The glass being
-	# regular, it lands visually upright and the spin is constant, so it is read
-	# straight off the config rather than differenced frame to frame —
-	# differencing would spike on the reset back to 0.
+	# A turn is one chamber over `flip_duration`. The glass being regular, it
+	# lands visually upright. The spin is read off the config rather than
+	# differenced frame to frame, which would spike on the reset to 0.
 	var cfg := Tuning.cfg
 	var spin := 0.0
 	if Game.flip_anim > 0.0 and cfg.flip_duration > 0.0:
@@ -63,9 +47,8 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	else:
 		tilt = 0.0
 
-	# Where the surface would like to sit: trailing the spin, and dragged back by
-	# the travel. `lean` IS the surface's angle in world space, so both terms
-	# take the sign of the thing they lag behind.
+	# `lean` is the surface's angle in world space, so both terms take the sign of
+	# the thing they lag behind.
 	var target := clampf(
 		spin * SPIN_LAG + speed * DRAG_LEAN / 1000.0, -MAX_LEAN, MAX_LEAN)
 	_lean_speed += shove * LEAN_KICK
@@ -74,25 +57,21 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	lean = clampf(lean + _lean_speed * delta, -MAX_LEAN, MAX_LEAN)
 
 
-## Gravity as the glass sees it: straight down in the world, expressed in the
-## glass's own frame, then leaned by the slosh. This is the one number that
-## makes the sand behave like a liquid rather than a block glued to the walls.
+## World-down expressed in the glass's own frame, then leaned by the slosh.
 func down() -> Vector2:
 	return Vector2.DOWN.rotated(lean - tilt)
 
 
 ## How full each chamber is, 0 to 1, indexed by the slot it is drawn in. The
-## size of the array is the chamber count, so this one value tells the shape both
-## how many chambers to draw and how much is in each.
+## array's size is the chamber count, so this one value tells the shape both how
+## many chambers to draw and how much is in each.
 func chambers() -> PackedFloat32Array:
 	var count := Game.chamber_count
 	var cap := maxf(Tuning.cfg.sand_max, 1.0)
-	# Mid-turn the neck gates the sand and every chamber keeps what it held.
-	# `Game.chambers` moved to the post-turn arrangement the instant the jump
-	# began, so drawing it one step BACK — inside a glass that has not finished
-	# turning — puts each chamber's sand where the chamber still is. At the end
-	# of the animation the glass snaps upright and the two agree exactly, which
-	# is what makes the landing seamless.
+	# Mid-turn every chamber keeps what it held. `Game.chambers` moved to the
+	# post-turn arrangement the instant the jump began, so drawing it one step
+	# BACK puts each chamber's sand where the chamber still is. The glass snaps
+	# upright at the end and the two agree, which is what lands it seamlessly.
 	var back := -int(Game.flip_dir) if Game.flip_anim > 0.0 else 0
 	var out := PackedFloat32Array()
 	out.resize(count)

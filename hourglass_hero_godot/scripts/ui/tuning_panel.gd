@@ -1,8 +1,5 @@
-## In-game tuning panel (F1).
-##
-## The sliders are written nowhere: they are GENERATED from the `@export_range`
-## entries in `game_config.gd`. Add a variable there and its slider shows up
-## here on its own, under its `@export_group` heading.
+## In-game tuning panel (F1). Sliders are generated from the `@export_range`
+## entries in `game_config.gd`, grouped by `@export_group`.
 extends CanvasLayer
 
 const PANEL_WIDTH := 340.0
@@ -22,8 +19,7 @@ func _ready() -> void:
 	_build_rows()
 	_save_button.pressed.connect(_on_save)
 	_reset_button.pressed.connect(_on_reset)
-	# Saving rewrites a file under res://, which an exported build cannot do —
-	# better to say so than to fail silently.
+	# Saving writes under res://, impossible in an exported build.
 	_save_button.disabled = not OS.has_feature("editor")
 	if _save_button.disabled:
 		_save_button.tooltip_text = "Only available from the Godot editor."
@@ -99,8 +95,7 @@ func _on_reset() -> void:
 	Tuning.reset()
 	for prop_name in _sliders:
 		var value: float = Tuning.cfg.get(prop_name)
-		# `set_value_no_signal`: Tuning.reset() already wrote everything, no
-		# need to route each slider back through set_value.
+		# No signal: `Tuning.reset()` already wrote every value.
 		_sliders[prop_name].slider.set_value_no_signal(value)
 		_sliders[prop_name].render.call(value)
 	_status.text = "Values restored"

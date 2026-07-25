@@ -1,32 +1,29 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://dm6be3a14qdsh"]
 
-[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
 [ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=1829913715]
 script = ExtResource("1_level")
 level_name = "Wake-Up"
-world_size = Vector2(960, 540)
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=67984213]
 position = Vector2(53, 479)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=1228455219]
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
-position = Vector2(902, 438)
-size = Vector2(34, 64)
-plane = 4
+[node name="Door" parent="Entities" unique_id=1092645359 instance=ExtResource("2_door")]
+position = Vector2(901, 386)
 
-[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform1" parent="Entities" unique_id=1818065125 instance=ExtResource("3_platform")]
 position = Vector2(0, 502)
 size = Vector2(960, 38)
-plane = 4
-kind = 0
 
-[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
-position = Vector2(420, 402)
-size = Vector2(150, 18)
-plane = 1
-kind = 0
+[node name="Platform2" parent="Entities" unique_id=1261976909 instance=ExtResource("3_platform")]
+position = Vector2(360, 476)
+size = Vector2(600, 26.66)
+
+[node name="Platform3" parent="Entities" unique_id=1102481008 instance=ExtResource("3_platform")]
+position = Vector2(660, 449)
+size = Vector2(300, 26.66)

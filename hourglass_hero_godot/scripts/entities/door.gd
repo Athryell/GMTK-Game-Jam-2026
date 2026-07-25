@@ -1,11 +1,9 @@
 @tool
-## The level exit. Like everything else it belongs to a plane: a "back" door
-## forces you to ARRIVE in the back plane, so you have to count your jumps.
+## The level exit. Belongs to a plane: a "back" door must be reached from back.
 class_name Door
 extends PlaneArea
 
-## Breaths per second of the halo and of the light, which have to agree or the
-## door reads as two objects.
+## Breaths per second. Shared by the drawn halo and the light — they must match.
 const PULSE_RATE := 3.0
 
 
@@ -17,9 +15,6 @@ func _init() -> void:
 	light_tint = Palette.DOOR
 	light_radius = 190.0
 	light_energy = 1.25
-	# The halo breathes, and the light breathes with it. Handing the rate to the
-	# light rather than driving its energy from here keeps the one formula that
-	# turns a scale into a brightness inside `EntityLight`, where it belongs.
 	light_pulse_rate = PULSE_RATE
 	light_pulse_depth = 0.28
 
@@ -38,7 +33,6 @@ func _touched(_player: Player) -> void:
 
 func _draw() -> void:
 	var colour := _shade(Palette.DOOR)
-	# A breathing halo: the exit catches the eye even from far away.
 	var glow := 6.0 + 3.0 * sin(_pulse * PULSE_RATE)
 	draw_rect(Rect2(Vector2(-glow, -glow), size + Vector2(glow, glow) * 2.0),
 		Color(Palette.DOOR, 0.18 * colour.a))

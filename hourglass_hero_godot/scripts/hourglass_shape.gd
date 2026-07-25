@@ -1,25 +1,10 @@
-## The hourglass, drawn. One routine, two callers: the player sprite and the HUD
-## gauge.
-##
-## Sharing it is the point — the gauge in the corner and the thing you steer are
-## the same object seen twice, so they must never drift apart visually. Draws
-## centred on the canvas origin; the caller positions it.
-##
-## The sand behaves like a liquid: the caller passes `down`, the direction
-## gravity points *in the glass's own frame*, and every free surface is cut
-## square to it. Tip the glass and the sand stays level instead of turning with
-## the walls. `HourglassMotion` is what works out that vector.
-##
-## Everything here is vector, not sprites, so it stays sharp at any size. Smooth
-## edges come from `antialiased` on every stroke plus the window override in
-## `project.godot` (fills have no per-call AA flag, and MSAA 2D does nothing
-## under the Compatibility renderer).
+## The hourglass, drawn (player sprite and HUD gauge share it). Drawn centred on
+## the canvas origin; the caller positions it. Free surfaces are cut square to
+## `down`, gravity in the glass's own frame, which `HourglassMotion` computes.
 class_name HourglassShape
 extends RefCounted
 
-## Half-width of the throat, as a fraction of the glass's half-width. Two
-## triangles meeting at a bare point pinch into a single aliased pixel and read
-## as a glitch; a short throat is both cleaner and closer to a real hourglass.
+## Half-width of the throat, as a fraction of the glass's half-width.
 const NECK_RATIO := 0.13
 ## Half-height of the throat, as a fraction of the glass's half-height.
 const THROAT_RATIO := 0.07
@@ -27,8 +12,7 @@ const THROAT_RATIO := 0.07
 ## pile hides it. That reach is `_span(...).x` — half the glass's height at two
 ## chambers, the rosette's radius above two.
 const STREAM_REACH := 0.82
-## Bisection steps used to place a free surface. Each one halves the error, so
-## 16 lands well inside a pixel at any size we draw.
+## Bisection steps used to place a free surface; 16 lands inside a pixel.
 const LEVEL_STEPS := 16
 ## How much of its own wedge a chamber may fill, measured as an angle off its
 ## axis. Chamber `i` owns the wedge `PI / count` either side of its axis; at 1.0
@@ -132,8 +116,7 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 	canvas.draw_colored_polygon(ring, Color(Palette.GLASS, 0.10))
 
 	# The sand. Every chamber is the same trapezoid turned, so one area serves
-	# for all of them — and that same symmetry is why a completed turn is
-	# seamless.
+	# for all of them — the same symmetry that makes a completed turn seamless.
 	var capacity := _area(chamber(size, count, 0))
 	for i in count:
 		_pour(canvas, chamber(size, count, i), down, fills[i] * capacity, sand)
@@ -202,8 +185,7 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 				Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 
-## Sand resting in one bulb, covering `target` area, with a surface square to
-## `down`. Wherever the bulb's lowest point is, that is where the sand pools.
+## Sand resting in one bulb, covering `target` area, surface square to `down`.
 static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
 		target: float, colour: Color) -> void:
 	if target <= 0.001:
@@ -211,9 +193,8 @@ static func _pour(canvas: CanvasItem, bulb: PackedVector2Array, down: Vector2,
 	fill(canvas, _clip(bulb, down, _level(bulb, down, target)), colour)
 
 
-## Where the free surface sits: how far along `down` to cut so that exactly
-## `target` area lies below. Found by bisection rather than by formula, so the
-## bulbs can change shape with no maths to redo. `down` must be a unit vector.
+## How far along `down` to cut so exactly `target` area lies below, by bisection.
+## `down` must be a unit vector.
 static func _level(poly: PackedVector2Array, down: Vector2, target: float) -> float:
 	var low := INF
 	var high := -INF
@@ -221,13 +202,11 @@ static func _level(poly: PackedVector2Array, down: Vector2, target: float) -> fl
 		var d := v.dot(down)
 		low = minf(low, d)
 		high = maxf(high, d)
-	# A brim-full bulb needs no search, and answering it exactly is worth the one
-	# extra area: bisection would stop a hair short and leave a seam of bare glass
-	# along the wall, which is the state a glass at rest sits in.
+	# Answer a brim-full bulb exactly; bisection would stop short and leave a seam
+	# of bare glass, which is the state a glass at rest sits in.
 	if target >= _area(poly):
 		return low
-	# Cutting further down leaves less sand, so the area is monotonic in the cut
-	# and plain bisection is enough. `low` always holds too much, `high` too little.
+	# Area is monotonic in the cut: `low` holds too much, `high` too little.
 	for _step in LEVEL_STEPS:
 		var mid := (low + high) * 0.5
 		if _area(_clip(poly, down, mid)) > target:
@@ -255,8 +234,7 @@ static func _clip(poly: PackedVector2Array, down: Vector2, level: float) -> Pack
 
 
 ## The two points where the surface meets the bulb's walls, or nothing if it
-## misses the bulb entirely. Nothing drawn here needs it; `tests/sand_test.gd`
-## uses it to measure the angle a free surface actually comes out at.
+## misses. Unused by the drawing; `tests/sand_test.gd` measures the surface with it.
 static func _chord(poly: PackedVector2Array, down: Vector2, level: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var n := poly.size()
@@ -282,13 +260,9 @@ static func _area(poly: PackedVector2Array) -> float:
 	return absf(total) * 0.5
 
 
-## A filled polygon with a smooth edge. `draw_colored_polygon` has no
-## antialiasing flag and MSAA does not reach it under the Compatibility
-## renderer, so the edge is redrawn as an antialiased stroke in the fill's own
-## colour — the slanted walls stop being a staircase.
-##
-## Public because it is not really about hourglasses: anything in this game that
-## draws a diagonal needs it, and `Spikes` used to carry its own copy.
+## A filled polygon with a smooth edge. `draw_colored_polygon` has no AA flag and
+## MSAA does not reach it under Compatibility, so the edge is restroked. Public:
+## used by anything in the game that draws a diagonal.
 static func fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) -> void:
 	if poly.size() < 3:
 		return
@@ -300,8 +274,7 @@ static func _outline(canvas: CanvasItem, poly: PackedVector2Array, width: float)
 	canvas.draw_polyline(_closed(poly), Palette.GLASS, width, true)
 
 
-## `poly` with its first point repeated at the end, which is what `draw_polyline`
-## needs to come all the way back round.
+## `poly` with its first point repeated, so `draw_polyline` closes the loop.
 static func _closed(poly: PackedVector2Array) -> PackedVector2Array:
 	var out := poly.duplicate()
 	out.append(poly[0])

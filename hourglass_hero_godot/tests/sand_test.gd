@@ -1,11 +1,6 @@
-## Sand test: checks the geometry that makes the sand behave like a liquid.
-## Pure maths, no game needed:
+## Sand test: the geometry in `hourglass_shape.gd`. Pure maths, exits 1 on failure.
 ##
 ##   godot --headless tests/sand_test.tscn
-##
-## The smoke test plays the game and never looks at a pixel, so this is the only
-## thing standing between `hourglass_shape.gd` and a silent regression.
-## Exits 1 on failure, so it can be wired into CI.
 extends Node
 
 const TILT_STEPS := 24
@@ -31,8 +26,6 @@ func _ready() -> void:
 		absf(HourglassShape._area(lower) - area) < 0.001)
 
 	# --- The sand drawn is the sand there is ---------------------------------
-	# Whatever the glass is doing, the filled area must equal the amount asked
-	# for. Get this wrong and the gauge lies about how much time is left.
 	var worst := 0.0
 	var worst_at := ""
 	for step in TILT_STEPS:
@@ -54,8 +47,6 @@ func _ready() -> void:
 			HourglassShape._level(upper, Vector2.DOWN, area)))) < 0.0001)
 
 	# --- The surface is level, not glued to the walls -------------------------
-	# This is the whole point: tip the glass and the sand stays horizontal in
-	# WORLD space. Before, it turned with the bulb like a solid block.
 	var worst_slope := 0.0
 	for step in TILT_STEPS:
 		var tilt := TAU * step / TILT_STEPS
@@ -65,22 +56,19 @@ func _ready() -> void:
 		if chord.size() != 2:
 			_check("surface crosses the bulb at %.2f rad" % tilt, false)
 			continue
-		# Back into world space, where the two ends should sit at the same height.
+		# Back into world space, where both ends should sit at the same height.
 		worst_slope = maxf(worst_slope,
 			absf(chord[0].rotated(tilt).y - chord[1].rotated(tilt).y))
 	_check("the free surface stays level in world space", worst_slope < 0.01,
 		"ends differ by %.4f px" % worst_slope)
 
 	# --- The tumble lands seamlessly -----------------------------------------
-	# At the end of a flip the glass snaps from a half turn back to upright. That
-	# is invisible only because the bulbs swap contents at the same moment (see
-	# `HourglassMotion.chambers`). If the two ever disagree, the sand jumps.
+	# The end-of-flip snap from a half turn to upright is invisible only because
+	# the bulbs swap contents at the same moment (`HourglassMotion.chambers`).
 	#
-	# Going through `_polygon_drift` means this also quietly requires the two
-	# clips to come out with the SAME number of corners — the helper answers `inf`
-	# rather than a distance when they do not. Both are four today. Should a clip
-	# ever land a corner exactly on the cut plane and the counts diverge, read a
-	# failure of "sand moves inf px" as that, not as the sand having moved.
+	# `_polygon_drift` answers `inf` rather than a distance when the two clips
+	# come out with different corner counts. Both are four today; read a failure
+	# of "sand moves inf px" as a corner landing on the cut plane, not as drift.
 	var frac := 0.7
 	var down_end := Vector2.DOWN.rotated(-PI)
 	var last_frame: PackedVector2Array = HourglassShape._clip(upper, down_end,
@@ -140,7 +128,7 @@ func _ready() -> void:
 	var worst_from := 0.0
 	var worst_flip := 0.0
 	for step in 41:
-		var start: float = cfg.sand_max * step / 40.0 # includes both 0 and max
+		var start: float = cfg.sand_max * step / 40.0 # covers 0 and max
 		Game.arm_glass(2, start)
 		# One turn must give back exactly what the old `max - sand` gave back.
 		Game.rotate_glass(1)

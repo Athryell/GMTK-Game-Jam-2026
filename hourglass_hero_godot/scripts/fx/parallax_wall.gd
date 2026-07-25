@@ -1,26 +1,21 @@
 ## One depth of the room, drawn procedurally and slid against the camera.
-##
-## Godot ships `Parallax2D`, and this does not use it. That node earns its keep
-## by tiling an unbounded background against a camera it does not control; here
-## the camera is ours, every level is a few hundred pixels of bounded world, and
-## the whole scene is `_draw()` calls with no texture to tile. Against that,
-## `position = camera * (1 - scroll)` is the entire feature — and it stays
-## predictable under a zoomed camera, which is the case that would otherwise
-## need testing against someone else's node.
+## Not `Parallax2D`: there is no texture to tile, and `position = camera *
+## (1 - scroll)` is the whole feature.
 class_name ParallaxWall
 extends Node2D
 
 enum Style {
-	FAR, ## Distant wall: dense columns, beams, and the clock face.
+	FAR, ## Distant wall: columns, beams and the clock face.
 	NEAR, ## Closer pillars with a lit cap.
 }
 
 ## 1.0 moves with the world, 0.0 is pinned to the camera, above 1.0 rushes past.
 @export var scroll := 0.35
+## Which depth of the room to draw.
 @export var style: Style = Style.FAR
 
-## Drawn a screen wider than the level in both directions: a layer that scrolls
-## at a different rate runs out of itself at the edges otherwise.
+## Overdraw beyond the level on every side, in px, so a layer scrolling at a
+## different rate never runs out of itself at the edges.
 const MARGIN := 700.0
 
 var tone := Color.WHITE: set = _set_tone
@@ -28,9 +23,8 @@ var tone := Color.WHITE: set = _set_tone
 var _world := Vector2(960.0, 540.0)
 
 
-## Sizes the wall to a level and reseeds its pattern. The seed is the level's
-## own dimensions, so every level gets a different room and gets the same one
-## every time it loads — a fresh random each frame would make the wall crawl.
+## Sizes the wall to a level. `_draw` seeds its RNG from `_world`, so the
+## pattern is per-level but stable across frames.
 func configure(world_size: Vector2, colour: Color) -> void:
 	_world = world_size
 	tone = colour
@@ -54,9 +48,8 @@ func _draw() -> void:
 			_draw_near(rng, left, right, bottom)
 
 
-## The far wall: a stone face of columns crossed by beams, with a clock let into
-## it. The clock is the one piece of scenery that says what this game is about,
-## so it is placed by hand at the level's centre rather than left to the seed.
+## The far wall: columns crossed by beams, plus a clock placed by hand at the
+## level's centre rather than left to the seed.
 func _draw_far(rng: RandomNumberGenerator, left: float, right: float, bottom: float) -> void:
 	var x := left
 	while x < right:
@@ -78,13 +71,12 @@ func _draw_far(rng: RandomNumberGenerator, left: float, right: float, bottom: fl
 		var a := TAU * i / 12.0
 		var dir := Vector2(cos(a), sin(a))
 		draw_line(centre + dir * radius * 0.86, centre + dir * radius * 0.97, face, 4.0, true)
-	# Frozen at midnight, which is the hour the last level is named for.
+	# Hands frozen at midnight.
 	draw_line(centre, centre + Vector2(0.0, -radius * 0.62), face, 5.0, true)
 	draw_line(centre, centre + Vector2(0.0, -radius * 0.42), face, 7.0, true)
 
 
-## Nearer pillars, lit along the top edge — the same trick the platforms use, so
-## the scenery reads as being made of the same stuff as the level.
+## Nearer pillars, lit along the top edge like the platforms.
 func _draw_near(rng: RandomNumberGenerator, left: float, right: float, bottom: float) -> void:
 	var cap := tone.lightened(0.22)
 	var inner := tone.darkened(0.3)

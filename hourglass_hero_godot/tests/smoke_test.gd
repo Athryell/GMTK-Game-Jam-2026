@@ -1,9 +1,6 @@
-## Smoke test: boots the real game and checks the core mechanic holds up.
-## Plays itself, no window needed:
+## Smoke test: boots the real game and plays itself. Exits 1 on failure.
 ##
 ##   godot --headless tests/smoke_test.tscn
-##
-## Exits 1 on the first failure, so it can be wired into CI.
 extends Node
 
 const MAIN := preload("res://scenes/main.tscn")
@@ -18,9 +15,7 @@ func _ready() -> void:
 	add_child(_main)
 	await _frames(10)
 
-	# Counted from the folder rather than written down here: adding a level is
-	# meant to be "drop a .tscn in", and a hard-coded number turns that into
-	# "drop a .tscn in and then go fix the test".
+	# Counted from the folder, so adding a level stays "drop a .tscn in".
 	var on_disk := _levels_on_disk()
 	_check("every level scene in the folder is discovered",
 		Game.level_scenes.size() == on_disk and on_disk > 0,
@@ -61,8 +56,8 @@ func _ready() -> void:
 	await _frames(4)
 	_check("second jump returns to the starting plane", Game.plane == plane_before)
 
-	# --- Walking straight must KILL: on level 1 the sand starts at half, and
-	# the crossing is longer than the reserve. That is the heart of the design.
+	# --- Walking straight must KILL: level 1 starts at half sand and the
+	# crossing is longer than that reserve.
 	Game.restart()
 	await _frames(5)
 	Input.action_press("move_right")
@@ -76,8 +71,7 @@ func _ready() -> void:
 	_check("walking without jumping empties the glass and kills", died,
 		"status=%s" % Game.status)
 
-	# --- Walking WHILE jumping refuels and gets you to the door: the whole
-	# gameplay loop, end to end.
+	# --- Walking WHILE jumping refuels and reaches the door: the whole loop.
 	Game.restart()
 	await _frames(5)
 	player = _find_player()
@@ -85,8 +79,7 @@ func _ready() -> void:
 	Input.action_press("move_right")
 	var reached := false
 	for i in 900:
-		# A jump every ~1.5 s: the sand is low, so the flip gives back nearly
-		# everything.
+		# A jump every ~1.5 s.
 		if i % 90 == 0:
 			Input.action_press("jump")
 		elif i % 90 == 6:
@@ -101,12 +94,8 @@ func _ready() -> void:
 		"status=%s x=%.0f sand=%.0f" % [Game.status, player.global_position.x, Game.sand])
 
 	# --- Every level loads and runs ------------------------------------------
-	# Catches a broken scene, a mis-wired entity, a spawn placed over a pit:
-	# start each level and let it stand still for as long as its own clock
-	# allows. The window is derived from the level's sand budget rather than
-	# fixed at a second, because "The Last Grain" opens 1.2 s from death by
-	# design — a fixed window would read that design as a bug, and a
-	# hand-maintained list of exceptions would rot the moment a level is retuned.
+	# The idle window is derived from each level's own sand budget, not fixed:
+	# some levels deliberately open barely a second from death.
 	var double_jump_levels: Array[int] = []
 	for i in Game.level_scenes.size():
 		Game.start_level(i)
@@ -129,8 +118,7 @@ func _ready() -> void:
 
 		var budget := level.sand_start_override if level.sand_start_override > 0.0 \
 			else Tuning.cfg.sand_start
-		# Six frames of slack: this asks "does anything here kill you", not
-		# "is the drain rate exactly what I think it is".
+		# Six frames of slack: this asks "does anything here kill you".
 		var frames := mini(60, int(budget / Tuning.cfg.sand_drain_rate * 60.0) - 6)
 		await _frames(frames)
 		_check("level %d (%s) runs %d frames without dying" % [i + 1, _level_name(), frames],
@@ -198,11 +186,43 @@ func _ready() -> void:
 	_check("some level is played on a four-chamber glass", counts.has(4))
 	_check("and most of them are still the two-chamber hourglass", counts.has(2))
 
+	# --- The camera keeps the player on screen --------------------------------
+	await _check_camera_holds_a_launch()
+
 	_finish()
 
 
-## On a level that grants it, a second jump must fire in mid-air — and because
-## it is a real flip, it must land you back in the plane you jumped from.
+## A spring launch is the fastest the player ever moves. Asserted in px against
+## the frame, so it survives changes to zoom, slack or spring power.
+func _check_camera_holds_a_launch() -> void:
+	Game.start_level(0)
+	await _load_level_scene()
+	var player := _find_player()
+	var camera: CameraRig = get_tree().root.find_children("", "CameraRig", true, false)[0]
+	if player == null or camera == null:
+		_check("camera: player and camera exist", false)
+		return
+
+	for i in 120:
+		await get_tree().physics_frame
+		if player.is_on_floor():
+			break
+
+	var half: float = camera.get_viewport_rect().size.y / camera.zoom.y / 2.0
+	player.bounce(Tuning.cfg.spring_power)
+	var worst := 0.0
+	for i in 90:
+		await get_tree().physics_frame
+		if not is_instance_valid(player) or Game.status != Game.Status.PLAY:
+			break
+		worst = maxf(worst, absf(player.global_position.y - camera.global_position.y))
+
+	_check("camera keeps the player on screen through a spring launch",
+		worst < half, "%.0f px off centre, frame reaches %.0f" % [worst, half])
+
+
+## A second jump must fire in mid-air and, being a real flip, land you back in
+## the plane you jumped from.
 func _check_air_jump(index: int) -> void:
 	Game.start_level(index)
 	await _load_level_scene()
@@ -227,7 +247,6 @@ func _check_air_jump(index: int) -> void:
 		Game.plane == plane_before and player.global_position.y < height_before,
 		"plane=%s y %.0f → %.0f" % [Game.plane, height_before, player.global_position.y])
 
-	# And it must not leak: the next level gets none of it.
 	Game.start_level(0)
 	_check("air jump: does not leak into the next level", not Game.double_jump)
 
@@ -239,12 +258,9 @@ func _find_player() -> Player:
 	return found[0] if not found.is_empty() else null
 
 
-## Replays `main.gd`'s scene load after a `Game.start_level`, then waits a frame.
-##
-## The wait is not politeness. `_load_current_level` only `queue_free`s the level
-## it replaces, so until the frame ends BOTH are in the tree and `find_children`
-## hands back the old one — which reads as levels reporting their predecessor's
-## name and rules, and as a freed player if you touch it.
+## Replays `main.gd`'s scene load after a `Game.start_level`. The frame wait is
+## required: the old level is only `queue_free`d, so until the frame ends both
+## are in the tree and `find_children` returns the old one.
 func _load_level_scene() -> void:
 	_main._load_current_level()
 	await get_tree().process_frame
@@ -260,8 +276,7 @@ func _level_name() -> String:
 	return level.level_name if level != null else ""
 
 
-## Counts the .tscn files the level folder actually holds, so the discovery
-## check has a source of truth that is not this file.
+## Counts the .tscn files in the level folder, independently of `Game`.
 func _levels_on_disk() -> int:
 	var dir := DirAccess.open(Game.LEVELS_DIR)
 	if dir == null:

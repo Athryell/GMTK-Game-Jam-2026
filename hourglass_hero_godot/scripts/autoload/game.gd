@@ -1,32 +1,27 @@
 ## Autoload `Game` — run state: sand, current plane, progression.
-##
-## Deliberately kept away from rendering: the HUD, the player and the entities
-## read this state and listen to its signals; nobody talks to anybody directly.
+## Holds no rendering; other nodes read this state and listen to its signals.
 extends Node
 
 const LEVELS_DIR := "res://scenes/levels"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
-## The player's plane changed — entities (de)activate off this.
+## The player's plane changed; entities (de)activate off this.
 signal plane_changed(plane: Planes.Kind)
-## The hourglass was just flipped. `from_pad` tells a flip-pad from a jump.
+## The hourglass was flipped; `from_pad` distinguishes a flip-pad from a jump.
 signal flipped(from_pad: bool)
 signal status_changed(status: Status)
 signal level_loaded(index: int, level_name: String)
 
 ## Level scenes, sorted by filename (level_01_… before level_02_…).
 var level_scenes: Array[PackedScene] = []
-## Display names, parallel to `level_scenes`. Read straight off the scene files
-## so the menu can list them without instantiating a single level.
+## Display names, parallel to `level_scenes`.
 var level_names: Array[String] = []
 var level_index := 0
 
-## Progression gate. Everything is open for now — the menu asks `is_unlocked()`,
-## so gating later is a one-line change here, with no UI to touch.
+## Progression gate; everything is unlocked for now.
 var unlock_all := true
-## Highest level index reached so far. Kept up to date even while `unlock_all`
-## is on, so switching the gate off works immediately.
+## Highest level index reached; tracked even while `unlock_all` is on.
 var levels_reached := 0
 
 ## How much sand sits in each chamber, indexed by SLOT — by fixed position on
@@ -52,9 +47,8 @@ var sand: float:
 var plane: Planes.Kind = Planes.Kind.P0
 var status: Status = Status.PLAY
 
-## Does the current level grant an extra jump in mid-air? Set by `main.gd` from
-## the level's own `double_jump`, because the level scene does not exist yet
-## when `start_level` arms the state.
+## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
+## `start_level` runs before it is instantiated.
 var double_jump := false
 
 ## Seconds left on the flip animation, and which way it tumbles.
@@ -79,16 +73,14 @@ func _process(delta: float) -> void:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
 		return
-	# Sand drains continuously. Death is the DRAINING chambers running dry, not
-	# the glass: at four chambers you can die with half the sand still in it,
-	# sealed away in a side chamber you did not turn towards.
+	# Death is the DRAINING chambers running dry, not the glass: at four chambers
+	# you can die with sand still sealed in a side you never turned towards.
 	drain(delta * Tuning.cfg.sand_drain_rate)
 	if sand <= 0.0:
 		set_status(Status.DEAD)
 
 
-## Scans the levels folder. Adding a level = dropping a .tscn in there; it is
-## picked up on the next run, with nothing to register anywhere.
+## Scans the levels folder; a .tscn dropped in there is picked up on next run.
 func _discover_levels() -> Array[PackedScene]:
 	var names: Array[String] = []
 	var dir := DirAccess.open(LEVELS_DIR)
@@ -109,15 +101,15 @@ func _discover_levels() -> Array[PackedScene]:
 	return out
 
 
-## Pulls `level_name` out of a level scene without building it. Falls back to a
-## readable form of the filename when the level was left at its default name.
+## Reads `level_name` from a scene without instantiating it; falls back to the
+## filename.
 func _read_level_name(scene: PackedScene) -> String:
 	var state := scene.get_state()
 	if state.get_node_count() > 0:
 		for i in state.get_node_property_count(0):
 			if state.get_node_property_name(0, i) == "level_name":
 				return str(state.get_node_property_value(0, i))
-	# "level_03_the_spring.tscn" -> "The Spring"
+	# "level_04_the_spring.tscn" -> "The Spring"
 	var stem := scene.resource_path.get_file().get_basename()
 	var words := stem.split("_", false)
 	var out := ""
@@ -128,7 +120,7 @@ func _read_level_name(scene: PackedScene) -> String:
 	return out if out != "" else stem
 
 
-## Is this level playable from the menu? Always true for now.
+## Is this level playable from the menu?
 func is_unlocked(index: int) -> bool:
 	return unlock_all or index <= levels_reached
 
@@ -144,8 +136,7 @@ func start_level(index: int) -> void:
 	arm_glass(2, Tuning.cfg.sand_start)
 	flip_anim = 0.0
 	pad_flash = 0.0
-	# Off until the level says otherwise, so a level that grants it cannot leak
-	# into the next one.
+	# Cleared so a level granting it cannot leak into the next one.
 	double_jump = false
 	set_plane(Planes.Kind.P0)
 	set_status(Status.PLAY)
@@ -172,9 +163,8 @@ func set_status(new_status: Status) -> void:
 	status_changed.emit(status)
 
 
-## The level scene is built and the player placed. `main.gd` calls this rather
-## than firing `level_loaded` itself: every signal here is emitted by `Game`, so
-## there is one place to look when you wonder who announces what.
+## Called by `main.gd` once the level scene is built and the player placed, so
+## that `level_loaded` is only ever emitted from here.
 func announce_level(level_name: String) -> void:
 	level_loaded.emit(level_index, level_name)
 
@@ -187,13 +177,12 @@ func set_plane(new_plane: Planes.Kind) -> void:
 # ----- The hourglass ---------------------------------------------------------
 
 ## The glass a level is played on: `count` chambers, `top` sand in the one on
-## top, and the rest of the glass split evenly among the others.
+## top, the rest of the glass split evenly among the others.
 ##
-## The split needs no tuning. `sand_start` is half of `sand_max`, and the glass
+## The split needs no tuning. `sand_start` is half of `sand_max` and the glass
 ## holds `sand_max * count / 2`, so the remainder divides into exactly
-## `sand_start` per chamber whatever the count. A chamber at rest reads half
-## full, and the runway before the first turn is compulsory is the same on every
-## glass in the game.
+## `sand_start` per chamber whatever the count — every glass in the game gives
+## you the same runway before the first turn is compulsory.
 func arm_glass(count: int, top: float) -> void:
 	chamber_count = clampi(count, 2, Planes.COUNT)
 	chambers = PackedFloat32Array()
@@ -276,8 +265,8 @@ func _pay_flip_bonus() -> void:
 
 ## A jump: turns the glass AND moves you to the next plane.
 func jump_flip(travel_dir: float) -> void:
-	# The turn rolls the way you travel — moving right spins clockwise, like a
-	# wheel. Keep the last direction on a straight-up jump.
+	# The turn rolls the way you travel, like a wheel; a straight-up jump keeps
+	# the last direction.
 	if not is_zero_approx(travel_dir):
 		flip_dir = signf(travel_dir)
 	rotate_glass(int(flip_dir))
@@ -286,20 +275,16 @@ func jump_flip(travel_dir: float) -> void:
 	flipped.emit(false)
 
 
-## A flip-pad: turns the glass with NO jump and NO plane change. It is the only
-## way to refuel while staying where you are.
-##
-## The plane staying put while the glass turns only reads right on a two-chamber
-## glass, where the pad simply swaps the two bulbs. No three- or four-chamber
-## level places one, and doing so is out of scope.
+## A flip-pad: refuels with no jump and no plane change. Standing still while the
+## glass turns only reads right at two chambers, where the pad just swaps the two
+## bulbs — no three- or four-chamber level places one.
 func pad_flip() -> void:
 	rotate_glass(1)
 	pad_flash = Tuning.cfg.pad_flash_duration
 	flipped.emit(true)
 
 
-## The flash's progress, 1 (just fired) down to 0. Owning it here means the
-## visual never has to know the duration — one number, one place.
+## Flash progress, 1 (just fired) down to 0.
 func pad_flash_ratio() -> float:
 	var duration := Tuning.cfg.pad_flash_duration
 	if duration <= 0.0:

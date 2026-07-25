@@ -1,10 +1,10 @@
-## HUD: the sand gauge, the level name, the current plane, and the death /
-## level-clear / victory screens.
+## HUD: the sand gauge, the level name, the current plane, and the victory
+## screen.
 extends Control
 
-## Centre of the sand gauge, in screen px. Editable on the HUD node in `hud.tscn`.
+## Centre of the sand gauge, in screen px. Editable on `Root` in `hud.tscn`.
 @export var gauge_centre := Vector2(52.0, 62.0)
-## Drawn size of the gauge hourglass. It is the player's own glass, scaled up.
+## Drawn size of the gauge hourglass.
 @export var gauge_size := Vector2(48.0, 72.0)
 
 ## What the two planes are called on a two-chamber level. Past two there is no
@@ -30,9 +30,7 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	# Literally the player's own glass, drawn a second time at another size: same
-	# tumble, same slosh, same trickle. Run right and the sand banks against the
-	# left wall here exactly as it does down on the sprite.
+	# Same `Glass.motion` as the player sprite, drawn at another size.
 	var motion := Glass.motion
 	var colour := Palette.sand(Game.danger())
 
@@ -41,7 +39,6 @@ func _draw() -> void:
 		motion.down(), motion.stream_phase, 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	# The gauge throbs when the sand runs low.
 	if Game.danger() > 0.0:
 		var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 90.0)
 		draw_arc(gauge_centre, gauge_size.y * 0.62, 0.0, TAU, 32,
@@ -69,10 +66,7 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.PLAY:
 			_overlay.text = ""
 			_hint.text = "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
-		# Nothing for either. Both of these move on by themselves within a second,
-		# and the game has already said which one happened — the glass shatters,
-		# or the door takes you. A banner over the top of that is a word for
-		# something the player just watched, holding up the thing they want next.
+		# No banner: both states resolve on their own within a second.
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""
 		Game.Status.VICTORY:
