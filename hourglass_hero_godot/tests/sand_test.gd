@@ -94,34 +94,116 @@ func _ready() -> void:
 	_check("the tumble lands with no jump in the sand", drift < 0.01,
 		"sand moves %.4f px across the reset" % drift)
 
-	# --- Flipping is an involution -------------------------------------------
-	# `sand_flip_base` is 0, so `flip_sand()` is exactly `max - sand` and two
-	# flips must land on the number you started from — bit for bit, not roughly.
+	# --- The reservoir --------------------------------------------------------
+	var cfg := Tuning.cfg
+
+	# Capacity scales with the chamber count: `sand_max` is ONE chamber's
+	# capacity, which is already what it means today — all 6000 of the sand fits
+	# into a single bulb, which is why the old flip could clamp to it.
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, cfg.sand_start)
+		_check("N=%d: the glass holds sand_max * N / 2" % count,
+			absf(_total(Game.chambers) - cfg.sand_max * count / 2.0) < 0.0001,
+			"holds %.0f, wanted %.0f" % [_total(Game.chambers), cfg.sand_max * count / 2.0])
+
+		# Pacing is uniform: the top always opens at `sand_start` against the same
+		# drain, so every glass gives the same runway before the first turn is
+		# compulsory. More chambers makes the game wider, never faster.
+		var even := true
+		for v in Game.chambers:
+			even = even and absf(v - cfg.sand_start) < 0.0001
+		_check("N=%d: every chamber opens at sand_start" % count, even,
+			"opened %s" % [Game.chambers])
+
+	# Nothing is destroyed, only stranded. Drain and turn as much as you like and
+	# the glass still holds what it started with.
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, cfg.sand_start)
+		var before := _total(Game.chambers)
+		for i in 20:
+			Game.drain(cfg.sand_drain_rate * 0.05)
+			Game.rotate_glass(1 if i % 3 == 0 else -1)
+		_check("N=%d: sand is conserved across drains and turns" % count,
+			absf(_total(Game.chambers) - before) < 0.01,
+			"%.4f → %.4f" % [before, _total(Game.chambers)])
+
+	# --- Two chambers reproduce the shipped flip, exactly ---------------------
+	# `sand_flip_base` is 0, so a turn is `max - sand` and two turns must land on
+	# the number you started from — bit for bit, not roughly.
 	#
 	# This is the single most load-bearing fact in the game. The double jump is
-	# two flips, so it is sand-neutral by arithmetic rather than by tuning: free
+	# two turns, so it is sand-neutral by arithmetic rather than by tuning: free
 	# while you are full, ruinous while you are empty. Give `sand_flip_base` a
 	# non-zero value and the identity breaks, the air jump silently becomes a
 	# refuel or a leak, and "Double or Nothing" stops teaching what it teaches.
-	var cfg := Tuning.cfg
 	var worst_drift := 0.0
 	var worst_from := 0.0
+	var worst_flip := 0.0
 	for step in 41:
 		var start: float = cfg.sand_max * step / 40.0 # includes both 0 and max
-		Game.sand = start
-		Game.sand = Game.flip_sand()
-		Game.sand = Game.flip_sand()
+		Game.arm_glass(2, start)
+		# One turn must give back exactly what the old `max - sand` gave back.
+		Game.rotate_glass(1)
+		worst_flip = maxf(worst_flip,
+			absf(Game.sand - clampf(cfg.sand_max - start + cfg.sand_flip_base, 0.0, cfg.sand_max)))
+		Game.rotate_glass(1)
 		if absf(Game.sand - start) > worst_drift:
 			worst_drift = absf(Game.sand - start)
 			worst_from = start
-	_check("flipping twice returns the sand exactly", worst_drift < 0.0001,
+	_check("N=2: one turn is the shipped flip_sand(), to the bit", worst_flip < 0.0001,
+		"off by %.6f" % worst_flip)
+	_check("N=2: turning twice returns the sand exactly", worst_drift < 0.0001,
 		"off by %.6f starting from %.0f — check sand_flip_base" % [worst_drift, worst_from])
 
-	Game.sand = 0.0
-	_check("flipping on empty gives back a full glass",
-		absf(Game.flip_sand() - cfg.sand_max) < 0.0001)
-	Game.sand = cfg.sand_max
-	_check("flipping on full gives back nothing", Game.flip_sand() < 0.0001)
+	Game.arm_glass(2, 0.0)
+	Game.rotate_glass(1)
+	_check("N=2: turning on empty gives back a full glass",
+		absf(Game.sand - cfg.sand_max) < 0.0001, "got %.4f" % Game.sand)
+	Game.arm_glass(2, cfg.sand_max)
+	Game.rotate_glass(1)
+	_check("N=2: turning on full gives back nothing", Game.sand < 0.0001,
+		"got %.4f" % Game.sand)
+
+	# --- The sand you can spend is the sand up top ---------------------------
+	# At three and four chambers there is exactly one draining chamber, so
+	# `danger()`, the HUD, the player's light and the sweat all keep reading one
+	# number and none of them had to learn anything.
+	Game.arm_glass(4, 2400.0)
+	_check("N=4: `sand` is the top chamber, not the whole glass",
+		absf(Game.sand - 2400.0) < 0.0001, "got %.4f" % Game.sand)
+
+	# What leaves the top arrives below it. At three chambers it arrives split in
+	# two, which is why a turn can never hand back more than half of what you
+	# spent — the whole lesson of the trefoil level.
+	Game.arm_glass(3, 3000.0)
+	Game.drain(600.0)
+	_check("N=3: the fall splits half and half",
+		absf(Game.chambers[1] - Game.chambers[2]) < 0.0001
+			and absf(Game.chambers[1] - 3300.0) < 0.0001,
+		"chambers %s" % [Game.chambers])
+
+	# At four chambers it arrives whole — but in the chamber two turns away.
+	Game.arm_glass(4, 3000.0)
+	Game.drain(600.0)
+	_check("N=4: the fall arrives whole, in the bottom chamber",
+		absf(Game.chambers[2] - 3600.0) < 0.0001
+			and absf(Game.chambers[1] - 3000.0) < 0.0001
+			and absf(Game.chambers[3] - 3000.0) < 0.0001,
+		"chambers %s" % [Game.chambers])
+
+	# And the sealed chambers are sealed: a glass whose top is empty is dead even
+	# with sand still in it, which is what makes hesitation cost something.
+	Game.arm_glass(4, 100.0)
+	var sealed_before := Game.chambers[2]
+	Game.drain(500.0)
+	_check("N=4: draining a chamber dry stops there", Game.sand < 0.0001,
+		"top holds %.4f" % Game.sand)
+	# Only the 100 that was up there moved. Written as a gain rather than as a
+	# figure, because what the sealed chambers hold depends on how much the level
+	# put on top — `arm_glass` keeps the glass's total fixed and splits the rest.
+	_check("N=4: and the sand it lost is in the bottom, not gone",
+		absf(Game.chambers[2] - sealed_before - 100.0) < 0.0001,
+		"chambers %s" % [Game.chambers])
 
 	# --- The two-bulb glass is the N-chamber formula at N=2 --------------------
 	# Not "close enough": the twelve shipped levels must not move by a pixel, and
@@ -320,6 +402,13 @@ func _is_convex(poly: PackedVector2Array) -> bool:
 			return false
 		sign_seen = signf(turn)
 	return true
+
+
+func _total(cells: PackedFloat32Array) -> float:
+	var out := 0.0
+	for v in cells:
+		out += v
+	return out
 
 
 func _check(name: String, passed: bool, detail := "") -> void:

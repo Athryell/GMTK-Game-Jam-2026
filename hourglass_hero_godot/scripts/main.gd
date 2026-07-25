@@ -96,8 +96,9 @@ func _load_current_level() -> void:
 ## read them from.
 func _apply_level_rules() -> void:
 	Game.double_jump = _level.double_jump
-	if _level.sand_start_override > 0.0:
-		Game.sand = minf(_level.sand_start_override, Tuning.cfg.sand_max)
+	var top := _level.sand_start_override if _level.sand_start_override > 0.0 \
+		else Tuning.cfg.sand_start
+	Game.arm_glass(_level.chambers, top)
 
 
 ## How dark the world sits before the lights are added. Tinted slightly blue

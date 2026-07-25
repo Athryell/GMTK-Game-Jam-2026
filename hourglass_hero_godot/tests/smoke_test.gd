@@ -120,10 +120,12 @@ func _ready() -> void:
 			double_jump_levels.append(i)
 		_check("level %d (%s) grants exactly the rules it declares" % [i + 1, _level_name()],
 			Game.double_jump == level.double_jump
+				and Game.chamber_count == level.chambers
 				and (level.sand_start_override <= 0.0
 					or is_equal_approx(Game.sand, level.sand_start_override)),
-			"double_jump=%s sand=%.0f (override %.0f)"
-				% [Game.double_jump, Game.sand, level.sand_start_override])
+			"double_jump=%s chambers=%d/%d sand=%.0f (override %.0f)"
+				% [Game.double_jump, Game.chamber_count, level.chambers, Game.sand,
+					level.sand_start_override])
 
 		var budget := level.sand_start_override if level.sand_start_override > 0.0 \
 			else Tuning.cfg.sand_start
@@ -148,6 +150,39 @@ func _ready() -> void:
 	Game.set_plane(Planes.Kind.P1)
 	_check("spikes go inert in the other plane", not spikes.monitoring)
 	spikes.queue_free()
+
+	# --- The glass turns as far as its chamber count says --------------------
+	# A jump moves you exactly one plane on, whatever the glass is. At two
+	# chambers that is the flip the game shipped with; at four it is a quarter
+	# turn, and it takes four of them to get back where you started.
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, Tuning.cfg.sand_start)
+		Game.set_plane(Planes.Kind.P0)
+		var walked := true
+		for turn in count:
+			Game.jump_flip(1.0)
+			var wanted: int = posmod(turn + 1, count)
+			walked = walked and int(Game.plane) == wanted
+		_check("N=%d: turning one way walks the planes in order" % count, walked,
+			"landed on %d" % int(Game.plane))
+		_check("N=%d: a full lap comes home" % count, int(Game.plane) == 0)
+
+	# --- Which way you turn ---------------------------------------------------
+	# The input HELD at the moment of the jump decides, not the speed you happen
+	# to be carrying. Pinned against a wall your velocity reads zero, and on a
+	# four-chamber glass that is the difference between reaching a chamber and
+	# stranding it for good.
+	Game.arm_glass(4, Tuning.cfg.sand_start)
+	Game.set_plane(Planes.Kind.P0)
+	Game.jump_flip(1.0)
+	_check("holding right turns the glass clockwise", int(Game.plane) == 1,
+		"landed on %d" % int(Game.plane))
+	Game.jump_flip(-1.0)
+	_check("holding left turns it back", int(Game.plane) == 0,
+		"landed on %d" % int(Game.plane))
+	Game.jump_flip(0.0)
+	_check("a jump with nothing held keeps the last direction", int(Game.plane) == 3,
+		"landed on %d" % int(Game.plane))
 
 	_finish()
 

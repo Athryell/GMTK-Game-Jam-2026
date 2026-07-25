@@ -7,6 +7,10 @@ extends Control
 ## Drawn size of the gauge hourglass. It is the player's own glass, scaled up.
 @export var gauge_size := Vector2(48.0, 72.0)
 
+## What the two planes are called on a two-chamber level. Past two there is no
+## front and no back — the planes are a ring, so they are numbered instead.
+const PLANE_NAMES := ["FRONT", "BACK"]
+
 @onready var _level_label: Label = $LevelLabel
 @onready var _plane_label: Label = $PlaneLabel
 @onready var _overlay: Label = $Overlay
@@ -49,8 +53,9 @@ func _on_level_loaded(index: int, level_name: String) -> void:
 
 
 func _on_plane_changed(plane: Planes.Kind) -> void:
-	var front := plane == Planes.Kind.P0
-	_plane_label.text = "FRONT" if front else "BACK"
+	var index := clampi(int(plane), 0, Planes.COUNT - 1)
+	_plane_label.text = PLANE_NAMES[index] if Game.chamber_count == 2 \
+		else "PLANE %d/%d" % [index + 1, Game.chamber_count]
 	_plane_label.modulate = Palette.solid(plane, plane)
 
 
@@ -58,7 +63,7 @@ func _on_status_changed(status: Game.Status) -> void:
 	match status:
 		Game.Status.PLAY:
 			_overlay.text = ""
-			_hint.text = "← → move    SPACE jump (flips the glass + swaps plane)    R restart    ESC menu    F1 tuning"
+			_hint.text = "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
 		# Nothing for either. Both of these move on by themselves within a second,
 		# and the game has already said which one happened — the glass shatters,
 		# or the door takes you. A banner over the top of that is a word for

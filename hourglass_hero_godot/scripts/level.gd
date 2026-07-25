@@ -20,14 +20,25 @@ extends Node2D
 @export var world_size := Vector2(960.0, 540.0): set = _set_world_size
 
 @export_group("Rules")
+## How many chambers this level's glass has — which is also how many planes the
+## level has, and how far a jump turns you: a third of a turn at three, a quarter
+## at four.
+##
+## Two is the hourglass the game is built on and what every level shipped with.
+## Raising it does not make the level faster: a chamber still opens half full
+## against the same drain, so the runway before your first jump is the same. It
+## makes the level WIDER — more places to be, and more places for sand to be
+## stranded in.
+@export_range(2, 4) var chambers := 2
 ## Sand the level starts you with, in ms. At 0 it takes `sand_start` from the
 ## tuning panel. Set it low and the level is played from the edge of death —
 ## which is the whole subject of "The Last Grain".
 @export_range(0.0, 20000.0, 100.0) var sand_start_override := 0.0
 ## Grants one extra jump in mid-air, for this level only.
 ##
-## Two flips return you to your starting plane AND, since `flip_sand()` is
-## `max - sand`, to your starting sand exactly. So a double jump is pure height
+## On a two-chamber glass, two turns return you to your starting plane AND —
+## since a turn just swaps the bulbs — to your starting sand exactly. So a
+## double jump is pure height
 ## — free while you are full, ruinous while you are empty, the exact mirror of
 ## the single jump. That asymmetry needs no tuning; it falls out of the formula.
 ##

@@ -50,15 +50,16 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 		return
 	stream_phase += delta * STREAM_SPEED
 
-	# A flip is a half-turn over the animation's duration. The glass being
-	# symmetrical, it lands visually upright and the spin is constant, so it is
-	# read straight off the config rather than differenced frame to frame —
+	# A turn is one chamber over the animation's duration. The glass being
+	# regular, it lands visually upright and the spin is constant, so it is read
+	# straight off the config rather than differenced frame to frame —
 	# differencing would spike on the reset back to 0.
 	var cfg := Tuning.cfg
 	var spin := 0.0
 	if Game.flip_anim > 0.0 and cfg.flip_duration > 0.0:
-		tilt = Game.flip_dir * PI * (1.0 - Game.flip_anim / cfg.flip_duration)
-		spin = Game.flip_dir * PI / cfg.flip_duration
+		var turn := TAU / float(Game.chamber_count)
+		tilt = Game.flip_dir * turn * (1.0 - Game.flip_anim / cfg.flip_duration)
+		spin = Game.flip_dir * turn / cfg.flip_duration
 	else:
 		tilt = 0.0
 
@@ -84,14 +85,17 @@ func down() -> Vector2:
 ## size of the array is the chamber count, so this one value tells the shape both
 ## how many chambers to draw and how much is in each.
 func chambers() -> PackedFloat32Array:
-	# Two for now; Task 6 gives Game an N-chamber reservoir.
-	var frac := clampf(Game.sand / Tuning.cfg.sand_max, 0.0, 1.0)
-	if Game.flip_anim > 0.0:
-		# Mid-tumble the neck gates the sand and each chamber keeps what it held.
-		# `Game.sand` jumped to the post-flip figure the instant the jump began,
-		# and a flip is exactly `max - sand`, so the pre-flip split is its mirror.
-		# Holding it fixed is what makes the tumble land seamlessly: at a half
-		# turn the two chambers have swapped places on screen, which is precisely
-		# when the roles below take over.
-		return PackedFloat32Array([1.0 - frac, frac])
-	return PackedFloat32Array([frac, 1.0 - frac])
+	var count := Game.chamber_count
+	var cap := maxf(Tuning.cfg.sand_max, 1.0)
+	# Mid-turn the neck gates the sand and every chamber keeps what it held.
+	# `Game.chambers` moved to the post-turn arrangement the instant the jump
+	# began, so drawing it one step BACK — inside a glass that has not finished
+	# turning — puts each chamber's sand where the chamber still is. At the end
+	# of the animation the glass snaps upright and the two agree exactly, which
+	# is what makes the landing seamless.
+	var back := -int(Game.flip_dir) if Game.flip_anim > 0.0 else 0
+	var out := PackedFloat32Array()
+	out.resize(count)
+	for i in count:
+		out[i] = clampf(Game.chambers[posmod(i + back, count)] / cap, 0.0, 1.0)
+	return out

@@ -149,12 +149,19 @@ func _physics_process(delta: float) -> void:
 		Game.kill()
 
 
+## The signature move: height, a turn of the glass, and a plane change, all off
+## one press.
+##
+## The turn follows the input HELD right now rather than `velocity.x`. They agree
+## in open ground, and they disagree in exactly the place it matters: pinned
+## against a wall your velocity is zero, and reading it would take the choice of
+## chamber away from you at the moment you most want it.
 func _jump() -> void:
 	_buffer = 0.0
 	_coyote = 0.0
 	_jumping = true
 	velocity.y = -Tuning.cfg.jump_velocity
-	Game.jump_flip(velocity.x)
+	Game.jump_flip(Input.get_axis("move_left", "move_right"))
 	Audio.sfx("jump", 0.0, 0.04)
 
 

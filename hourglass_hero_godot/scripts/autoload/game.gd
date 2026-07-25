@@ -29,7 +29,26 @@ var unlock_all := true
 ## is on, so switching the gate off works immediately.
 var levels_reached := 0
 
-var sand: float = 0.0
+## How much sand sits in each chamber, indexed by SLOT — by fixed position on
+## screen, not by which chamber it happens to be. Slot 0 is always the top one.
+var chambers := PackedFloat32Array([0.0, 0.0])
+## How many chambers this level's glass has, which is also how many planes it
+## has. Two is the hourglass the game opens with.
+var chamber_count := 2
+
+## The sand you can still spend: everything sitting in a chamber that drains.
+##
+## Derived rather than stored, which is what let the whole multi-chamber glass
+## arrive without the HUD, the light, the tremble or `danger()` changing a line.
+## At three and four chambers there is exactly one draining chamber, so this is
+## simply the top one.
+var sand: float:
+	get:
+		var total := 0.0
+		for i in ChamberLayout.uppers(chamber_count):
+			total += chambers[i]
+		return total
+
 var plane: Planes.Kind = Planes.Kind.P0
 var status: Status = Status.PLAY
 
@@ -60,10 +79,11 @@ func _process(delta: float) -> void:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
 		return
-	# Sand drains continuously; empty means dead.
-	sand -= delta * Tuning.cfg.sand_drain_rate
+	# Sand drains continuously. Death is the DRAINING chambers running dry, not
+	# the glass: at four chambers you can die with half the sand still in it,
+	# sealed away in a side chamber you did not turn towards.
+	drain(delta * Tuning.cfg.sand_drain_rate)
 	if sand <= 0.0:
-		sand = 0.0
 		set_status(Status.DEAD)
 
 
@@ -118,7 +138,10 @@ func is_unlocked(index: int) -> bool:
 func start_level(index: int) -> void:
 	level_index = clampi(index, 0, level_scenes.size() - 1)
 	levels_reached = maxi(levels_reached, level_index)
-	sand = Tuning.cfg.sand_start
+	# Two chambers until the level says otherwise. `main.gd` re-arms the glass
+	# once the scene exists and can be asked; this is what a level that never
+	# does gets.
+	arm_glass(2, Tuning.cfg.sand_start)
 	flip_anim = 0.0
 	pad_flash = 0.0
 	# Off until the level says otherwise, so a level that grants it cannot leak
@@ -163,32 +186,114 @@ func set_plane(new_plane: Planes.Kind) -> void:
 
 # ----- The hourglass ---------------------------------------------------------
 
-## Flipping the hourglass: the sand that already drained (`max - sand`) becomes
-## the sand you have left. Waiting long (sand near 0) gives back nearly
-## everything; flipping early gives back nearly nothing. That is the whole
-## timing game.
-func flip_sand() -> float:
-	var cfg := Tuning.cfg
-	return clampf(cfg.sand_max - sand + cfg.sand_flip_base, 0.0, cfg.sand_max)
+## The glass a level is played on: `count` chambers, `top` sand in the one on
+## top, and the rest of the glass split evenly among the others.
+##
+## The split needs no tuning. `sand_start` is half of `sand_max`, and the glass
+## holds `sand_max * count / 2`, so the remainder divides into exactly
+## `sand_start` per chamber whatever the count. A chamber at rest reads half
+## full, and the runway before the first turn is compulsory is the same on every
+## glass in the game.
+func arm_glass(count: int, top: float) -> void:
+	chamber_count = clampi(count, 2, Planes.COUNT)
+	chambers = PackedFloat32Array()
+	chambers.resize(chamber_count)
+	chambers[0] = clampf(top, 0.0, capacity())
+	var rest := (capacity() * chamber_count / 2.0 - chambers[0]) / float(chamber_count - 1)
+	for i in range(1, chamber_count):
+		chambers[i] = maxf(rest, 0.0)
 
 
-## A jump: swaps the plane AND flips the hourglass.
+## One chamber's capacity. `sand_max` has always meant this — at two chambers all
+## of it fits into a single bulb, which is why the shipped flip could clamp to it.
+func capacity() -> float:
+	return Tuning.cfg.sand_max
+
+
+## Moves `amount` of sand out of the draining chambers and into whatever sits
+## below them. Never destroys a grain: what a chamber loses, its targets gain.
+##
+## The rate is the glass's, not a chamber's — two chambers draining at once each
+## run at half speed, so the clock does not care how the sand is arranged.
+func drain(amount: float) -> void:
+	var live: Array[int] = []
+	for i in ChamberLayout.uppers(chamber_count):
+		if chambers[i] > 0.0:
+			live.append(i)
+	if live.is_empty():
+		return
+	var each := amount / float(live.size())
+	for i in live:
+		var moved := minf(each, chambers[i])
+		chambers[i] -= moved
+		var targets := ChamberLayout.targets(chamber_count, i)
+		if targets.is_empty():
+			continue
+		var share := moved / float(targets.size())
+		for t in targets:
+			chambers[t] += share
+
+
+## One step of the glass. `dir` is +1 clockwise on screen and -1 the other way;
+## every chamber keeps its sand and moves to the next slot.
+##
+## At two chambers this IS the flip that shipped: the lower chamber always holds
+## `sand_max - top`, so the new top is `sand_max - old_top + sand_flip_base`,
+## character for character.
+func rotate_glass(dir: int) -> void:
+	var moved := PackedFloat32Array()
+	moved.resize(chamber_count)
+	for i in chamber_count:
+		moved[posmod(i + dir, chamber_count)] = chambers[i]
+	chambers = moved
+	_pay_flip_bonus()
+
+
+## The tuning panel's flip bonus, kept meaning what it means at any chamber
+## count: it tops the draining chambers up, and the glass takes the cost back out
+## of the fullest chamber that does not drain, so the total never moves.
+##
+## It is 0 in the shipped config and this whole function is inert. It is here so
+## that dragging the slider still does something sane rather than quietly
+## inventing sand.
+func _pay_flip_bonus() -> void:
+	var bonus := Tuning.cfg.sand_flip_base
+	if is_zero_approx(bonus):
+		return
+	for i in ChamberLayout.uppers(chamber_count):
+		var room := capacity() - chambers[i]
+		var added := clampf(bonus, 0.0, room)
+		chambers[i] += added
+		var payer := -1
+		for j in chamber_count:
+			if j != i and (payer < 0 or chambers[j] > chambers[payer]):
+				payer = j
+		if payer >= 0:
+			var paid := minf(added, chambers[payer])
+			chambers[payer] -= paid
+			chambers[i] -= added - paid
+
+
+## A jump: turns the glass AND moves you to the next plane.
 func jump_flip(travel_dir: float) -> void:
-	sand = flip_sand()
-	# Tumble rolls the way you travel — moving right spins clockwise, like a
-	# wheel. Keep the last direction on a straight-up jump. This has to settle
-	# before the plane moves, because `step` turns the way the glass turns.
+	# The turn rolls the way you travel — moving right spins clockwise, like a
+	# wheel. Keep the last direction on a straight-up jump.
 	if not is_zero_approx(travel_dir):
 		flip_dir = signf(travel_dir)
-	set_plane(Planes.step(plane, int(flip_dir), 2))
+	rotate_glass(int(flip_dir))
+	set_plane(Planes.step(plane, int(flip_dir), chamber_count))
 	flip_anim = Tuning.cfg.flip_duration
 	flipped.emit(false)
 
 
-## A flip-pad: flips the hourglass with NO jump and NO plane change. It is the
-## only way to refuel while staying in one plane.
+## A flip-pad: turns the glass with NO jump and NO plane change. It is the only
+## way to refuel while staying where you are.
+##
+## The plane staying put while the glass turns only reads right on a two-chamber
+## glass, where the pad simply swaps the two bulbs. No three- or four-chamber
+## level places one, and doing so is out of scope.
 func pad_flip() -> void:
-	sand = flip_sand()
+	rotate_glass(1)
 	pad_flash = Tuning.cfg.pad_flash_duration
 	flipped.emit(true)
 
