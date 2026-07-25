@@ -16,6 +16,8 @@ enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
 ## The player's plane changed; entities (de)activate off this.
 signal plane_changed(plane: Planes.Kind)
+## The plane a jump would land in changed; the ghost world brightens off this.
+signal next_plane_changed(plane: Planes.Kind)
 ## The hourglass was flipped; `from_pad` distinguishes a flip-pad from a jump.
 signal flipped(from_pad: bool)
 signal status_changed(status: Status)
@@ -66,6 +68,8 @@ var sand: float:
 			chambers[i] = each
 
 var plane: Planes.Kind = Planes.Kind.P0
+## The plane the next jump would land in. Kept by `aim`; only drawing reads it.
+var next_plane: Planes.Kind = Planes.Kind.P1
 var status: Status = Status.PLAY
 ## Which way the sand runs: +1 normally, -1 inside an inversion zone. Cached
 ## once a frame because `danger()` is read several times by the HUD, the sprite
@@ -253,6 +257,19 @@ func announce_level(level_name: String) -> void:
 func set_plane(new_plane: Planes.Kind) -> void:
 	plane = new_plane
 	plane_changed.emit(plane)
+	# Landing moves the aim on with you. Zero: the direction held has not changed.
+	aim(0.0)
+
+
+## Where a jump would land you, pushed by the player from the very input its next
+## press will read, so what lights up cannot drift from where you end up.
+func aim(travel_dir: float) -> void:
+	var dir := signf(travel_dir) if not is_zero_approx(travel_dir) else flip_dir
+	var wanted := Planes.step(plane, int(dir), chamber_count)
+	if wanted == next_plane:
+		return
+	next_plane = wanted
+	next_plane_changed.emit(next_plane)
 
 
 # ----- The hourglass ---------------------------------------------------------

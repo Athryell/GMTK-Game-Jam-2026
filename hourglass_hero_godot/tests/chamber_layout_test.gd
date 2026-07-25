@@ -18,6 +18,7 @@ func _ready() -> void:
 	_quarters_lesson()
 	_tumble_mirror()
 	_sand_budget()
+	_aim()
 	_finish()
 
 
@@ -189,6 +190,27 @@ func _sand_budget() -> void:
 			Game.rotate_glass(1)
 		_check("N=%d: and no turn ever hands you more than a bulb" % count,
 			peak <= cap + 1.0, "peaked at %.0f, a bulb being %.0f" % [peak, cap])
+
+
+## Nothing else would catch the ghost world lighting a plane the jump does not
+## deliver.
+func _aim() -> void:
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, Tuning.cfg.sand_start)
+		for dir in [1.0, -1.0]:
+			Game.set_plane(Planes.Kind.P0)
+			Game.aim(dir)
+			var offered := Game.next_plane
+			Game.jump_flip(dir)
+			_check("N=%d, %+.0f: the jump lands in the plane that lit up" % [count, dir],
+				Game.plane == offered, "lit %d, landed %d" % [offered, Game.plane])
+
+		Game.set_plane(Planes.Kind.P0)
+		Game.aim(1.0)
+		Game.jump_flip(1.0)
+		_check("N=%d: and landing moves the offer on with you" % count,
+			Game.next_plane == Planes.step(Game.plane, 1, count),
+			"in %d, offering %d" % [Game.plane, Game.next_plane])
 
 
 func _check(label: String, ok: bool, detail := "") -> void:

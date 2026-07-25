@@ -109,7 +109,11 @@ would bury the dozen sliders that actually change how the game plays.
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
-turns into a faint, non-solid ghost. Moving entities travel `move_distance` px
+turns into a faint, non-solid ghost — except the one plane a jump would land you
+in, which is drawn part of the way back towards solid (`ghost_next_lift`). Past
+two chambers there are several ghost planes and only one of them is where you are
+going, so leaning left or right lights up the world you are choosing before you
+commit to it. Moving entities travel `move_distance` px
 from where you placed them and back, so you author the *start* of the path;
 `move_phase` shifts where in that cycle they begin, which is the only way to
 break two movers of equal period out of lockstep.
@@ -220,8 +224,9 @@ scripts/
 Two ideas hold it together:
 
 - **Nobody talks to anybody directly.** `Game` owns the run state and emits
-  `plane_changed` / `status_changed` / `level_loaded`; entities and the HUD
-  listen. Adding an entity type means writing one script, not editing five.
+  `plane_changed` / `next_plane_changed` / `status_changed` / `level_loaded`;
+  entities and the HUD listen. Adding an entity type means writing one script,
+  not editing five.
 - **Plane switching is one uniform rule.** On `plane_changed`, every entity asks
   `Planes.is_active(plane, current)` and either takes itself off the physics
   layer (solids) or stops monitoring (areas), then redraws as a ghost. Whether

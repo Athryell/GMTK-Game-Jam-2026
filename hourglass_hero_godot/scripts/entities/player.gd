@@ -112,7 +112,9 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	velocity.x = Input.get_axis("move_left", "move_right") * cfg.move_speed
+	var steer := Input.get_axis("move_left", "move_right")
+	velocity.x = steer * cfg.move_speed
+	Game.aim(steer)
 
 	# Coyote time, then jump buffer.
 	_coyote = cfg.coyote_time if is_on_floor() else maxf(0.0, _coyote - delta)
@@ -120,12 +122,12 @@ func _physics_process(delta: float) -> void:
 		else maxf(0.0, _buffer - delta)
 
 	if _buffer > 0.0 and _coyote > 0.0:
-		_jump()
+		_jump(steer)
 	elif _air_jumps > 0 and Input.is_action_just_pressed("jump"):
 		# Keyed to the press, not `_buffer`: a buffered jump must not be spent in
 		# the air. A second real flip, so it undoes the first: pure height.
 		_air_jumps -= 1
-		_jump()
+		_jump(steer)
 
 	velocity.y += cfg.gravity * pull * delta
 	# Variable jump height.
@@ -160,13 +162,14 @@ func _face_gravity(sign: float) -> void:
 ## The turn follows the input HELD right now rather than `velocity.x`. They agree
 ## in open ground, and they disagree in exactly the place it matters: pinned
 ## against a wall your velocity is zero, and reading it would take the choice of
-## chamber away from you at the moment you most want it.
-func _jump() -> void:
+## chamber away from you at the moment you most want it. `steer` is the value the
+## ghost world was drawn from, so it lands where it said it would.
+func _jump(steer: float) -> void:
 	_buffer = 0.0
 	_coyote = 0.0
 	_jumping = true
 	velocity.y = -Tuning.cfg.jump_velocity * pull
-	Game.jump_flip(Input.get_axis("move_left", "move_right"))
+	Game.jump_flip(steer)
 	Audio.sfx("jump")
 
 

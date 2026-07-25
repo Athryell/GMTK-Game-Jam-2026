@@ -59,12 +59,16 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 	return PLANE_SOLIDS[clampi(int(effective), 0, PLANE_SOLIDS.size() - 1)]
 
 
-## Faded when the entity lives in the other plane. A function, not a constant,
-## because the alpha is read live from `Tuning`.
-static func ghost(base: Color, active: bool) -> Color:
+## Faded when the entity lives in another plane, and less faded in the one a jump
+## would land in: the world you are choosing steps out of the pack before you
+## commit to it. A function, not a constant, because the alpha is read live.
+static func ghost(base: Color, active: bool, next := false) -> Color:
 	if active:
 		return base
-	return Color(base.r, base.g, base.b, Tuning.cfg.ghost_alpha)
+	var alpha: float = Tuning.cfg.ghost_alpha
+	if next:
+		alpha = lerpf(alpha, 1.0, Tuning.cfg.ghost_next_lift)
+	return Color(base.r, base.g, base.b, alpha)
 
 
 ## The sand's colour at a given `Game.danger()`. Shared by sprite, HUD and light.

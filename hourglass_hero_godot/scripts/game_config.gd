@@ -51,6 +51,9 @@ extends Resource
 ## Opacity of entities in the opposite plane (the "ghosts"). `world_light`
 ## multiplies it, so low values vanish.
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.26
+## How far the plane a jump would land in is lifted out of `ghost_alpha` towards
+## solid. 0 hides which way you are going; 1 makes it look walkable.
+@export_range(0.0, 1.0, 0.01) var ghost_next_lift: float = 0.45
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.

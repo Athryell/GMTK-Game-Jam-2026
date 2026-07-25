@@ -21,6 +21,8 @@ var light_pulse_depth := 0.0
 
 ## True while the player shares this plane. Inactive: faint, inert, unlit.
 var _active := true
+## True while a jump would land the player in this plane: brighter, still inert.
+var _next := false
 
 
 func _ready() -> void:
@@ -29,6 +31,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	Game.plane_changed.connect(_on_plane_changed)
+	Game.next_plane_changed.connect(_on_next_plane_changed)
 	# Ghost alpha is read inside `_draw`, so a tuning change needs a new frame.
 	Tuning.changed.connect(queue_redraw)
 	body_entered.connect(_on_body_entered)
@@ -36,6 +39,7 @@ func _ready() -> void:
 		EntityLight.attach(self, plane, size, light_tint, light_radius, light_energy,
 			light_pulse_rate, light_pulse_depth)
 	_on_plane_changed(Game.plane)
+	_on_next_plane_changed(Game.next_plane)
 
 
 ## Override: what this entity does to the player. Only called while active.
@@ -45,7 +49,7 @@ func _touched(_player: Player) -> void:
 
 ## `base` solid in this plane, ghosted in the other. Always solid in the editor.
 func _shade(base: Color) -> Color:
-	return Palette.ghost(base, _active or Engine.is_editor_hint())
+	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -56,6 +60,11 @@ func _on_body_entered(body: Node2D) -> void:
 func _on_plane_changed(current: Planes.Kind) -> void:
 	_active = Planes.is_active(plane, current)
 	monitoring = _active
+	queue_redraw()
+
+
+func _on_next_plane_changed(next: Planes.Kind) -> void:
+	_next = plane == next
 	queue_redraw()
 
 

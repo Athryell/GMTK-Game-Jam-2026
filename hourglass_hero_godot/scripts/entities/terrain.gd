@@ -37,6 +37,8 @@ var _points := PackedVector2Array()
 ## almost never convex.
 var _triangles := PackedInt32Array()
 var _active := true
+## True while a jump would land the player in this plane: brighter, still inert.
+var _next := false
 
 
 func _ready() -> void:
@@ -51,8 +53,10 @@ func _ready() -> void:
 	set_process(false)
 	_refresh()
 	Game.plane_changed.connect(_on_plane_changed)
+	Game.next_plane_changed.connect(_on_next_plane_changed)
 	Tuning.changed.connect(queue_redraw)
 	_on_plane_changed(Game.plane)
+	_on_next_plane_changed(Game.next_plane)
 
 
 ## The polygon is edited on the child node, so there is no signal to wait on:
@@ -168,10 +172,15 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	queue_redraw()
 
 
+func _on_next_plane_changed(next: Planes.Kind) -> void:
+	_next = plane == next
+	queue_redraw()
+
+
 func _colour() -> Color:
 	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
 	var base := Palette.solid(plane, current)
-	return Palette.ghost(base, _active or Engine.is_editor_hint())
+	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 
 
 func _set_plane(value: Planes.Kind) -> void:

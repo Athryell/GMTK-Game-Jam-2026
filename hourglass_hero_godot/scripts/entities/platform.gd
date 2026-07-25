@@ -34,6 +34,8 @@ const PAD_DETECT_HEIGHT := 8.0
 var _origin := Vector2.ZERO
 var _elapsed := 0.0
 var _active := true
+## True while a jump would land the player in this plane: brighter, still inert.
+var _next := false
 
 
 func _ready() -> void:
@@ -43,11 +45,13 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	Game.plane_changed.connect(_on_plane_changed)
+	Game.next_plane_changed.connect(_on_next_plane_changed)
 	Tuning.changed.connect(queue_redraw)
 	_pad_detector.body_entered.connect(_on_pad_body_entered)
 	if kind == Kind.FLIP_PAD:
 		EntityLight.attach(self, plane, size, Palette.FLIP_PAD, 150.0, 1.0)
 	_on_plane_changed(Game.plane)
+	_on_next_plane_changed(Game.next_plane)
 
 
 func _physics_process(delta: float) -> void:
@@ -80,7 +84,7 @@ func _colour() -> Color:
 	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)
 	# A ghost lives in the other plane: visible, but not solid.
-	return Palette.ghost(base, _active or Engine.is_editor_hint())
+	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 
 
 # ----- Plane -----------------------------------------------------------------
@@ -90,6 +94,11 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	# An inactive solid sits on no layer: the player passes through it.
 	collision_layer = Layers.SOLID if _active else 0
 	_pad_detector.monitoring = _active and kind == Kind.FLIP_PAD
+	queue_redraw()
+
+
+func _on_next_plane_changed(next: Planes.Kind) -> void:
+	_next = plane == next
 	queue_redraw()
 
 
