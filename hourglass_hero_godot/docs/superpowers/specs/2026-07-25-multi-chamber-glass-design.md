@@ -114,9 +114,9 @@ Rules:
   special case.
 - Rotating one step permutes the array: `new[(i + dir) mod N] = old[i]`.
 - Rotation adds `sand_flip_base` to the upper slots, then the total is clamped
-  back to `sand_max` by taking the excess from the fullest lower slot. This term
-  is 0 in the shipped config, so it is inert today; it is kept so the tuning
-  slider keeps meaning what it means.
+  back to the glass total by taking the excess from the fullest lower slot.
+  This term is 0 in the shipped config, so it is inert today; it is kept so the
+  tuning slider keeps meaning what it means.
 
 ### Why this is provably safe for the 12 existing levels
 
@@ -128,15 +128,6 @@ For N=2 the lower slot always holds `sand_max - top`, so after a rotation the
 new top is `sand_max - old_top + sand_flip_base` — **character for character the
 current `flip_sand()`**. The reservoir model is a strict generalisation of the
 formula already shipped, not a replacement for it.
-
-### The even split the new levels want
-
-The start rule is uniform, so an even split is a level-authoring choice, not a
-special case: a level sets `sand_start_override` to `sand_max / N` and the
-remainder divides evenly by construction.
-
-- `level_13_trefoil` — override 2000 → 2000 in each of the three chambers.
-- `level_14_quarters` — override 1500 → 1500 in each of the four chambers.
 
 ### The two lessons
 
@@ -206,11 +197,13 @@ claims the world is cool and that is about to stop being true.
 
 ## 6. The levels
 
-- `scenes/levels/level_13_trefoil.tscn` — `chambers = 3`,
-  `sand_start_override = 2000`. Teaches that a consistent direction collects
-  both halves.
-- `scenes/levels/level_14_quarters.tscn` — `chambers = 4`,
-  `sand_start_override = 1500`. Teaches that the refill is two rotations away.
+- `scenes/levels/level_13_trefoil.tscn` — `chambers = 3`. Teaches that a
+  consistent direction collects both halves.
+- `scenes/levels/level_14_quarters.tscn` — `chambers = 4`. Teaches that the
+  refill is two rotations away.
+
+Neither sets `sand_start_override`: the even split is what the default already
+produces.
 
 Both go after *The Last Grain*. Level discovery is by filename, so there is
 nothing to register.
@@ -219,7 +212,10 @@ nothing to register.
 
 `tests/sand_test.gd` — pure logic, no rendering:
 
-- Total sand is conserved across an arbitrary sequence of rotations.
+- Total sand is `sand_max * N / 2` and is conserved across an arbitrary
+  sequence of rotations.
+- The opening state is 3000 in every chamber for N = 2, 3 and 4, so the runway
+  before the first compulsory rotation does not depend on N.
 - N=2 reproduces `flip_sand()` exactly (the regression guard for the 12 levels).
 - Slot roles match the table in §1 for N = 2, 3, 4, including the two sealed
   side chambers at N=4.
@@ -240,12 +236,6 @@ Screenshots: levels 1 and 12 to prove nothing shifted, plus 13 and 14.
 
 ## 8. Risks
 
-- **The N=4 rotation cadence is tight.** An even split puts 1500 ms in the top
-  against a 1000 ms/s drain, so the glass demands a rotation every ~1.5 s —
-  half of today's 3 s. That may be exactly the intensity *Quarters* wants, but
-  it is the first thing to check in playtesting. The levers are the level's
-  `sand_start_override` (breaking the even split) or global `sand_max`; resist
-  inventing a per-level drain multiplier before the level has been played.
 - **The palette rewrite is the least reversible part.** Terracotta next to the
   danger red is the one call that may not survive contact with the screen; if it
   reads badly, the fallback is to give P3 a cooler, darker treatment rather than
