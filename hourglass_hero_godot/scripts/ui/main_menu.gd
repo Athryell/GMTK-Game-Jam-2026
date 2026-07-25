@@ -4,7 +4,7 @@ extends Control
 
 const GAME_SCENE := "res://scenes/main.tscn"
 
-@onready var _grid: GridContainer = $Layout/Levels
+@onready var _grid: GridContainer = $Layout/LevelScroll/Levels
 @onready var _quit: Button = $Layout/Actions/Quit
 @onready var _play: Button = $Layout/Actions/Play
 
@@ -21,7 +21,7 @@ func _build_level_buttons() -> void:
 	for i in Game.level_scenes.size():
 		var button := Button.new()
 		button.text = "%d — %s" % [i + 1, Game.level_names[i]]
-		button.custom_minimum_size = Vector2(190.0, 40.0)
+		button.custom_minimum_size = Vector2(190.0, 34.0)
 		button.disabled = not Game.is_unlocked(i)
 		# `bind(i)` captures the index now, not the loop variable's final value.
 		button.pressed.connect(_start.bind(i))
