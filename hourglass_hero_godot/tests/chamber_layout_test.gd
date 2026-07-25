@@ -85,16 +85,21 @@ func _trefoil_lesson() -> void:
 ## just waste a turn, it returns the glass to the arrangement before it.
 func _quarters_lesson() -> void:
 	var caught := ChamberLayout.targets(4, 0)
-	_check("N=4: the fall arrives whole, in one chamber", caught.size() == 1)
-	_check("N=4: and that chamber is two turns away, not one",
-		caught[0] == posmod(0 + 2, 4), "it landed in %d" % caught[0])
 
 	# The two chambers you pass through on the way are sealed: they catch
-	# nothing, and they hand nothing on.
+	# nothing, and they hand nothing on. Checked first because nothing here
+	# indexes `caught` — a broken pour map should not take these down with it.
 	for i in [posmod(1, 4), posmod(-1, 4)]:
 		_check("N=4: chamber %d is sealed, so passing through it gains nothing" % i,
 			ChamberLayout.role(4, i) == ChamberLayout.Role.LEVEL
 				and not caught.has(i) and ChamberLayout.targets(4, i).is_empty())
+
+	_check("N=4: the fall arrives whole, in one chamber", caught.size() == 1)
+	# The size test is repeated so the index is short-circuited: a pour map that
+	# returns nothing must FAIL this check, not crash out of the function and
+	# silently skip whatever came after it.
+	_check("N=4: and that chamber is two turns away, not one",
+		caught.size() == 1 and caught[0] == posmod(0 + 2, 4), "it landed in %s" % [caught])
 
 
 func _check(label: String, ok: bool, detail := "") -> void:
