@@ -1,19 +1,18 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://ccp1uecsckuqu"]
 
-[ext_resource type="Script" path="res://scripts/entities/player.gd" id="1_player"]
-[ext_resource type="Script" path="res://scripts/entities/hourglass_visual.gd" id="2_visual"]
+[ext_resource type="Script" uid="uid://dvhaf71rqoxrh" path="res://scripts/entities/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://cqht7a7fer0sg" path="res://scripts/entities/hourglass_visual.gd" id="2_visual"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(26, 38)
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=2065392704]
 collision_layer = 2
-collision_mask = 1
 floor_snap_length = 6.0
 script = ExtResource("1_player")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1460436267]
 shape = SubResource("RectangleShape2D_body")
 
-[node name="Visual" type="Node2D" parent="."]
+[node name="Visual" type="Node2D" parent="." unique_id=900011547]
 script = ExtResource("2_visual")
