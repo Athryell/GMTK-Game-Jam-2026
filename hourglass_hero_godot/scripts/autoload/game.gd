@@ -261,14 +261,9 @@ func set_plane(new_plane: Planes.Kind) -> void:
 ## top, the rest of the glass split evenly among the others.
 ##
 ## The glass carries one bulb of sand per turn it takes to get a drained bulb
-## back on top, and no more. At four chambers the sand lands opposite, two turns
-## away, so it has to carry the turn in between; at two and three it lands next
-## door and one bulb is the whole supply.
-##
-## `top` is always `sand_start`, so the runway before the first turn is the same
-## whatever the count. What the count changes is what comes back: three chambers
-## split every drain in two and hand you back only the half you turn into, which
-## is why they get one bulb and not one and a half.
+## back on top, and no more. Three chambers split every drain in two and hand
+## back only the half you turn into, which is why they get one bulb and not one
+## and a half.
 func arm_glass(count: int, top: float) -> void:
 	chamber_count = clampi(count, 2, Planes.COUNT)
 	chambers = PackedFloat32Array()
@@ -279,8 +274,7 @@ func arm_glass(count: int, top: float) -> void:
 		chambers[i] = maxf(rest, 0.0)
 
 
-## Turns before a bulb drained from the top can be on top again: the nearest
-## chamber the top pours into, counted in steps either way round.
+## Turns before a bulb drained from the top can be on top again.
 func reach() -> int:
 	var targets := ChamberLayout.targets(chamber_count, 0)
 	for step in range(1, chamber_count):

@@ -166,9 +166,9 @@ func _tumble_mirror() -> void:
 	Game.flip_anim = 0.0
 
 
-## What the glass is allowed to hold. Every count gives the same runway before
-## the first turn, and none of them ever puts more on the clock than one bulb —
-## which is what three chambers used to do, peaking a whole bulb and a quarter.
+## What the glass is allowed to hold. Same runway before the first turn at every
+## count, and no turn ever puts more than a bulb on the clock — which is what
+## three chambers used to do, peaking a whole bulb and a quarter.
 func _sand_budget() -> void:
 	var cap: float = Tuning.cfg.sand_max
 	for count in [2, 3, 4]:

@@ -85,8 +85,8 @@ func _ready() -> void:
 	# --- The reservoir --------------------------------------------------------
 	var cfg := Tuning.cfg
 
-	# `sand_max` is ONE chamber's capacity, and the glass carries one of those per
-	# turn it takes to get a drained bulb back on top.
+	# `sand_max` is ONE chamber's capacity, and the glass carries one per turn of
+	# reach.
 	for count in [2, 3, 4]:
 		Game.arm_glass(count, cfg.sand_start)
 		var wanted: float = cfg.sand_max * Game.reach()
@@ -94,9 +94,8 @@ func _ready() -> void:
 			absf(_total(Game.chambers) - wanted) < 0.0001,
 			"holds %.0f, wanted %.0f" % [_total(Game.chambers), wanted])
 
-		# Pacing is uniform: the top always opens at `sand_start` against the same
-		# drain, so every glass gives the same runway before the first turn is
-		# compulsory. More chambers makes the game wider, never faster.
+		# The same runway before the first turn is compulsory, whatever the count:
+		# more chambers makes the game wider, never faster.
 		var even := absf(Game.chambers[0] - cfg.sand_start) < 0.0001
 		for i in range(2, count):
 			even = even and absf(Game.chambers[i] - Game.chambers[1]) < 0.0001
