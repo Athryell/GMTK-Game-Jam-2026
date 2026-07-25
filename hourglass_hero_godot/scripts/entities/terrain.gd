@@ -79,13 +79,19 @@ func _draw() -> void:
 	# A rectangle has one top face; a polygon has as many as it likes, and a ramp
 	# is one of them. So the lip follows the geometry rather than the node: every
 	# edge the light could land on gets it, and the walls get nothing.
+	#
+	# Filled inwards from the edge rather than stroked along it. A stroke is
+	# centred, so it overhangs the silhouette, and two strokes meeting at a fold
+	# leave a notch on the outside of the corner — the joint is mitred here
+	# because both edges read the SAME inset vertex.
 	var lip := body.lightened(0.35)
 	var wind := Polygons.winding(_points)
+	var inner := Polygons.grow(_points, -LIP_WIDTH)
 	for j in _points.size():
-		var a := _points[j]
-		var b := _points[(j + 1) % _points.size()]
-		if Polygons.faces_up(a, b, wind):
-			draw_line(a, b, lip, LIP_WIDTH)
+		var next := (j + 1) % _points.size()
+		if Polygons.faces_up(_points[j], _points[next], wind):
+			draw_colored_polygon(PackedVector2Array([
+				_points[j], _points[next], inner[next], inner[j]]), lip)
 
 
 func _get_configuration_warnings() -> PackedStringArray:
