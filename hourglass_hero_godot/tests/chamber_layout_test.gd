@@ -17,6 +17,7 @@ func _ready() -> void:
 	_trefoil_lesson()
 	_quarters_lesson()
 	_tumble_mirror()
+	_sand_budget()
 	_finish()
 
 
@@ -163,6 +164,31 @@ func _tumble_mirror() -> void:
 
 	Game.gravity_sign = 1.0
 	Game.flip_anim = 0.0
+
+
+## What the glass is allowed to hold. Every count gives the same runway before
+## the first turn, and none of them ever puts more on the clock than one bulb —
+## which is what three chambers used to do, peaking a whole bulb and a quarter.
+func _sand_budget() -> void:
+	var cap: float = Tuning.cfg.sand_max
+	for count in [2, 3, 4]:
+		Game.arm_glass(count, Tuning.cfg.sand_start)
+		var total := 0.0
+		for c in Game.chambers:
+			total += c
+		_check("N=%d: the glass carries a bulb per turn out of reach" % count,
+			is_equal_approx(total, cap * Game.reach()), "it holds %.0f" % total)
+		_check("N=%d: and the first turn is as far off as at any other count" % count,
+			is_equal_approx(Game.sand, Tuning.cfg.sand_start), "%.0f on the clock" % Game.sand)
+
+		# Turning the same way forever is the most generous route there is.
+		var peak := 0.0
+		for turn in 40:
+			peak = maxf(peak, Game.sand)
+			Game.drain(Game.sand)
+			Game.rotate_glass(1)
+		_check("N=%d: and no turn ever hands you more than a bulb" % count,
+			peak <= cap + 1.0, "peaked at %.0f, a bulb being %.0f" % [peak, cap])
 
 
 func _check(label: String, ok: bool, detail := "") -> void:

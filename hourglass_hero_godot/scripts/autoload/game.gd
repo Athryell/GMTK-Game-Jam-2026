@@ -260,18 +260,34 @@ func set_plane(new_plane: Planes.Kind) -> void:
 ## The glass a level is played on: `count` chambers, `top` sand in the one on
 ## top, the rest of the glass split evenly among the others.
 ##
-## The split needs no tuning. `sand_start` is half of `sand_max` and the glass
-## holds `sand_max * count / 2`, so the remainder divides into exactly
-## `sand_start` per chamber whatever the count — every glass in the game gives
-## you the same runway before the first turn is compulsory.
+## The glass carries one bulb of sand per turn it takes to get a drained bulb
+## back on top, and no more. At four chambers the sand lands opposite, two turns
+## away, so it has to carry the turn in between; at two and three it lands next
+## door and one bulb is the whole supply.
+##
+## `top` is always `sand_start`, so the runway before the first turn is the same
+## whatever the count. What the count changes is what comes back: three chambers
+## split every drain in two and hand you back only the half you turn into, which
+## is why they get one bulb and not one and a half.
 func arm_glass(count: int, top: float) -> void:
 	chamber_count = clampi(count, 2, Planes.COUNT)
 	chambers = PackedFloat32Array()
 	chambers.resize(chamber_count)
 	chambers[0] = clampf(top, 0.0, capacity())
-	var rest := (capacity() * chamber_count / 2.0 - chambers[0]) / float(chamber_count - 1)
+	var rest := (capacity() * reach() - chambers[0]) / float(chamber_count - 1)
 	for i in range(1, chamber_count):
 		chambers[i] = maxf(rest, 0.0)
+
+
+## Turns before a bulb drained from the top can be on top again: the nearest
+## chamber the top pours into, counted in steps either way round.
+func reach() -> int:
+	var targets := ChamberLayout.targets(chamber_count, 0)
+	for step in range(1, chamber_count):
+		if targets.has(posmod(step, chamber_count)) \
+			or targets.has(posmod(-step, chamber_count)):
+			return step
+	return 1
 
 
 ## One chamber's capacity. `sand_max` has always meant this — at two chambers all

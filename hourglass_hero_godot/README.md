@@ -150,6 +150,14 @@ stand on, lets two pads facing the same way agree instead of cancelling, and
 lets a pad you are already obeying go dim rather than lie. Every level starts
 the right way up.
 
+The glass carries one bulb of sand per turn it takes to get a drained bulb back
+on top — one at two and three chambers, two at four, where the sand lands
+opposite and a turn has to be paid for in between. The top always opens at
+`sand_start`, so the runway before the first turn is the same everywhere; what
+the count changes is what comes back. Three chambers split every drain in two
+and hand you back only the half you turn into, which is why they carry one bulb
+and not one and a half.
+
 The air jump needs no balancing of its own. `sand_flip_base` is 0, so on a
 two-chamber glass a turn gives back exactly `max - sand`: an involution. Two
 turns return you to your starting plane **and** to your starting sand, so a

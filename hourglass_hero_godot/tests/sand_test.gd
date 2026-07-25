@@ -85,23 +85,23 @@ func _ready() -> void:
 	# --- The reservoir --------------------------------------------------------
 	var cfg := Tuning.cfg
 
-	# Capacity scales with the chamber count: `sand_max` is ONE chamber's
-	# capacity, which is already what it means today — all 6000 of the sand fits
-	# into a single bulb, which is why the old flip could clamp to it.
+	# `sand_max` is ONE chamber's capacity, and the glass carries one of those per
+	# turn it takes to get a drained bulb back on top.
 	for count in [2, 3, 4]:
 		Game.arm_glass(count, cfg.sand_start)
-		_check("N=%d: the glass holds sand_max * N / 2" % count,
-			absf(_total(Game.chambers) - cfg.sand_max * count / 2.0) < 0.0001,
-			"holds %.0f, wanted %.0f" % [_total(Game.chambers), cfg.sand_max * count / 2.0])
+		var wanted: float = cfg.sand_max * Game.reach()
+		_check("N=%d: the glass holds a bulb per turn out of reach" % count,
+			absf(_total(Game.chambers) - wanted) < 0.0001,
+			"holds %.0f, wanted %.0f" % [_total(Game.chambers), wanted])
 
 		# Pacing is uniform: the top always opens at `sand_start` against the same
 		# drain, so every glass gives the same runway before the first turn is
 		# compulsory. More chambers makes the game wider, never faster.
-		var even := true
-		for v in Game.chambers:
-			even = even and absf(v - cfg.sand_start) < 0.0001
-		_check("N=%d: every chamber opens at sand_start" % count, even,
-			"opened %s" % [Game.chambers])
+		var even := absf(Game.chambers[0] - cfg.sand_start) < 0.0001
+		for i in range(2, count):
+			even = even and absf(Game.chambers[i] - Game.chambers[1]) < 0.0001
+		_check("N=%d: the top opens at sand_start and the rest share the rest" % count,
+			even, "opened %s" % [Game.chambers])
 
 	# Nothing is destroyed, only stranded. Drain and turn as much as you like and
 	# the glass still holds what it started with.
@@ -164,10 +164,11 @@ func _ready() -> void:
 	# two, which is why a turn can never hand back more than half of what you
 	# spent — the whole lesson of the trefoil level.
 	Game.arm_glass(3, 3000.0)
+	var below := Game.chambers[1]
 	Game.drain(600.0)
 	_check("N=3: the fall splits half and half",
 		absf(Game.chambers[1] - Game.chambers[2]) < 0.0001
-			and absf(Game.chambers[1] - 3300.0) < 0.0001,
+			and absf(Game.chambers[1] - (below + 300.0)) < 0.0001,
 		"chambers %s" % [Game.chambers])
 
 	# At four chambers it arrives whole — but in the chamber two turns away.
