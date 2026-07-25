@@ -4,7 +4,7 @@
 ## ask "does it still look right", which for a game made entirely of `_draw()`
 ## calls is not a question you can answer by reading code.
 ##
-##   godot --path hourglass_hero_godot tests/screenshot.tscn -- <out_dir> [flip] [levels…]
+##   godot --path hourglass_hero_godot tests/screenshot.tscn -- <out_dir> [flip] [dry] [levels…]
 ##
 ## Levels are 1-based; with none given it shoots every level. Pass `flip` to
 ## jump once before posing, which is the only way to see the BACK plane: the
@@ -22,6 +22,7 @@ const SETTLE_FRAMES := 45
 var _out_dir := "res://../shots"
 var _levels: Array[int] = []
 var _flip := false
+var _dry := false
 
 
 func _ready() -> void:
@@ -50,9 +51,11 @@ func _ready() -> void:
 			Input.action_release("jump")
 		for i in SETTLE_FRAMES:
 			await get_tree().process_frame
-			# The clock keeps running while we pose: top it up so a slow level
-			# does not die mid-shoot and reload under us.
-			Game.sand = Tuning.cfg.sand_max
+			# The clock keeps running while we pose: hold it steady so a slow
+			# level does not die mid-shoot and reload under us. `dry` holds it
+			# just above empty instead, which is the only way to photograph what
+			# the last seconds look like — the tremble, the sweat, the red light.
+			Game.sand = Tuning.cfg.sand_warn * 0.08 if _dry else Tuning.cfg.sand_max
 		Input.action_release("move_right")
 		await RenderingServer.frame_post_draw
 
@@ -71,5 +74,7 @@ func _parse_args() -> void:
 	for i in range(1, args.size()):
 		if args[i] == "flip":
 			_flip = true
+		elif args[i] == "dry":
+			_dry = true
 		elif args[i].is_valid_int():
 			_levels.append(args[i].to_int() - 1)

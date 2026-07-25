@@ -12,11 +12,16 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
+# Between the backdrop and the level in the tree, which is what keeps a slab
+# drawn over its own shadow. Order here is not cosmetic.
+@onready var _shadows: CastShadows = $CastShadows
 @onready var _world_light: CanvasModulate = $WorldLight
 
 var _level: Level
 var _player: Player
-var _clear_timer := 0.0
+## Counts down to whatever comes after the run you have just ended — the next
+## level if you cleared it, this one again if it killed you. Zero while playing.
+var _advance_timer := 0.0
 
 
 func _ready() -> void:
@@ -40,12 +45,10 @@ func _process(delta: float) -> void:
 		_load_current_level()
 		return
 
-	if Game.status == Game.Status.LEVEL_CLEAR:
-		_clear_timer -= delta
-		if _clear_timer <= 0.0:
-			Game.next_level()
-			if Game.status != Game.Status.VICTORY:
-				_load_current_level()
+	if _advance_timer > 0.0:
+		_advance_timer -= delta
+		if _advance_timer <= 0.0:
+			_advance()
 
 	# After the camera has moved this frame, never before: the backdrop's walls
 	# are placed relative to it, and reading last frame's position puts the
@@ -74,6 +77,8 @@ func _load_current_level() -> void:
 	_player.death_y = _level.world_size.y + Tuning.cfg.fall_death_margin
 
 	_backdrop.configure(_level.world_size)
+	_shadows.configure(_level)
+	_shadows.lamp = _player
 
 	_camera.target = _player
 	_camera.frame(_level.world_size)
@@ -100,6 +105,30 @@ func _apply_world_light() -> void:
 	_world_light.color = Color(v, v, minf(v * 1.14, 1.0))
 
 
+## Death and level clear both end the run and both move on by themselves. The
+## only difference is where they move on TO, and how long they let the screen
+## sit there first — so they share one timer rather than growing a second.
+##
+## `R` still restarts instantly. The timer is there so you never HAVE to reach
+## for it, not to stop you from being faster than it.
+func _advance() -> void:
+	if Game.status == Game.Status.DEAD:
+		Game.restart()
+	else:
+		Game.next_level()
+		# The run is over; there is no next level to load behind the screen.
+		if Game.status == Game.Status.VICTORY:
+			return
+	_load_current_level()
+
+
 func _on_status_changed(status: Game.Status) -> void:
-	if status == Game.Status.LEVEL_CLEAR:
-		_clear_timer = Tuning.cfg.level_clear_delay
+	match status:
+		# Disarmed, or a manual `R` during the death screen would be followed a
+		# moment later by the countdown restarting the level a second time.
+		Game.Status.PLAY:
+			_advance_timer = 0.0
+		Game.Status.LEVEL_CLEAR:
+			_advance_timer = Tuning.cfg.level_clear_delay
+		Game.Status.DEAD:
+			_advance_timer = Tuning.cfg.death_delay

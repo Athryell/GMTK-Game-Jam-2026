@@ -58,6 +58,12 @@ extends Resource
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.26
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
+## How long the death screen stays up before the level restarts itself, in s.
+##
+## Shorter than the clear delay on purpose. A win is worth a beat; a death is a
+## mistake you already understood mid-fall, and every tenth of a second spent
+## reading "OUT OF SAND" is time you are not spending on the retry.
+@export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
 
 @export_group("Camera")
 
@@ -102,6 +108,12 @@ extends Resource
 @export_range(0.0, 4.0, 0.05) var player_light_energy: float = 1.35
 ## Brightness of the lights on doors, springs, pads and hazards.
 @export_range(0.0, 4.0, 0.05) var entity_light_energy: float = 1.1
+## How far a platform's shadow is thrown at the player's feet, in px. It shrinks
+## to nothing at the edge of the light, the way a shadow does as its caster
+## drifts away from the lamp.
+@export_range(0.0, 90.0, 1.0) var shadow_throw: float = 26.0
+## How dark a shadow gets at its strongest.
+@export_range(0.0, 1.0, 0.01) var shadow_strength: float = 0.55
 
 @export_group("Feedback")
 
