@@ -159,9 +159,8 @@ func _ready() -> void:
 		"danger = %.3f" % Game.danger())
 
 	# --- The drawn sand turns over without the glass turning over -------------
-	# The first version rotated gravity through half a turn, and the pile swung
-	# round the bulb like a clock hand — read as the glass spinning, not as the
-	# sand changing its mind. `down()` must now stay put throughout.
+	# Rotating gravity through half a turn swings the pile round the bulb like a
+	# clock hand, and reads as the glass spinning. `down()` must stay put.
 	full_zone.add_to_group(Game.INVERSION_GROUP)
 	Game.poll_sand_flow()
 	var motion := HourglassMotion.new()
@@ -189,16 +188,13 @@ func _ready() -> void:
 	_check("leaving the zone runs the sand back down the glass",
 		is_zero_approx(motion.invert()), "invert = %.3f" % motion.invert())
 
-	# The trickle survives the reversal. Read off the same maths `draw_glass`
-	# uses, so a change there cannot pass this by.
+	# The trickle survives the reversal.
 	var glass := Vector2(hw * 2.0, hh * 2.0)
 	for dir in [Vector2.DOWN, Vector2.UP]:
 		_check("the trickle pours at full rate with gravity %v" % dir,
 			HourglassShape.trickle_rate(glass, dir) > 0.99)
 
-	# The pile rises in one piece and keeps its sand the whole way. The version
-	# before this drew a share at each end of the bulb and crossfaded, which cut
-	# the sand in two with a band of bare glass across the middle.
+	# The pile rises in one piece and keeps its sand the whole way.
 	var held: float = area * 0.5
 	var climbed := -INF
 	var worst_loss := 0.0
@@ -226,8 +222,7 @@ func _ready() -> void:
 		"%.1f vs %.1f" % [_centre(settled_high).y, _centre(settled_low).y])
 
 	# The trickle is the gap the two piles leave, so it is joined to both at every
-	# step. Fading it out across the middle instead left the two blocks hanging
-	# with nothing between them.
+	# step, and rides the sand rather than stretching between it.
 	var shortest := INF
 	var longest := 0.0
 	for step in 21:
@@ -240,8 +235,6 @@ func _ready() -> void:
 		longest = maxf(longest, span)
 	_check("the trickle always has both piles to hold on to", shortest > 0.0,
 		"shortest span %.2f px" % shortest)
-	# It rides the sand rather than stretching between it, so the gap the slabs
-	# leave stays close to fixed the whole way up.
 	_check("and its length barely changes on the way",
 		longest - shortest < hh * 0.12, "%.1f px to %.1f px" % [shortest, longest])
 

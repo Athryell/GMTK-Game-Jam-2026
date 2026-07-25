@@ -3,9 +3,8 @@
 ##   godot --path hourglass_hero_godot tests/flow_sheet.tscn -- <out.png> [fill]
 ##
 ## The glass alone, drawn once per value of `invert`, reading left to right then
-## top to bottom. A glitch in the turn shows up as one cell out of step with its
-## neighbours, which a level screenshot cannot tell you. Needs a real window,
-## like `screenshot.tscn`.
+## top to bottom: a glitch shows up as one cell out of step with its neighbours.
+## Needs a real window, like `screenshot.tscn`.
 extends Node2D
 
 const COLUMNS := 6
@@ -35,8 +34,7 @@ func _draw() -> void:
 		var invert := float(i) / (cells - 1)
 		var centre := Vector2(
 			(i % COLUMNS + 0.5) * CELL.x, (i / COLUMNS + 0.5) * CELL.y)
-		# One tint for every cell: this sheet is about where the sand is, and a
-		# gauge recolouring itself mid-turn would read as part of the animation.
+		# One tint for every cell: this sheet is about where the sand is.
 		draw_set_transform(centre, 0.0, Vector2.ONE)
 		HourglassShape.draw_glass(self, GLASS, Vector2(_fill, 1.0 - _fill),
 			Palette.SAND_FULL, Vector2.DOWN, 0.0, 1.5, invert)

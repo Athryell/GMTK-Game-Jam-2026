@@ -61,8 +61,7 @@ func down() -> Vector2:
 
 
 ## How far the sand has turned over inside an inversion zone, 0 to 1. Never a
-## rotation: the surface stays square to `down()` throughout, and only the
-## trickle's rate and which end of each bulb the pile rests against change.
+## rotation: the surface stays square to `down()` throughout.
 func invert() -> float:
 	return Game.flow_blend
 

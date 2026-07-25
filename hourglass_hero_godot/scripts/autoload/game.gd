@@ -35,9 +35,8 @@ var status: Status = Status.PLAY
 ## and the player's light.
 var sand_flow := 1.0
 ## How far the drawn sand has turned over, 0 (running down the glass) to 1
-## (running up it). The clock reverses on the frame you cross the boundary, but
-## the picture takes `flow_turn_duration` to follow: sand that changes direction
-## between two frames reads as a glitch rather than as a cause.
+## (running up it). Lags `sand_flow` by `flow_turn_duration`: sand that changes
+## direction between two frames reads as a glitch rather than as a cause.
 var flow_blend := 0.0
 
 ## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
@@ -96,9 +95,8 @@ func poll_sand_flow() -> float:
 
 
 ## Moves the drawn sand a step towards whichever way the clock is running, and
-## returns how far it has got. Separate from `sand_flow` on purpose: the death
-## rule must switch the instant you cross the boundary, or the zone would owe you
-## half a second of grace at both ends. Only the picture is allowed to lag.
+## returns how far it has got. Kept apart from `sand_flow` so the death rule
+## switches on the frame you cross the line; only the picture is allowed to lag.
 func advance_flow_blend(delta: float) -> float:
 	var target := 1.0 if sand_flow < 0.0 else 0.0
 	flow_blend = move_toward(flow_blend, target,

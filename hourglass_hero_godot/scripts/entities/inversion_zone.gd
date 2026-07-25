@@ -20,8 +20,7 @@ extends PlaneArea
 const FIELD_ALPHA := 0.10
 const EDGE_ALPHA := 0.5
 ## Multiplier while the zone actually holds the player. The sand takes half a
-## second to stop and turn round, so something has to say "this is what started
-## it" on the frame you cross the line.
+## second to turn round, so the zone has to say so on the frame you cross it.
 const HELD_BOOST := 2.6
 ## Rising motes: the only part that says "upward" while you stand still.
 const MOTE_COLUMNS := 5

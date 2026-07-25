@@ -52,28 +52,22 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	# The bulbs are a half turn apart, so one area serves for both.
 	var bulb_area := _area(upper)
 
-	# Turning the flow over never turns the glass over: the free surface stays
-	# square to `down` the whole way through. What moves is the pile, which lets
-	# go of the floor of its bulb and rises to the ceiling in one piece.
+	# Turning the flow over never turns the glass over: the surface stays square to
+	# `down` throughout, and only the piles move.
 	var up := -down
 	var upper_sand := pile(upper, down, chambers.x * bulb_area, invert)
 	var lower_sand := pile(lower, down, chambers.y * bulb_area, invert)
 	fill(canvas, upper_sand, sand)
 	fill(canvas, lower_sand, sand)
 
-	# The trickle is drawn as the gap between the two piles, so it stays joined to
-	# both whatever the sand is doing: throat to surface at rest, stretched taut
-	# mid-turn as the slabs pull away from each other. Fading it out instead left
-	# the two blocks hanging with nothing between them.
+	# The trickle is the gap the two piles leave, so it stays joined to both.
 	var flow := down if invert < 0.5 else up
 	var source: float = chambers.x if flow.y >= 0.0 else chambers.y
 	var pouring := trickle_rate(size, flow)
 	if source > 0.01 and pouring > 0.01:
-		# An empty bulb has no face to reach from, so the throat stands in.
 		var from := _reach(upper_sand, down, true, -nh)
 		var to := _reach(lower_sand, down, false, nh)
-		# The wobble is the only part that stops: a column of sand still shimmying
-		# while the flow is held at zero says it is moving when it is not.
+		# Only the wobble stops: a column still shimmying reads as still running.
 		var sideways := Vector2(-down.y, down.x)
 		var wobble := sideways * sin(phase) * 0.6 * absf(1.0 - 2.0 * invert)
 		canvas.draw_line(down * from + wobble, down * to + wobble,
@@ -87,7 +81,6 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 
 ## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips,
 ## spent at the bulb wall's own angle so it is never drawn outside the glass.
-## Public so the tests measure the rate the drawing actually uses.
 static func trickle_rate(size: Vector2, flow: Vector2) -> float:
 	var wall := cos(atan2(size.x * (1.0 - NECK_RATIO), size.y * (1.0 - THROAT_RATIO)))
 	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0)
@@ -107,14 +100,8 @@ static func _reach(poly: PackedVector2Array, down: Vector2, far: bool,
 
 
 ## The sand lying in one bulb: `target` area of it, both surfaces square to
-## `down`. Public so the tests can measure the pile the drawing actually uses.
-##
-## `lift` walks it from the floor of the bulb (0) to its ceiling (1) as the flow
-## turns over. It stays one slab throughout — drawing a share at each end and
-## crossfading between them splits the sand in two, with a band of bare glass
-## across the middle, which is what the first version did and it read as a fault.
-## The slab's underside is what is driven; its thickness is re-solved each time so
-## the amount of sand drawn never changes on the way up.
+## `down`. `lift` walks it from the floor of the bulb (0) to its ceiling (1), in
+## one slab: split it in two and a band of bare glass opens across the middle.
 static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
 		lift := 0.0) -> PackedVector2Array:
 	var bottom := INF
@@ -122,8 +109,7 @@ static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
 		bottom = minf(bottom, v.dot(down))
 	var piece := _clip(bulb, down,
 		lerpf(_level(bulb, down, target), bottom, clampf(lift, 0.0, 1.0)))
-	# Trim off the top, which `_level` places so that `target` is left underneath
-	# it. At rest there is nothing to trim: `piece` already holds exactly `target`.
+	# Trim back to `target`; at rest `piece` already holds exactly that.
 	var up := -down
 	return _clip(piece, up, _level(piece, up, target))
 
