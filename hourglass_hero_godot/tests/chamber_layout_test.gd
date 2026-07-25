@@ -11,11 +11,33 @@ var _failures := 0
 
 
 func _ready() -> void:
+	_frame()
 	_roles()
 	_pour_map()
 	_trefoil_lesson()
 	_quarters_lesson()
 	_finish()
+
+
+## Where the chambers actually are. Everything below this is invariant under
+## turning the glass the other way — the chambers are symmetric about the
+## vertical at every count the game uses, so the roles and the pour map come out
+## identical for a glass that spins backwards. Only this checks the handedness,
+## and the drawing and the per-jump rotation are both built on it.
+func _frame() -> void:
+	for count in [2, 3, 4]:
+		_check("N=%d: chamber 0 points straight up" % count,
+			ChamberLayout.axis(count, 0).is_equal_approx(Vector2.UP))
+		var unit := true
+		for i in count:
+			unit = unit and is_equal_approx(ChamberLayout.axis(count, i).length(), 1.0)
+		_check("N=%d: every axis is a unit vector" % count, unit)
+
+	# Clockwise ON SCREEN, where y grows downward: a quarter turn from up is to
+	# the RIGHT. Turn the other way and this is the only check that notices.
+	_check("N=4: chamber 1 is a quarter turn clockwise, to the right",
+		ChamberLayout.axis(4, 1).is_equal_approx(Vector2.RIGHT),
+		"it points %s" % ChamberLayout.axis(4, 1))
 
 
 ## §1 of the spec: which chambers drain, which receive, which are sealed.
@@ -33,12 +55,6 @@ func _roles() -> void:
 		_check("N=%d: the roles come out of the angles" % count, got == expected[count],
 			"got %s, wanted %s" % [got, expected[count]])
 
-	_check("N=4: exactly two chambers are sealed",
-		ChamberLayout.lowers(4).size() == 1 and ChamberLayout.uppers(4).size() == 1)
-	_check("every glass has exactly one chamber that drains",
-		ChamberLayout.uppers(2).size() == 1 and ChamberLayout.uppers(3).size() == 1
-			and ChamberLayout.uppers(4).size() == 1)
-
 
 ## The "opposite chambers only" rule and the "half and half" rule are the same
 ## rule seen at two chamber counts. Neither is written down anywhere.
@@ -51,6 +67,11 @@ func _pour_map() -> void:
 	three.sort()
 	_check("N=3: the top splits half and half", three == ([1, 2] as Array[int]),
 		"got %s" % [three])
+
+	# A chamber that receives does not also pour. Checked at N=2 and N=3 because
+	# the N=4 sealed chambers are the only case checked elsewhere.
+	_check("a chamber that catches sand does not also drop it",
+		ChamberLayout.targets(2, 1).is_empty() and ChamberLayout.targets(3, 1).is_empty())
 
 
 ## The three-chamber lesson: whichever way you turn, you turn INTO a chamber

@@ -9,6 +9,11 @@
 ##
 ## Two chambers is not a special case here. It is this formula at N=2, and it
 ## lands on exactly the hourglass that shipped.
+##
+## Meaningful for two to four chambers. Above four a glass has more than one
+## chamber draining at a time and the sand economy stops being defined; below
+## two there is nowhere for the sand to fall. Nothing here enforces that — the
+## cap lives on `Level.chambers`, where a designer can see it.
 class_name ChamberLayout
 extends RefCounted
 
@@ -19,10 +24,15 @@ enum Role {
 	LEVEL, ## Points along the horizon. Sealed: it neither drains nor receives.
 }
 
-## How far off the horizon a chamber's axis has to point before it counts as
-## draining. Small, and only ever tripped by floating-point noise — the axes are
-## exact multiples of a turn, so a side chamber's `y` is 0 to within an epsilon,
-## never to within a design choice.
+## The slack in every comparison here, and it does two jobs: how far off the
+## horizon a chamber has to point before it counts as draining, and how close
+## two falls have to be before they count as tied.
+##
+## Both are only ever tripped by floating-point noise. The axes are exact
+## multiples of a turn, so the smallest real `y` is `sin(PI / N)` and the
+## smallest real gap between two candidate falls is `TAU / N` — both stay orders
+## of magnitude above this until N is in the thousands. Retune it and you retune
+## both, which is why they share a name rather than drifting apart.
 const HORIZON := 0.001
 
 
@@ -67,6 +77,7 @@ static func targets(count: int, index: int) -> Array[int]:
 			best = angle
 			out = [i]
 		elif angle < best + HORIZON:
+			best = minf(best, angle)
 			out.append(i)
 	return out
 

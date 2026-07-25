@@ -203,6 +203,15 @@ equals the sand there is at every tilt, that the free surface stays level in
 *world* space rather than turning with the walls, and that a flip lands with no
 jump in the sand.
 
+```bash
+godot --path hourglass_hero_godot --headless tests/chamber_layout_test.tscn
+```
+
+The chamber layout test checks the maths underneath the multi-chamber glass
+with nothing drawn and no game running: which chambers drain, receive, or seal
+shut at each chamber count, who pours into whom, and the two- and three-turn
+lessons the three- and four-chamber levels are built to teach.
+
 ## How the sand moves
 
 The sand is a liquid, not a block glued inside the glass. `HourglassMotion`
