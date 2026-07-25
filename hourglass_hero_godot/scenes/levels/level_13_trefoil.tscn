@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+level_name = "Trefoil"
+world_size = Vector2(960, 540)
+chambers = 3
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(48, 455)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Ground" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(0, 478)
+size = Vector2(150, 62)
+plane = 4
+kind = 0
+
+[node name="Step1" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(196, 430)
+size = Vector2(118, 18)
+plane = 1
+kind = 0
+
+[node name="Step2" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(360, 382)
+size = Vector2(118, 18)
+plane = 2
+kind = 0
+
+[node name="Step3" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(524, 334)
+size = Vector2(118, 18)
+plane = 0
+kind = 0
+
+[node name="Step4" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(688, 300)
+size = Vector2(118, 18)
+plane = 1
+kind = 0
+
+[node name="Ledge" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(842, 300)
+size = Vector2(118, 18)
+plane = 2
+kind = 0
+
+[node name="Decoy1" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(280, 300)
+size = Vector2(96, 18)
+plane = 0
+kind = 0
+
+[node name="Decoy2" parent="Entities" instance=ExtResource("3_platform")]
+position = Vector2(470, 226)
+size = Vector2(96, 18)
+plane = 1
+kind = 0
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(898, 236)
+size = Vector2(34, 64)
+plane = 4

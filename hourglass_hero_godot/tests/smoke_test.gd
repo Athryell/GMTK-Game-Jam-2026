@@ -184,6 +184,20 @@ func _ready() -> void:
 	_check("a jump with nothing held keeps the last direction", int(Game.plane) == 3,
 		"landed on %d" % int(Game.plane))
 
+	# --- The shipped game uses every glass ------------------------------------
+	# Without this, deleting a chamber count from the levels folder leaves a
+	# perfectly green suite testing a feature nothing plays.
+	var counts := {}
+	for i in Game.level_scenes.size():
+		Game.start_level(i)
+		await _load_level_scene()
+		var level := _current_level()
+		if level != null:
+			counts[level.chambers] = true
+	_check("some level is played on a three-chamber glass", counts.has(3))
+	_check("some level is played on a four-chamber glass", counts.has(4))
+	_check("and most of them are still the two-chamber hourglass", counts.has(2))
+
 	_finish()
 
 

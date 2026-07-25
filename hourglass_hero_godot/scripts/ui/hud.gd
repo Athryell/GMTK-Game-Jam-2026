@@ -50,6 +50,11 @@ func _draw() -> void:
 
 func _on_level_loaded(index: int, level_name: String) -> void:
 	_level_label.text = "%d/%d — %s" % [index + 1, Game.level_scenes.size(), level_name]
+	# The plane label spells out the chamber count, and a new level can change
+	# that count without ever changing the plane — arriving on a three-chamber
+	# level in P0 left the label reading FRONT. `level_loaded` is emitted after
+	# the level's rules are applied, so the count here is the one being played.
+	_on_plane_changed(Game.plane)
 
 
 func _on_plane_changed(plane: Planes.Kind) -> void:

@@ -150,7 +150,7 @@ func _ready() -> void:
 		if absf(Game.sand - start) > worst_drift:
 			worst_drift = absf(Game.sand - start)
 			worst_from = start
-	_check("N=2: one turn is the shipped flip_sand(), to the bit", worst_flip < 0.0001,
+	_check("N=2: one turn is the shipped `max - sand` flip, to the bit", worst_flip < 0.0001,
 		"off by %.6f" % worst_flip)
 	_check("N=2: turning twice returns the sand exactly", worst_drift < 0.0001,
 		"off by %.6f starting from %.0f — check sand_flip_base" % [worst_drift, worst_from])
