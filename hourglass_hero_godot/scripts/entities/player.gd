@@ -33,8 +33,10 @@ var _pulse := 0.0
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
 	collision_mask = Layers.SOLID
+	# The one shadow-casting light in the game: the terrain subtracts from it,
+	# so walking past a platform sweeps its shadow across the room.
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
-		Tuning.cfg.player_light_energy)
+		Tuning.cfg.player_light_energy, Vector2.ZERO, true)
 	add_child(_light)
 	Game.flipped.connect(_on_flipped)
 	Game.status_changed.connect(_on_status_changed)
