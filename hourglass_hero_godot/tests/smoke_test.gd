@@ -140,6 +140,9 @@ func _ready() -> void:
 	# --- The camera keeps the player on screen --------------------------------
 	await _check_camera_holds_a_launch()
 
+	# --- The inversion zone, in the real game ---------------------------------
+	await _check_inversion_zone()
+
 	_finish()
 
 
@@ -170,6 +173,82 @@ func _check_camera_holds_a_launch() -> void:
 
 	_check("camera keeps the player on screen through a spring launch",
 		worst < half, "%.0f px off centre, frame reaches %.0f" % [worst, half])
+
+
+## The zone with a real Area2D overlapping the real player. `sand_test` can only
+## reach the arithmetic; this is what proves containment, the plane rule, and
+## that a full glass actually kills.
+func _check_inversion_zone() -> void:
+	var index := Game.level_names.find("The Updraft")
+	if index < 0:
+		_check("level 'The Updraft' exists", false, "not in %s" % [Game.level_names])
+		return
+	Game.start_level(index)
+	await _load_level_scene()
+	await _frames(5)
+
+	var zones := get_tree().get_nodes_in_group(Game.INVERSION_GROUP)
+	_check("the level's zones join the inversion group", zones.size() >= 3,
+		"found %d" % zones.size())
+	if zones.is_empty():
+		return
+
+	var player := _find_player()
+	if player == null:
+		_check("player is instantiated on The Updraft", false)
+		return
+	# The spawn is the one point in the level guaranteed to be outside every
+	# zone, so it is where "not in a zone" is measured from.
+	var outside := player.global_position
+
+	var zone: InversionZone = zones[0]
+	var inside := zone.global_position + zone.size / 2.0
+	Game.sand = Tuning.cfg.sand_max / 2.0
+	await _hold(player, inside, 20)
+	_check("standing in a zone reverses the flow", Game.sand_flow < 0.0)
+	_check("sand climbs inside a zone", Game.sand > Tuning.cfg.sand_max / 2.0,
+		"%.0f → %.0f" % [Tuning.cfg.sand_max / 2.0, Game.sand])
+
+	# A full glass in a zone is death, exactly as an empty one is outside.
+	Game.sand = Tuning.cfg.sand_max - 50.0
+	var died := false
+	for i in 120:
+		await get_tree().physics_frame
+		player.global_position = inside
+		player.velocity = Vector2.ZERO
+		if Game.status == Game.Status.DEAD:
+			died = true
+			break
+	_check("a FULL glass kills inside a zone", died, "sand=%.0f" % Game.sand)
+
+	# A zone in the other plane must do nothing at all.
+	Game.restart()
+	await _frames(5)
+	player = _find_player()
+	zone = get_tree().get_nodes_in_group(Game.INVERSION_GROUP)[0] as InversionZone
+	zone.plane = Planes.opposite(Game.plane)
+	zone._on_plane_changed(Game.plane)
+	await _hold(player, inside, 10)
+	_check("a zone in the other plane leaves the flow alone", Game.sand_flow > 0.0)
+
+	# And stepping out of one resumes the drain.
+	zone.plane = Planes.Kind.BOTH
+	zone._on_plane_changed(Game.plane)
+	await _hold(player, outside, 10)
+	var before := Game.sand
+	await _hold(player, outside, 20)
+	_check("leaving a zone resumes the drain", Game.sand < before,
+		"%.0f → %.0f" % [before, Game.sand])
+
+
+## Pins the player at `where` for `count` physics frames. Held every frame
+## rather than placed once: gravity would otherwise carry them out of the zone
+## mid-measurement and the check would pass or fail on the fall, not the rule.
+func _hold(player: Player, where: Vector2, count: int) -> void:
+	for i in count:
+		player.global_position = where
+		player.velocity = Vector2.ZERO
+		await get_tree().physics_frame
 
 
 ## A second jump must fire in mid-air and, being a real flip, land you back in
