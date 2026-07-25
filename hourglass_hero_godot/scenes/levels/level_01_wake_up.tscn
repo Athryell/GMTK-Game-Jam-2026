@@ -1,23 +1,24 @@
 [gd_scene format=3 uid="uid://dm6be3a14qdsh"]
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" uid="uid://b62bjh4xkmsp0" path="res://scripts/entities/terrain.gd" id="3_terrain"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=2033491078]
 script = ExtResource("1_level")
 level_name = "Wake-Up"
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=447216131]
 position = Vector2(53, 479)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=1541318319]
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+[node name="Door" parent="Entities" unique_id=1228334491 instance=ExtResource("2_door")]
 position = Vector2(901, 386)
 
-[node name="Ground" type="StaticBody2D" parent="Entities"]
+[node name="Ground" type="StaticBody2D" parent="Entities" unique_id=1001778845]
+collision_mask = 0
 script = ExtResource("3_terrain")
 
-[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground"]
-polygon = PackedVector2Array(0, 502, 300, 502, 380, 476, 620, 476, 700, 449, 960, 449, 960, 560, 0, 560)
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground" unique_id=492484394]
+polygon = PackedVector2Array(0, 502, 380, 502, 380, 476, 700, 476, 700, 449, 960, 449, 960, 560, 0, 560)

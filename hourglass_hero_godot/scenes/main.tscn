@@ -26,3 +26,5 @@ script = ExtResource("6_camera")
 [node name="HUD" parent="." unique_id=1356686068 instance=ExtResource("2_hud")]
 
 [node name="TuningPanel" parent="." unique_id=1285630088 instance=ExtResource("3_tuner")]
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=2036332681]

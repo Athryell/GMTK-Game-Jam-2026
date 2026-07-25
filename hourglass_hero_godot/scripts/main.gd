@@ -79,6 +79,7 @@ func _load_current_level() -> void:
 
 	# `play_music` ignores a track already playing, so this does not restart it.
 	Audio.play_music("level")
+	Audio.play_music("falling_sand")
 	Game.announce_level(_level.level_name)
 
 
