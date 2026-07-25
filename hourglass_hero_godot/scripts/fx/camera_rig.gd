@@ -58,7 +58,18 @@ func snap() -> void:
 	reset_smoothing()
 
 
-func _process(delta: float) -> void:
+## On the PHYSICS clock, not the render clock, and this is not a preference.
+##
+## The player is moved by `move_and_slide()` at 60 Hz. A camera that followed in
+## `_process` advanced on a different clock, so on some frames the view had
+## moved and the player had not — at `move_speed` that is ±4 px of alternating
+## displacement, and since everything else in the world is stationary relative
+## to the camera, the player alone smeared into a double image whenever the
+## camera was moving.
+##
+## The camera is below the level in `main.tscn`, so within a tick the player has
+## already been moved by the time this runs.
+func _physics_process(delta: float) -> void:
 	var cfg := Tuning.cfg
 
 	if target != null and is_instance_valid(target):
