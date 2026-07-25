@@ -59,9 +59,11 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.PLAY:
 			_overlay.text = ""
 			_hint.text = "← → move    SPACE jump (flips the glass + swaps plane)    R restart    ESC menu    F1 tuning"
-		Game.Status.DEAD:
-			_overlay.text = "OUT OF SAND\n\nPress R to restart    ESC for the menu"
-		Game.Status.LEVEL_CLEAR:
-			_overlay.text = "LEVEL CLEAR"
+		# Nothing for either. Both of these move on by themselves within a second,
+		# and the game has already said which one happened — the glass shatters,
+		# or the door takes you. A banner over the top of that is a word for
+		# something the player just watched, holding up the thing they want next.
+		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
+			_overlay.text = ""
 		Game.Status.VICTORY:
 			_overlay.text = "YOU MADE IT!\n\nPress R to play again    ESC for the menu"

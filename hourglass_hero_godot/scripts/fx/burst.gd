@@ -13,6 +13,7 @@ enum Kind {
 	RING, ## The flip: a ring in the plane you just landed in.
 	DUST, ## Landing: chips kicked along the floor.
 	SHARDS, ## Death: the glass comes apart.
+	SWEAT, ## Nearly out of sand: a bead shaken off the trembling glass.
 }
 
 const GRAVITY := 900.0
@@ -46,6 +47,17 @@ static func dust(parent: Node, at: Vector2, tint: Color, force: float) -> void:
 static func shards(parent: Node, at: Vector2, tint: Color) -> void:
 	var b := _make(parent, at, Kind.SHARDS, tint, 0.9)
 	b._scatter(14, 300.0, -PI, PI)
+
+
+## Nerves. A single bead, flicked off the shaking glass and then simply dropped.
+##
+## One at a time rather than a puff, because sweat is not an event — it is a
+## state the player is in, and it has to be able to keep going for as long as
+## they are in it without ever becoming the loudest thing on screen.
+static func sweat(parent: Node, at: Vector2, tint: Color) -> void:
+	var b := _make(parent, at, Kind.SWEAT, tint, 0.55)
+	# Barely thrown: it should look shaken loose, not spat out.
+	b._scatter(1, 105.0, -0.7, 0.7)
 
 
 static func _make(parent: Node, at: Vector2, kind_: Kind, tint: Color, life: float) -> Burst:
@@ -96,6 +108,11 @@ func _draw() -> void:
 			for p in _bits:
 				draw_rect(Rect2(p - Vector2(2.0, 2.0), Vector2(4.0, 4.0)),
 					Color(colour, fade * 0.8))
+		Kind.SWEAT:
+			# Round, where every other effect in the game is square. That is the
+			# whole read: a bead is a liquid, and the world it comes off is not.
+			for p in _bits:
+				draw_circle(p, 1.4 + 1.4 * fade, Color(colour, fade * 0.9))
 		Kind.SHARDS:
 			for i in _bits.size():
 				var size := 3.0 + 4.0 * fade

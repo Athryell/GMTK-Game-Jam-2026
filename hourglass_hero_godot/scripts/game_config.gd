@@ -58,6 +58,12 @@ extends Resource
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.26
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
+## How long the death screen stays up before the level restarts itself, in s.
+##
+## Shorter than the clear delay on purpose. A win is worth a beat; a death is a
+## mistake you already understood mid-fall, and every tenth of a second spent
+## reading "OUT OF SAND" is time you are not spending on the retry.
+@export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
 
 @export_group("Camera")
 

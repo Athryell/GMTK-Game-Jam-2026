@@ -29,6 +29,17 @@ var _air_jumps := 0
 var _light: PointLight2D
 var _pulse := 0.0
 
+## Below this much danger the glass is nervous but dry. Set so the sweat starts
+## noticeably AFTER the light has already begun to redden — two cues arriving
+## together read as one, and the point of the second is that things got worse.
+const SWEAT_FROM := 0.4
+## Seconds between beads at `SWEAT_FROM` and at bone dry.
+const SWEAT_SLOWEST := 0.34
+const SWEAT_FASTEST := 0.09
+
+var _sweat_timer := 0.0
+var _rng := RandomNumberGenerator.new()
+
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
@@ -53,6 +64,31 @@ func _process(delta: float) -> void:
 	_light.color = Palette.SAND_FULL.lerp(Palette.SAND_LOW, danger)
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
 	_light.texture_scale = cfg.player_light_radius * 2.0 / LightKit.TEXTURE_SIZE
+	_sweat(delta, danger)
+
+
+## Beads shaken off the glass as the sand runs out, faster the closer it gets.
+##
+## Driven off the same `danger()` as the tremble and the light, so all three
+## arrive as one rising state rather than as three effects with their own ideas
+## about when things are bad.
+func _sweat(delta: float, danger: float) -> void:
+	if Game.status != Game.Status.PLAY or danger < SWEAT_FROM:
+		# Reset rather than pause: refuel and the next bead should wait its turn,
+		# not fire the instant you drop back into the warning.
+		_sweat_timer = 0.0
+		return
+
+	_sweat_timer -= delta
+	if _sweat_timer > 0.0:
+		return
+	var urgency := inverse_lerp(SWEAT_FROM, 1.0, danger)
+	_sweat_timer = lerpf(SWEAT_SLOWEST, SWEAT_FASTEST, urgency)
+	# Off the shoulders of the glass, never dead centre: a bead leaving from the
+	# middle of the sprite looks like it came out of the sand rather than off it.
+	var from := global_position + Vector2(
+		_rng.randf_range(-11.0, 11.0), _rng.randf_range(-15.0, -4.0))
+	Burst.sweat(get_parent(), from, Palette.GLASS)
 
 
 func _physics_process(delta: float) -> void:
