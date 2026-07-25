@@ -27,7 +27,7 @@ func _process(delta: float) -> void:
 	# Half a turn while gravity is inverted, so the sand pools the way it falls.
 	var upside_down: float = PI if get_parent().pull < 0.0 else 0.0
 	_upset = move_toward(_upset, upside_down, UPSET_RATE * delta)
-	rotation = Glass.motion.tilt + _upset
+	rotation = Glass.motion.sprite_tilt() + _upset
 	# Squared, so the shake only arrives at the very end.
 	var fear := Game.danger()
 	var amount := TREMBLE * fear * fear
@@ -49,34 +49,28 @@ func _process(delta: float) -> void:
 ## enough symmetric top to bottom, wears without complaint.
 ##
 ## Read off the rotation rather than counted off the jumps, so it needs no state
-## to keep straight and cannot drift out of step with what is on screen. A turn
-## at two chambers is half a circle, so `cos` crosses zero at a quarter — exactly
-## halfway through the jump, with the glass edge-on and the swap least visible.
-## A gravity pad turning the world over is the same half circle, and is carried
-## by the same line.
-##
-## Never past two chambers: a turn is no longer half a circle there, the drawn
-## glass has no lit side to protect, and mirroring would swap over the plane
-## colours on its chamber plates — which are a promise about which way to jump.
+## to keep straight and cannot drift out of step with what is on screen. The
+## painted glass turns half a circle per jump at every chamber count, so `cos`
+## crosses zero at a quarter — exactly halfway through, with the glass edge-on
+## and the swap least visible. A gravity pad turning the world over is the same
+## half circle, and is carried by the same line.
 func _mirrored() -> bool:
-	return Game.chamber_count == 2 and cos(rotation) < 0.0
+	return cos(rotation) < 0.0
 
 
 func _draw() -> void:
 	var motion := Glass.motion
 	var sand_colour := Palette.sand(Game.danger())
-	var down := motion.down()
+	# The painted glass at every chamber count, and never tinted: the plane you
+	# are in is written across the whole world already, and the ring of chamber
+	# plates that used to say which way each one lay is still on the HUD gauge.
+	var down := motion.sprite_down()
 	# Mirroring the node mirrors the glass's own frame with it, so world-down has
 	# to be carried across too or the sand sloshes against the way you are moving.
 	if _mirrored():
 		down.x = -down.x
-
-	if Game.chamber_count == 2:
-		HourglassSprite.draw(self, body_size, motion.chambers(), sand_colour,
-			down, motion.invert(), Game.flip_anim > 0.0)
-	else:
-		HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
-			down, 1.5, motion.invert(), motion.plane_tints())
+	HourglassSprite.draw(self, body_size, motion.sprite_fills(), sand_colour,
+		down, motion.invert(), Game.flip_anim > 0.0)
 
 	if Game.pad_flash > 0.0:
 		var a := Game.pad_flash_ratio()

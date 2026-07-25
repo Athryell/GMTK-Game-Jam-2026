@@ -34,9 +34,19 @@ func _draw() -> void:
 	var motion := Glass.motion
 	var colour := Palette.sand(Game.danger())
 
-	draw_set_transform(gauge_centre, motion.tilt, Vector2.ONE)
-	HourglassShape.draw_glass(self, gauge_size, motion.chambers(), colour,
-		motion.down(), 2.0, motion.invert(), motion.plane_tints())
+	# The painted two-bulb glass at every chamber count, as the player wears it.
+	# How many chambers a level's glass really has is spelt out by `PlaneLabel`
+	# next to it, which is the one place that count needs saying.
+	var tilt := motion.sprite_tilt()
+	# Turned left-for-right through the same quarter of a turn as the player's
+	# glass, to keep the light down its left side; see `hourglass_visual.gd`.
+	var facing := -1.0 if cos(tilt) < 0.0 else 1.0
+	var down := motion.sprite_down()
+	if facing < 0.0:
+		down.x = -down.x
+	draw_set_transform(gauge_centre, tilt, Vector2(facing, 1.0))
+	HourglassSprite.draw(self, gauge_size, motion.sprite_fills(), colour,
+		down, motion.invert(), Game.flip_anim > 0.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	if Game.danger() > 0.0:

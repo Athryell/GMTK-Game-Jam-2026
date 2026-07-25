@@ -109,6 +109,68 @@ func plane_tints() -> PackedColorArray:
 	return out
 
 
+# ----- The painted glass -----------------------------------------------------
+# The player wears the two-bulb glass from `art/sprites/` at EVERY chamber count,
+# so it needs its own tumble and its own reading of the sand. Neither can come
+# off the rosette's: that turns one chamber per jump and lands seamlessly only
+# because it has a chamber's worth of symmetry to land on, which two bulbs at
+# three chambers do not — 120 degrees round, a two-bulb glass is lying on its
+# side, and the snap back upright is the whole animation undone in a frame.
+#
+# The HUD gauge is still the rosette, and still says which plane each chamber
+# stands for. Nothing below touches it.
+
+
+## Rotation of the painted glass, in radians. A HALF turn per jump whatever the
+## chamber count — the only angle a two-bulb glass comes back upright from.
+func sprite_tilt() -> float:
+	var cfg := Tuning.cfg
+	if Game.flip_anim <= 0.0 or cfg.flip_duration <= 0.0:
+		return 0.0
+	return _mirror * Game.flip_dir * PI * (1.0 - Game.flip_anim / cfg.flip_duration)
+
+
+## World-down in the painted glass's own frame, leaned by the slosh. As
+## [method down], but against the half turn above.
+func sprite_down() -> Vector2:
+	return Vector2.DOWN.rotated(lean - sprite_tilt())
+
+
+## The glass's sand as two bulbs: what you can spend on top, everything else
+## pooled below.
+##
+## Above two chambers there is always exactly one chamber draining — the one the
+## clock runs off and the one an empty glass kills you for — so the top bulb is
+## that chamber, and the rest of the glass, however it is divided up, becomes the
+## pile underneath. Which is what a two-bulb glass has always meant: the sand you
+## have left, over the sand you have spent.
+##
+## Both halves are measured against the WHOLE glass rather than against a bulb,
+## so they always add up to one — sand that leaves the top arrives at the bottom,
+## which is the only thing a two-bulb picture can honestly say. Against a bulb
+## each instead, a three-chamber glass could never fill its lower half past the
+## middle however much sand was sitting down there.
+##
+## It costs the top bulb its brim at four chambers, and should: only one chamber
+## drains, so no more than half the glass is ever yours to spend, and a top bulb
+## that never fills past half is that rule drawn.
+##
+## Down to the same swap as [method chambers] mid-turn, so the bulbs change
+## places as the glass goes over and it lands with the sand where the picture
+## left it. Only whether to swap matters across two bulbs, never which way.
+func sprite_fills() -> PackedFloat32Array:
+	var count := Game.chamber_count
+	var total := maxf(Game.capacity() * float(Game.reach()), 0.001)
+	var spendable := clampf(Game.chambers[0] / total, 0.0, 1.0)
+	var stored := 0.0
+	for i in range(1, count):
+		stored += Game.chambers[i]
+	stored = clampf(stored / total, 0.0, 1.0)
+	if _back() != 0:
+		return PackedFloat32Array([stored, spendable])
+	return PackedFloat32Array([spendable, stored])
+
+
 ## The step back through the chamber arrays that cancels the step round the
 ## glass, mid-turn.
 ##
