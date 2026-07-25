@@ -35,14 +35,48 @@ func _process(delta: float) -> void:
 	position = Vector2(
 		sin(_shiver * TREMBLE_RATES.x),
 		cos(_shiver * TREMBLE_RATES.y)) * amount
+	scale.x = -1.0 if _mirrored() else 1.0
 	queue_redraw()
+
+
+## Whether the art is showing its back, and so has to be flipped left-for-right
+## to keep its face on.
+##
+## The painted glass is lit down its left side and reflects down its right, so it
+## is the one part of this that a turn does not leave looking the same. Half a
+## turn round puts the highlights on the wrong side; mirroring as well cancels
+## that, leaving a glass that reads upside down instead — which the art, near
+## enough symmetric top to bottom, wears without complaint.
+##
+## Read off the rotation rather than counted off the jumps, so it needs no state
+## to keep straight and cannot drift out of step with what is on screen. A turn
+## at two chambers is half a circle, so `cos` crosses zero at a quarter — exactly
+## halfway through the jump, with the glass edge-on and the swap least visible.
+## A gravity pad turning the world over is the same half circle, and is carried
+## by the same line.
+##
+## Never past two chambers: a turn is no longer half a circle there, the drawn
+## glass has no lit side to protect, and mirroring would swap over the plane
+## colours on its chamber plates — which are a promise about which way to jump.
+func _mirrored() -> bool:
+	return Game.chamber_count == 2 and cos(rotation) < 0.0
 
 
 func _draw() -> void:
 	var motion := Glass.motion
 	var sand_colour := Palette.sand(Game.danger())
-	HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
-		motion.down(), 1.5, motion.invert(), motion.plane_tints())
+	var down := motion.down()
+	# Mirroring the node mirrors the glass's own frame with it, so world-down has
+	# to be carried across too or the sand sloshes against the way you are moving.
+	if _mirrored():
+		down.x = -down.x
+
+	if Game.chamber_count == 2:
+		HourglassSprite.draw(self, body_size, motion.chambers(), sand_colour,
+			down, motion.invert(), Game.flip_anim > 0.0)
+	else:
+		HourglassShape.draw_glass(self, body_size, motion.chambers(), sand_colour,
+			down, 1.5, motion.invert(), motion.plane_tints())
 
 	if Game.pad_flash > 0.0:
 		var a := Game.pad_flash_ratio()
