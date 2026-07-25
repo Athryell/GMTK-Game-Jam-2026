@@ -1,8 +1,5 @@
-## The level's two superimposed planes.
-##
-## Every entity belongs to one plane (or to both). The player alternates
-## FRONT/BACK on every jump: a BACK platform is only solid right after a jump
-## that dropped you into the back plane.
+## The level's two superimposed planes. Every entity belongs to one or both; the
+## player alternates FRONT/BACK on every jump, and only the current plane is solid.
 class_name Planes
 extends RefCounted
 

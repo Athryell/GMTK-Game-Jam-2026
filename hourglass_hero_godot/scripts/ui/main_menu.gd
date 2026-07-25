@@ -1,9 +1,5 @@
-## Title screen and level select.
-##
-## The level buttons are built from `Game.level_scenes`, so dropping a new
-## `.tscn` into `scenes/levels/` makes it appear here on the next run — there is
-## no list to maintain. Whether a level can be picked is `Game.is_unlocked()`;
-## today that always says yes.
+## Title screen and level select. Buttons are built from `Game.level_scenes`
+## and gated by `Game.is_unlocked()`.
 extends Control
 
 const GAME_SCENE := "res://scenes/main.tscn"
@@ -27,14 +23,13 @@ func _build_level_buttons() -> void:
 		button.text = "%d — %s" % [i + 1, Game.level_names[i]]
 		button.custom_minimum_size = Vector2(190.0, 40.0)
 		button.disabled = not Game.is_unlocked(i)
-		# `i` is bound now: without it every button would read the loop variable
-		# after the loop ended and all of them would start the last level.
+		# `bind(i)` captures the index now, not the loop variable's final value.
 		button.pressed.connect(_start.bind(i))
 		_grid.add_child(button)
 
 
 func _on_play_pressed() -> void:
-	# "Play" resumes at the furthest level reached rather than always level 1.
+	# Resumes at the furthest level reached rather than level 1.
 	_start(clampi(Game.levels_reached, 0, maxi(Game.level_scenes.size() - 1, 0)))
 
 

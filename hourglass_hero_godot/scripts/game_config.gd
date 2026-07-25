@@ -1,13 +1,6 @@
-## Every gameplay variable, in one place.
-##
-## Two ways to edit it:
-##   1. In the Inspector, by opening `resources/game_config.tres`.
-##   2. In game, with F1: the tuning panel generates one slider per
-##      `@export_range` below.
-##
-## ADDING A VARIABLE = adding one `@export_range(...)` line here. The slider
-## shows up on its own, no UI code to touch. The `@export_group` becomes the
-## section heading in the panel.
+## Every gameplay variable, in one place. Edit via `resources/game_config.tres`
+## or in game with F1: the tuning panel generates one slider per `@export_range`
+## below, grouped by `@export_group`.
 class_name GameConfig
 extends Resource
 
@@ -32,14 +25,11 @@ extends Resource
 
 ## Total sand held by one bulb, in ms.
 @export_range(500.0, 20000.0, 100.0) var sand_max: float = 6000.0
-## Sand at level start, in ms. Half of `sand_max` stabilises the loop: any
-## flip made below half lands you back above half.
+## Sand at level start, in ms. Half of `sand_max` stabilises the flip loop.
 @export_range(0.0, 20000.0, 100.0) var sand_start: float = 3000.0
 ## Threshold below which the sand turns red, in ms.
 @export_range(0.0, 10000.0, 100.0) var sand_warn: float = 2000.0
-## How fast the sand runs out, in ms per second. At 1000 the gauge is a real
-## clock: `sand_max` ms of sand lasts exactly that many milliseconds. Raise it
-## and the whole game gets more frantic without touching a single level.
+## How fast the sand runs out, in ms per second. 1000 = a real clock.
 @export_range(0.0, 5000.0, 10.0) var sand_drain_rate: float = 1000.0
 ## Floor added to every flip. 0 = pure hourglass.
 @export_range(0.0, 6000.0, 100.0) var sand_flip_base: float = 0.0
@@ -52,34 +42,19 @@ extends Resource
 @export_range(0.0, 600.0, 10.0) var fall_death_margin: float = 60.0
 ## Default spring impulse, in px/s (each spring can override it).
 @export_range(0.0, 3000.0, 10.0) var spring_power: float = 1400.0
-## Opacity of entities in the opposite plane — the "ghosts". Raised when the
-## world was darkened for the lights: 0.16 read fine on a flat backdrop and
-## vanished entirely once `world_light` started multiplying it.
+## Opacity of entities in the opposite plane (the "ghosts"). `world_light`
+## multiplies it, so low values vanish.
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.26
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.
-##
-## Shorter than the clear delay on purpose. A win is worth a beat; a death is a
-## mistake you already understood mid-fall, and every tenth of a second spent
-## reading "OUT OF SAND" is time you are not spending on the retry.
 @export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
 
 @export_group("Camera")
 
 ## How close the camera sits. 1.0 shows the 960×540 design view; above that it
-## moves in and the level scrolls.
-##
-## This is the single biggest visual lever in the game and it is not really a
-## look setting. Levels are 540 px tall and the camera used to show exactly 540,
-## so two thirds of every screen was empty sky. Moving in fills the frame with
-## the level — and it is why `CameraRig` divides the viewport by the zoom
-## everywhere instead of trusting `get_viewport_rect()`.
-##
-## Above 1.0 because most levels are 540 px tall with every platform in the
-## bottom 240. The camera clamps to the level, so the slack all ends up as empty
-## sky above the player; the only way to spend it is to move in. 1.55 keeps
-## enough of the level ahead to read a gap before you commit to it.
+## moves in and the level scrolls. `CameraRig` must divide the viewport by this
+## zoom rather than trust `get_viewport_rect()`.
 @export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.55
 ## Camera follow smoothing. 0 = locked to the player.
 @export_range(0.0, 20.0, 0.5) var camera_smoothing: float = 7.0
@@ -88,12 +63,10 @@ extends Resource
 ## How fast the lead swings across when you turn around.
 @export_range(0.5, 12.0, 0.5) var camera_lead_speed: float = 2.6
 ## How far the view may drift from the last ground the player stood on, in px.
-## Below the jump's 125 px rise, so a jump nudges the frame instead of chasing it.
+## Below the jump's 131 px rise, so a jump nudges the frame instead of chasing it.
 @export_range(0.0, 400.0, 5.0) var camera_vertical_slack: float = 84.0
-## How much of the frame's edge stays clear of the player, in px. The camera is
-## hard-clamped to keep them inside this, whatever the smoothing is doing — see
-## the leash in `CameraRig`. Raise it and the view grabs the player sooner in a
-## fast launch; at 0 they are allowed to touch the bezel before it does.
+## How much of the frame's edge stays clear of the player, in px. `CameraRig`
+## hard-clamps to this whatever the smoothing is doing.
 @export_range(0.0, 200.0, 4.0) var camera_edge_margin: float = 56.0
 ## Shake amplitude at full trauma, in px.
 @export_range(0.0, 60.0, 1.0) var camera_shake_strength: float = 16.0
@@ -102,20 +75,16 @@ extends Resource
 
 @export_group("Light")
 
-## How dark the world sits before the lights are added. 1.0 disables the whole
-## lighting pass — handy for checking that a level still reads unlit.
+## How dark the world sits before the lights are added. 1.0 disables lighting.
 @export_range(0.1, 1.0, 0.01) var world_light: float = 0.58
 ## Reach of the light the player carries, in px.
 @export_range(40.0, 700.0, 10.0) var player_light_radius: float = 270.0
-## Brightness of the player's light with a full glass. It scales down with the
-## sand, so the room closes in as you run out of time — the clock is readable
-## without looking at the gauge.
+## Brightness of the player's light with a full glass; scales down with the sand.
 @export_range(0.0, 4.0, 0.05) var player_light_energy: float = 1.35
 ## Brightness of the lights on doors, springs, pads and hazards.
 @export_range(0.0, 4.0, 0.05) var entity_light_energy: float = 1.1
-## How far a platform's shadow is thrown at the player's feet, in px. It shrinks
-## to nothing at the edge of the light, the way a shadow does as its caster
-## drifts away from the lamp.
+## How far a platform's shadow is thrown at the player's feet, in px. Shrinks to
+## nothing at the edge of the light.
 @export_range(0.0, 90.0, 1.0) var shadow_throw: float = 26.0
 ## How dark a shadow gets at its strongest.
 @export_range(0.0, 1.0, 0.01) var shadow_strength: float = 0.55

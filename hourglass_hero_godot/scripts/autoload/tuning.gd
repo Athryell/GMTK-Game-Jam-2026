@@ -1,25 +1,20 @@
-## Autoload `Tuning` — owns the one and only GameConfig instance.
-##
-## The whole game reads its constants through `Tuning.cfg.<variable>`. Because
-## it is a single shared Resource, the F1 panel can change a value and the very
-## next frame picks it up, with no restart.
+## Autoload `Tuning` — owns the single shared GameConfig instance, read
+## everywhere as `Tuning.cfg.<variable>` and live-editable from the F1 panel.
 extends Node
 
 const CONFIG_PATH := "res://resources/game_config.tres"
 
-## Emitted whenever a value changes (the tuning panel uses it to resync, the
-## entities to pick up the new ghost alpha, and so on).
+## A tunable value changed; listeners holding derived numbers should refresh.
 signal changed
 
 var cfg: GameConfig
 
-## Values as they were when the .tres was loaded, for the panel's Reset button.
+## Values as of the last load or save, for the panel's Reset button.
 var _baseline: Dictionary = {}
 
 
 func _ready() -> void:
-	# `load` rather than `preload`: if the .tres is missing (first run, deleted
-	# file) we still come up, falling back to the script's defaults.
+	# `load`, not `preload`: a missing .tres must still let the game start.
 	var res := load(CONFIG_PATH) if ResourceLoader.exists(CONFIG_PATH) else null
 	cfg = res as GameConfig
 	if cfg == null:
@@ -74,8 +69,8 @@ func reset() -> void:
 	changed.emit()
 
 
-## Writes the current values back to the .tres so they survive a restart and
-## land in git. Editor-only: an exported build has no writable res://.
+## Writes the values back to the .tres. Editor-only: res:// is read-only in an
+## exported build.
 func save() -> bool:
 	if not OS.has_feature("editor"):
 		push_warning("Cannot save tuning outside the editor.")

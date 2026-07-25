@@ -1,12 +1,6 @@
-## Autoload `Screen` — the window, and nothing else.
-##
-## The game launches fullscreen (`window/size/mode` in `project.godot`). This is
-## the way back out: a fullscreen game with no escape hatch is a trap for anyone
-## wanting to alt-tab, record a window, or run it beside the editor.
-##
-## Alt+Enter is the primary binding because macOS keeps F11 for Show Desktop and
-## may swallow it; F11 is there for everyone else. Deliberately kept out of
-## `Game`, which owns run state and has no business touching the display.
+## Autoload `Screen` — fullscreen toggle only. The game launches fullscreen via
+## `window/size/mode` in `project.godot`; the `toggle_fullscreen` action (Alt+Enter,
+## F11 — macOS may swallow F11) is the way back out.
 extends Node
 
 
