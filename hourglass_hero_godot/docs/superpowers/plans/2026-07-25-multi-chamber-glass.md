@@ -54,6 +54,13 @@ Read these once; every task assumes them.
   with the class deleted. Every check must go through the code under test. The
   cheapest way to know is to break the thing on purpose, watch the right checks
   go red, and put it back.
+- **Symmetry hides handedness.** At two, three and four chambers the glass is
+  symmetric about the vertical, so roles, capacities and the pour map all come
+  out identical for a glass that spins backwards — a whole suite can pass with
+  the rotation reversed. Which way `i` runs is load-bearing for the drawing and
+  for the per-jump rotation, so it has to be asserted on an axis directly, not
+  inferred from anything downstream of it. Task 1 does this; keep it in mind
+  anywhere else a direction is claimed.
 - **A check must fail, not crash.** GDScript aborts the whole function on an
   out-of-bounds index, so every check after it is silently skipped — and a run
   reporting six failures when it should report ten reads as a smaller problem
