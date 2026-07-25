@@ -29,6 +29,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	var cfg := Tuning.cfg
 
+	# Hand the glass our travel speed so the sand can slosh with us — both the
+	# sprite and the HUD gauge read it. Sampled here, at the top, because this
+	# still holds the speed *after* last frame's `move_and_slide`: run into a
+	# wall and it reads zero, so the sand pitches forward the way it should.
+	Glass.travel = velocity.x
+
 	if Game.status != Game.Status.PLAY:
 		# Dead or level cleared: freeze, but keep gravity pinning us down so
 		# the final pose stays believable.

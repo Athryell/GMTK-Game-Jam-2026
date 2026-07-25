@@ -20,6 +20,8 @@ config/icon="res://icon.svg"
 
 Tuning="*res://scripts/autoload/tuning.gd"
 Game="*res://scripts/autoload/game.gd"
+; After Game: it connects to Game's level_loaded on ready.
+Glass="*res://scripts/autoload/glass.gd"
 Screen="*res://scripts/autoload/screen.gd"
 
 [display]
