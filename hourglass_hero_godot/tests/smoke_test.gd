@@ -275,7 +275,9 @@ func _check_inversion_zone() -> void:
 	await _frames(5)
 	player = _find_player()
 	zone = get_tree().get_nodes_in_group(Game.INVERSION_GROUP)[0] as InversionZone
-	zone.plane = Planes.opposite(Game.plane)
+	# One plane along, which at two chambers is the opposite one — the only glass
+	# any inversion level is played on.
+	zone.plane = Planes.step(Game.plane, 1, Game.chamber_count)
 	zone._on_plane_changed(Game.plane)
 	await _hold(player, inside, 10)
 	_check("a zone in the other plane leaves the flow alone", Game.sand_flow > 0.0)

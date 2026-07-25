@@ -28,7 +28,8 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, Vector2(960.0, 540.0)), Palette.FRONT_FLOOR)
+	# P0's floor: the backdrop this sheet has always been read against.
+	draw_rect(Rect2(Vector2.ZERO, Vector2(960.0, 540.0)), Palette.room(Planes.Kind.P0)[1])
 	var cells := COLUMNS * ROWS
 	for i in cells:
 		var invert := float(i) / (cells - 1)
@@ -36,6 +37,8 @@ func _draw() -> void:
 			(i % COLUMNS + 0.5) * CELL.x, (i / COLUMNS + 0.5) * CELL.y)
 		# One tint for every cell: this sheet is about where the sand is.
 		draw_set_transform(centre, 0.0, Vector2.ONE)
-		HourglassShape.draw_glass(self, GLASS, Vector2(_fill, 1.0 - _fill),
+		# Two chambers: this sheet is about `invert`, and the reversal is easiest to
+		# read against the glass everyone already knows.
+		HourglassShape.draw_glass(self, GLASS, PackedFloat32Array([_fill, 1.0 - _fill]),
 			Palette.SAND_FULL, Vector2.DOWN, 0.0, 1.5, invert)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

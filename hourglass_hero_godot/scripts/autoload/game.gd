@@ -40,12 +40,23 @@ var chamber_count := 2
 ## arrive without the HUD, the light, the tremble or `danger()` changing a line.
 ## At three and four chambers there is exactly one draining chamber, so this is
 ## simply the top one.
+##
+## Writable, and it MUST stay writable. A property with only a getter is not an
+## error in GDScript: `Game.sand = x` compiles, does nothing, and the next line
+## reads the old value — which is how a smoke check sat there filling a glass
+## that was never filled. Setting it puts the sand where it is spent from and
+## leaves every other chamber alone, so the glass's total moves with it.
 var sand: float:
 	get:
 		var total := 0.0
 		for i in ChamberLayout.uppers(chamber_count):
 			total += chambers[i]
 		return total
+	set(value):
+		var draining := ChamberLayout.uppers(chamber_count)
+		var each := clampf(value, 0.0, capacity() * draining.size()) / float(draining.size())
+		for i in draining:
+			chambers[i] = each
 
 var plane: Planes.Kind = Planes.Kind.P0
 var status: Status = Status.PLAY
