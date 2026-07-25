@@ -30,9 +30,10 @@ static func silhouette(size: Vector2) -> PackedVector2Array:
 ## `size` is the full width and height of the glass. `chambers` is how full each
 ## bulb is, 0 to 1: `x` the one at local -y, `y` the one at local +y. `down` is
 ## gravity in the glass's own frame — pass `Vector2.DOWN` for an upright glass.
-## `phase` animates the trickle's wobble.
+## `phase` animates the trickle's wobble. `invert` is how far the flow has turned
+## over, 0 (down the glass) to 1 (up it).
 static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, sand: Color,
-		down: Vector2, phase: float, line_width := 1.5) -> void:
+		down: Vector2, phase: float, line_width := 1.5, invert := 0.0) -> void:
 	var hw := size.x / 2.0
 	var hh := size.y / 2.0
 	var nw := hw * NECK_RATIO
@@ -53,30 +54,45 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	# The bulbs are a half turn apart, so one area serves for both.
 	var bulb_area := _area(upper)
 
-	_pour(canvas, upper, down, chambers.x * bulb_area, sand)
-	_pour(canvas, lower, down, chambers.y * bulb_area, sand)
+	# Turning the flow over never turns the glass over: the free surface stays
+	# square to `down` the whole way through. What moves is which end of a bulb
+	# the sand rests against — the share lying on the floor drains away as the
+	# share clinging to the ceiling grows, so the pile lets go of one end and
+	# settles against the other without ever swinging round.
+	var up := -down
+	_pour(canvas, upper, down, chambers.x * bulb_area * (1.0 - invert), sand)
+	_pour(canvas, upper, up, chambers.x * bulb_area * invert, sand)
+	_pour(canvas, lower, down, chambers.y * bulb_area * (1.0 - invert), sand)
+	_pour(canvas, lower, up, chambers.y * bulb_area * invert, sand)
 
-	# The trickle, falling straight down and drying up as the glass tips. Spent at
-	# the bulb wall's own angle, so it is never drawn outside the glass.
-	var wall := cos(atan2(hw - nw, hh - nh))
-	# Which bulb feeds the trickle is decided by gravity, not by the drawing:
-	# invert `down` and the lower bulb becomes the one on top. The rate reads off
-	# `absf(down.y)` because the signed version silently returned zero, leaving
-	# both bulbs correctly filled with no sand visibly moving between them.
-	var source: float = chambers.x if down.y >= 0.0 else chambers.y
-	var pouring := clampf((absf(down.y) - wall) / (1.0 - wall), 0.0, 1.0)
+	# The trickle runs whichever way the sand is going, and which bulb feeds it
+	# follows from that alone. Past the halfway point the flow has committed to
+	# the other direction, and `trickle_rate` has it stopped dead at the crossing.
+	var flow := down if invert < 0.5 else up
+	var source: float = chambers.x if flow.y >= 0.0 else chambers.y
+	var pouring := trickle_rate(size, flow, invert)
 	if source > 0.01 and pouring > 0.01:
-		var sideways := Vector2(-down.y, down.x)
+		var sideways := Vector2(-flow.y, flow.x)
 		# Starts at the underside of the source bulb, not the origin, or the
 		# throat's height shows as a gap of bare glass.
-		var head := sideways * sin(phase) * 0.6 - down * nh
-		canvas.draw_line(head, head + down * (hh * STREAM_REACH + nh),
+		var head := sideways * sin(phase) * 0.6 - flow * nh
+		canvas.draw_line(head, head + flow * (hh * STREAM_REACH + nh),
 			Color(sand, sand.a * pouring), line_width * 0.8, true)
 
 	_outline(canvas, shell, line_width)
 	var lip := hw + line_width * 1.35
 	canvas.draw_line(Vector2(-lip, -hh), Vector2(lip, -hh), Palette.GLASS, line_width * 1.35, true)
 	canvas.draw_line(Vector2(-lip, hh), Vector2(lip, hh), Palette.GLASS, line_width * 1.35, true)
+
+
+## How hard the trickle runs, 0 (stopped) to 1. It dries up as the glass tips —
+## spent at the bulb wall's own angle, so it is never drawn outside the glass —
+## and again as `invert` crosses the middle, where the sand has slowed to a halt
+## and has not yet picked up the other way. Public so the tests measure the rate
+## the drawing actually uses.
+static func trickle_rate(size: Vector2, flow: Vector2, invert: float) -> float:
+	var wall := cos(atan2(size.x * (1.0 - NECK_RATIO), size.y * (1.0 - THROAT_RATIO)))
+	return clampf((absf(flow.y) - wall) / (1.0 - wall), 0.0, 1.0) * absf(1.0 - 2.0 * invert)
 
 
 ## Sand resting in one bulb, covering `target` area, surface square to `down`.

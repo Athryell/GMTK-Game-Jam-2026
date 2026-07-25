@@ -158,47 +158,79 @@ func _ready() -> void:
 	_check("normally, a FULL glass is safe", is_zero_approx(Game.danger()),
 		"danger = %.3f" % Game.danger())
 
-	# --- The drawn glass follows the flow -------------------------------------
-	# `down()` is what both drawing sites use to decide where sand pools and
-	# which way the trickle runs, so reversing the clock must reverse it too.
+	# --- The drawn sand turns over without the glass turning over -------------
+	# The first version rotated gravity through half a turn, and the pile swung
+	# round the bulb like a clock hand — read as the glass spinning, not as the
+	# sand changing its mind. `down()` must now stay put throughout.
 	full_zone.add_to_group(Game.INVERSION_GROUP)
 	Game.poll_sand_flow()
 	var motion := HourglassMotion.new()
 
-	# Crossing the boundary must NOT redraw the sand upside down on the same
-	# frame. That version shipped and read as a glitch: nothing on screen showed
-	# a cause, the sand was simply falling the other way.
-	Game.advance_flow_turn(1.0 / 60.0)
-	_check("the glass does not snap over the instant you enter",
-		motion.down().y > 0.0, "down = %v" % motion.down())
+	Game.advance_flow_blend(1.0 / 60.0)
+	_check("entering a zone does not tip the glass",
+		motion.down().is_equal_approx(Vector2.DOWN), "down = %v" % motion.down())
+	_check("entering a zone starts the sand turning over, but only just",
+		motion.invert() > 0.0 and motion.invert() < 0.1,
+		"invert = %.3f" % motion.invert())
 
-	# Halfway through, gravity points sideways and the trickle is spent — the
-	# frame where the sand is visibly deciding.
-	Game.advance_flow_turn(cfg.flow_turn_duration / 2.0)
-	_check("halfway through the turn the sand pours sideways",
-		absf(motion.down().y) < 0.2, "down = %v" % motion.down())
+	Game.advance_flow_blend(cfg.flow_turn_duration / 2.0)
+	_check("halfway through, the sand is split between both ends of each bulb",
+		absf(motion.invert() - 0.5) < 0.05, "invert = %.3f" % motion.invert())
 
-	Game.advance_flow_turn(cfg.flow_turn_duration)
-	_check("inverted, the sand falls UP the glass", motion.down().y < 0.0,
-		"down = %v" % motion.down())
+	Game.advance_flow_blend(cfg.flow_turn_duration)
+	_check("turned over, the sand runs entirely the other way",
+		is_equal_approx(motion.invert(), 1.0), "invert = %.3f" % motion.invert())
+	_check("the glass is still upright at the end of it",
+		motion.down().is_equal_approx(Vector2.DOWN), "down = %v" % motion.down())
 
 	full_zone.remove_from_group(Game.INVERSION_GROUP)
 	Game.poll_sand_flow()
-	Game.advance_flow_turn(cfg.flow_turn_duration)
-	_check("normally, the sand falls DOWN the glass", motion.down().y > 0.0,
-		"down = %v" % motion.down())
+	Game.advance_flow_blend(cfg.flow_turn_duration)
+	_check("leaving the zone runs the sand back down the glass",
+		is_zero_approx(motion.invert()), "invert = %.3f" % motion.invert())
 
-	# The trickle must survive the reversal. Read straight off the same maths
-	# `draw_glass` uses: upright, sand pours at full rate either way.
-	var trickle_wall := cos(atan2(hw - nw, hh - nh))
-	for dir in [Vector2.DOWN, Vector2.UP]:
-		_check("the trickle pours with gravity %v" % dir,
-			clampf((absf(dir.y) - trickle_wall) / (1.0 - trickle_wall), 0.0, 1.0) > 0.99)
+	# The trickle slows, stops, then pours again — read off the same maths
+	# `draw_glass` uses, so a change there cannot pass this by.
+	var glass := Vector2(hw * 2.0, hh * 2.0)
+	for settled in [0.0, 1.0]:
+		_check("the trickle pours at full rate with the flow settled at %.0f" % settled,
+			HourglassShape.trickle_rate(glass, Vector2.DOWN, settled) > 0.99)
+	_check("the trickle is half spent a quarter of the way over",
+		absf(HourglassShape.trickle_rate(glass, Vector2.DOWN, 0.25) - 0.5) < 0.01)
+	_check("the trickle stops dead in the middle of the turn",
+		HourglassShape.trickle_rate(glass, Vector2.DOWN, 0.5) < 0.001)
+
+	# "Sticks to the ceiling": fully turned over, each bulb's pile is cut against
+	# UP, so it rests against the far end. Measured as the pile's centre, which
+	# must move up the bulb rather than swing round it.
+	var floor_pile: PackedVector2Array = HourglassShape._clip(upper, Vector2.DOWN,
+		HourglassShape._level(upper, Vector2.DOWN, area * 0.5))
+	var roof_pile: PackedVector2Array = HourglassShape._clip(upper, Vector2.UP,
+		HourglassShape._level(upper, Vector2.UP, area * 0.5))
+	_check("turned over, the pile clings to the ceiling of its bulb",
+		_centre(roof_pile).y < _centre(floor_pile).y - 1.0,
+		"%.1f vs %.1f" % [_centre(roof_pile).y, _centre(floor_pile).y])
+	# Same slack as the accuracy check above: `_level` bisects, it does not solve.
+	var pile_gap: float = absf(
+		HourglassShape._area(roof_pile) - HourglassShape._area(floor_pile))
+	_check("and it holds the same amount of sand either way", pile_gap < area * 0.002,
+		"off by %.4f%%" % [pile_gap / area * 100.0])
 
 	empty_zone.queue_free()
 	full_zone.queue_free()
 
 	_finish()
+
+
+## Average of a polygon's corners. Not the true centroid, but enough to say which
+## end of a bulb a pile is sitting at.
+func _centre(poly: PackedVector2Array) -> Vector2:
+	if poly.is_empty():
+		return Vector2.ZERO
+	var total := Vector2.ZERO
+	for p in poly:
+		total += p
+	return total / poly.size()
 
 
 func _check(name: String, passed: bool, detail := "") -> void:

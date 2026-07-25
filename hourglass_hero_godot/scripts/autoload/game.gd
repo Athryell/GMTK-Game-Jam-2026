@@ -34,11 +34,11 @@ var status: Status = Status.PLAY
 ## once a frame because `danger()` is read several times by the HUD, the sprite
 ## and the player's light.
 var sand_flow := 1.0
-## How far the glass has turned over to match the flow, 0 to PI radians. The
-## clock reverses on the frame you cross the boundary, but the picture takes
-## `flow_turn_duration` to follow: sand that changes direction between two
-## frames reads as a glitch, sand in a glass tipping over reads as a cause.
-var flow_turn := 0.0
+## How far the drawn sand has turned over, 0 (running down the glass) to 1
+## (running up it). The clock reverses on the frame you cross the boundary, but
+## the picture takes `flow_turn_duration` to follow: sand that changes direction
+## between two frames reads as a glitch rather than as a cause.
+var flow_blend := 0.0
 
 ## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
 ## `start_level` runs before it is instantiated.
@@ -71,7 +71,7 @@ func _process(delta: float) -> void:
 	# empty BOTTOM bulb — is death instead. Standing still is never safe.
 	var cfg := Tuning.cfg
 	var flow := poll_sand_flow()
-	advance_flow_turn(delta)
+	advance_flow_blend(delta)
 	sand -= delta * flow * (cfg.sand_reverse_rate if flow < 0.0 else cfg.sand_drain_rate)
 	if flow < 0.0:
 		if sand >= cfg.sand_max:
@@ -95,15 +95,15 @@ func poll_sand_flow() -> float:
 	return sand_flow
 
 
-## Turns the drawn glass a step towards whichever way the sand is running, and
-## returns the angle. Separate from `sand_flow` on purpose: the death rule must
-## switch the instant you cross the boundary, or the zone would owe you half a
-## second of grace at both ends. Only the picture is allowed to lag.
-func advance_flow_turn(delta: float) -> float:
-	var target := PI if sand_flow < 0.0 else 0.0
-	flow_turn = move_toward(flow_turn, target,
-		PI * delta / maxf(Tuning.cfg.flow_turn_duration, 0.001))
-	return flow_turn
+## Moves the drawn sand a step towards whichever way the clock is running, and
+## returns how far it has got. Separate from `sand_flow` on purpose: the death
+## rule must switch the instant you cross the boundary, or the zone would owe you
+## half a second of grace at both ends. Only the picture is allowed to lag.
+func advance_flow_blend(delta: float) -> float:
+	var target := 1.0 if sand_flow < 0.0 else 0.0
+	flow_blend = move_toward(flow_blend, target,
+		delta / maxf(Tuning.cfg.flow_turn_duration, 0.001))
+	return flow_blend
 
 
 ## Scans the levels folder; a .tscn dropped in there is picked up on next run.
@@ -158,7 +158,7 @@ func start_level(index: int) -> void:
 	levels_reached = maxi(levels_reached, level_index)
 	sand = Tuning.cfg.sand_start
 	sand_flow = 1.0
-	flow_turn = 0.0
+	flow_blend = 0.0
 	flip_anim = 0.0
 	pad_flash = 0.0
 	# Cleared so a level granting it cannot leak into the next one.
