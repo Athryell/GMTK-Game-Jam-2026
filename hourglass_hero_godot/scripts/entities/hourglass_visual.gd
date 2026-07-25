@@ -12,23 +12,19 @@ const TREMBLE := 2.2
 ## The two tremble rates, in rad/s. Not a round ratio, so it never visibly loops.
 const TREMBLE_RATES := Vector2(47.0, 61.3)
 
-## How fast the glass swings round when the world turns over, in rad/s. A little
-## slower than the fall it accompanies, so the two do not finish together.
+## How fast the glass swings round when the world turns over, in rad/s.
 const UPSET_RATE := 11.0
 
 var _shiver := 0.0
-## Where the half-turn currently is, in radians, chasing `PI` while the world is
-## upside down and 0 while it is not. Eased rather than snapped: the world
-## turning over is the biggest thing that happens in a level and it should be
-## seen happening.
+## Where the half-turn currently is, in radians: chases `PI` while the world is
+## upside down, 0 while it is not. Eased rather than snapped.
 var _upset := 0.0
 
 
 func _process(delta: float) -> void:
 	_shiver += delta
 	# Shared with the HUD gauge. `Glass` is an autoload, already ticked by now.
-	# Half a turn while gravity is inverted: the glass hangs the other way up, so
-	# its sand pools towards the ceiling it is now falling to.
+	# Half a turn while gravity is inverted, so the sand pools the way it falls.
 	var upside_down: float = PI if get_parent().pull < 0.0 else 0.0
 	_upset = move_toward(_upset, upside_down, UPSET_RATE * delta)
 	rotation = Glass.motion.tilt + _upset

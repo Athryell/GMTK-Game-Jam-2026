@@ -124,12 +124,10 @@ func _quarters_lesson() -> void:
 		caught.size() == 1 and caught[0] == posmod(0 + 2, 4), "it landed in %s" % [caught])
 
 
-## The tumble seen in a mirror. Turning the world over does not change WHICH
-## chamber a jump lands on — right is one step round either way up — but it does
-## change which way the glass is seen to roll, and the sand drawn mid-turn has to
-## follow the drawing rather than the arrangement. The two are one claim: the
-## turn ends a whole chamber round and then snaps upright, and that seam is only
-## invisible if the step back through the array cancels the step round the glass.
+## The tumble seen in a mirror: upside down the glass rolls the other way, and
+## the sand drawn mid-turn follows the drawing. One claim, really — the turn ends
+## a whole chamber round and then snaps upright, and that seam is only invisible
+## if the step back through the array cancels the step round the glass.
 func _tumble_mirror() -> void:
 	var count := 4
 	var cap: float = Tuning.cfg.sand_max

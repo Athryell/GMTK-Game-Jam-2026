@@ -2,18 +2,9 @@
 ## A pad that turns the world over: touch it and gravity pulls the way its
 ## arrows point, until another pad says otherwise.
 ##
-## It SETS a direction rather than toggling one. That is the whole reason it is
-## safe to stand on: a toggle would flutter the world every time you brushed it,
-## and two pads facing the same way would cancel instead of agreeing. A pad you
-## are already obeying does nothing, and says so by going dim.
-##
-## Nothing about the sand changes. The glass still drains, a jump still refuels
-## and still turns you a plane — the ceiling is simply where you land now. That
-## keeps it composable: any level can gain one without its timing being redone.
-##
-## The node's origin is the TOP-LEFT corner of `size`, like every other solid.
-## The pad mounts on the surface OPPOSITE its arrows: one that pulls up sits on
-## a floor, one that pulls down hangs from a ceiling.
+## It SETS a direction rather than toggling one, so standing on it is safe and
+## two pads facing the same way agree instead of cancelling. Nothing about the
+## sand changes. Mounts on the surface OPPOSITE its arrows.
 class_name GravityPad
 extends PlaneArea
 
@@ -32,18 +23,14 @@ const FLASH_TIME := 0.45
 
 ## 1 the instant it fires, decaying back to 0.
 var _flash := 0.0
-## False while the world already pulls the way this pad points: it has nothing
-## left to give, and is drawn as spent.
+## False while the world already pulls this way: drawn as spent.
 var _armed := true
 
 
 func _init() -> void:
-	# Same footprint as the spring — both are pads you run over, and a shared
-	# size is what lets an author swap one for the other without re-measuring.
+	# Same footprint as the spring, so one can be swapped for the other.
 	size = Vector2(56.0, 16.0)
-	# The mint of the spring, deliberately: the hue budget spends gold on time
-	# and red on danger, and this is the spring's family — the world moves you,
-	# and it costs no sand.
+	# The spring's family: the world moves you, and it costs no sand.
 	light_tint = Palette.SPRING
 	light_radius = 140.0
 	light_energy = 0.9
@@ -76,8 +63,7 @@ func _on_gravity_changed(sign: float) -> void:
 
 
 ## A foot on the surface it is bolted to, and arrows pointing where you are
-## about to go. Spent pads keep the silhouette and lose the light, so the shape
-## still reads as a pad and the colour tells you it has nothing to offer.
+## about to go. Spent pads keep the silhouette and lose the light.
 func _draw() -> void:
 	var colour := _shade(Palette.SPRING)
 	if not _armed:
@@ -91,8 +77,7 @@ func _draw() -> void:
 	var inset := size.x * CHEVRON_INSET
 	var slot := (size.y - foot) / float(CHEVRONS)
 	for i in CHEVRONS:
-		# The far arrow is the faint one, so the stack reads as a direction and
-		# not as a ladder.
+		# The far arrow is the faint one: a direction, not a ladder.
 		var fade := colour
 		fade.a *= lerpf(1.0, 0.45, float(i) / maxf(CHEVRONS - 1.0, 1.0))
 		var base := _from_foot(foot + slot * i)
@@ -103,9 +88,8 @@ func _draw() -> void:
 			Vector2(size.x - inset, base)], fade, CHEVRON_WIDTH)
 
 
-## Screen-y `offset` px from the mounted edge, measured along the arrows. Every
-## piece of the drawing is placed through this, so the two orientations are one
-## drawing seen from either end rather than two that can drift apart.
+## Screen-y `offset` px from the mounted edge, measured along the arrows. The
+## whole drawing goes through this, so the two orientations cannot drift apart.
 func _from_foot(offset: float) -> float:
 	return size.y - offset if pulls_up else offset
 

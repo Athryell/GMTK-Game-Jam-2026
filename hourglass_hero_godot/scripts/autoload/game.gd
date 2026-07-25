@@ -80,13 +80,9 @@ var flow_blend := 0.0
 ## `start_level` runs before it is instantiated.
 var double_jump := false
 
-## Screen-y of "down" right now: +1 normally, -1 while the world is upside down
-## and the ceiling is the floor. Changed mid-level by a [GravityPad].
-##
-## A sign rather than a second set of rules. Every vertical quantity in the game
-## — the pull, the jump, the fall cap, which way you land — is written as a
-## downward component times this, so an inverted world is the same code with one
-## number changed and cannot drift from it.
+## Screen-y of "down" right now: +1 normally, -1 while the world is upside down.
+## Changed mid-level by a [GravityPad]. Every vertical quantity is written as a
+## downward component times this, so an inverted world is the same code.
 ##
 ## Set through `set_gravity`, never assigned directly: the player has to be told.
 var gravity_sign := 1.0
@@ -99,8 +95,8 @@ var pad_flash: float = 0.0
 
 
 
-## Turns the world over, or leaves it as it is. Idempotent, because a pad fires
-## every time it is touched and standing on one must not flutter the world.
+## Idempotent: a pad fires every time it is touched, and standing on one must
+## not flutter the world.
 func set_gravity(sign: float) -> void:
 	var wanted := signf(sign) if not is_zero_approx(sign) else 1.0
 	if is_equal_approx(wanted, gravity_sign):
