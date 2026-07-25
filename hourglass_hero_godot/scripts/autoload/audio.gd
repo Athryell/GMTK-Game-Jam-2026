@@ -1,19 +1,14 @@
 ## Autoload `Audio` — sound playback and bus volumes.
-## Sounds are resolved by name from the folders below; a missing file warns once
+## Every sound is an AudioStreamPlayer inside `sound_bank.tscn`, named after the
+## id the game asks for. Stream, volume, pitch and bus are set on that player in
+## the Inspector; nothing here overrides them. A name with no player warns once
 ## and plays nothing. Volume lives on the AudioServer buses, not here.
 extends Node
 
-const SFX_DIR := "res://audio/sfx"
-const MUSIC_DIR := "res://audio/music"
-
-## Tried in this order; first hit wins.
-const EXTENSIONS := ["ogg", "wav", "mp3"]
+const SOUND_BANK := preload("res://audio/sound_bank.tscn")
 
 ## Bus names — must match the buses in the project's audio bus layout.
 const BUSES := ["Master", "Music", "SFX"]
-
-## Simultaneous one-shots; past this the oldest voice is reused.
-const SFX_VOICES := 12
 
 ## Below this the bus is muted outright: `linear_to_db(0)` is -inf.
 const SILENCE := 0.001
@@ -24,64 +19,70 @@ const SETTINGS_SECTION := "audio"
 ## A bus's volume moved; lets several volume UIs stay in sync.
 signal volume_changed(bus: String, linear: float)
 
-var _sfx_players: Array[AudioStreamPlayer] = []
-var _next_voice := 0
+var _sfx_bank: Node
+var _music_bank: Node
 
 var _music_player: AudioStreamPlayer
 ## What `play_music` was last asked for; avoids restarting the current track.
 var _music_track := ""
 var _music_fade: Tween
+## The bank's volume for the current track; the fade tweens back up to it.
+var _music_volume_db := 0.0
 
-## Full path → AudioStream; misses are cached as null so they warn only once.
-var _cache: Dictionary = {}
+## Names already complained about, so a miss warns once rather than every frame.
+var _warned: Dictionary = {}
 
 
 func _ready() -> void:
 	# Keep playing while the tree is paused (menus, death freeze).
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	var bank := SOUND_BANK.instantiate()
+	add_child(bank)
+	_sfx_bank = bank.get_node_or_null("Sfx")
+	_music_bank = bank.get_node_or_null("Music")
+
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = "Music"
 	_music_player.name = "Music"
 	add_child(_music_player)
-
-	for i in SFX_VOICES:
-		var player := AudioStreamPlayer.new()
-		player.bus = "SFX"
-		player.name = "Sfx%d" % i
-		add_child(player)
-		_sfx_players.append(player)
 
 	_load_settings()
 
 
 # ----- Playing ---------------------------------------------------------------
 
-## A one-shot. `pitch_jitter` randomises pitch by ±that fraction.
-func sfx(sound_name: String, volume_db := 0.0, pitch_jitter := 0.0) -> void:
-	var stream := _stream(SFX_DIR, sound_name)
-	if stream == null:
+## A one-shot, played exactly as the bank has it set up.
+func sfx(sound_name: String) -> void:
+	var player := _bank_player(_sfx_bank, "Sfx", sound_name)
+	if player == null:
 		return
-	var player := _sfx_players[_next_voice]
-	_next_voice = (_next_voice + 1) % _sfx_players.size()
-	player.stream = stream
-	player.volume_db = volume_db
-	player.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
-	player.play()
+	if not player.playing:
+		player.play()
+		return
+	# Already ringing. Play a copy so the running voice is not cut off, and keep
+	# the bank player as the template — the Inspector stays the only place these
+	# values live, and there is no pool size to guess at.
+	var voice := player.duplicate() as AudioStreamPlayer
+	add_child(voice)
+	voice.finished.connect(voice.queue_free)
+	voice.play()
 
 
 ## Starts a looping track, fading from whatever was playing. Re-asking for the
-## current track does nothing.
+## current track does nothing. The bank player is not played: one track at a
+## time has to fade, so its stream and volume are borrowed by the player here.
 func play_music(track: String, fade := 0.8) -> void:
 	if track == _music_track and _music_player.playing:
 		return
-	var stream := _stream(MUSIC_DIR, track)
-	if stream == null:
-		# Remember the ask so a missing track does not warn again on every reload.
-		_music_track = track
-		return
+	var player := _bank_player(_music_bank, "Music", track)
+	# Remember the ask even on a miss, so it does not warn again on every reload.
 	_music_track = track
-	_swap_music(stream, fade)
+	if player == null or player.stream == null:
+		return
+	_music_volume_db = player.volume_db
+	_music_player.pitch_scale = player.pitch_scale
+	_swap_music(player.stream, fade)
 
 
 func stop_music(fade := 0.8) -> void:
@@ -99,41 +100,35 @@ func _swap_music(stream: AudioStream, fade: float) -> void:
 		if stream == null:
 			_music_player.stop()
 			return
+		# The importer does not set looping, and a track that stops mid-run is
+		# worse than one that repeats.
+		if stream is AudioStreamOggVorbis or stream is AudioStreamMP3:
+			stream.loop = true
 		_music_player.stream = stream
 		_music_player.play()
 
 	if fade <= 0.0 or not _music_player.playing:
-		_music_player.volume_db = 0.0
+		_music_player.volume_db = _music_volume_db
 		start.call()
 		return
 
 	_music_fade = create_tween()
 	_music_fade.tween_property(_music_player, "volume_db", linear_to_db(SILENCE), fade * 0.5)
 	_music_fade.tween_callback(start)
-	_music_fade.tween_property(_music_player, "volume_db", 0.0, fade * 0.5)
+	_music_fade.tween_property(_music_player, "volume_db", _music_volume_db, fade * 0.5)
 
 
-## The stream behind a name, or null. Both the hit and the miss are cached.
-func _stream(dir: String, sound_name: String) -> AudioStream:
-	var key := "%s/%s" % [dir, sound_name]
-	if _cache.has(key):
-		return _cache[key]
-
-	var found: AudioStream = null
-	for ext in EXTENSIONS:
-		var path := "%s.%s" % [key, ext]
-		if ResourceLoader.exists(path):
-			found = load(path) as AudioStream
-			break
-	if found == null:
-		push_warning("Audio: nothing named '%s' in %s (tried .%s)"
-			% [sound_name, dir, ", .".join(EXTENSIONS)])
-	elif found is AudioStreamOggVorbis or found is AudioStreamMP3:
-		# The importer does not set looping; music must loop, sfx must not.
-		found.loop = dir == MUSIC_DIR
-
-	_cache[key] = found
-	return found
+## The bank player for a name, or null.
+func _bank_player(container: Node, kind: String, sound_name: String) -> AudioStreamPlayer:
+	var player: AudioStreamPlayer = null
+	if container != null:
+		player = container.get_node_or_null(NodePath(sound_name)) as AudioStreamPlayer
+	if player == null:
+		var key := "%s/%s" % [kind, sound_name]
+		if not _warned.has(key):
+			_warned[key] = true
+			push_warning("Audio: no player named '%s' in the sound bank" % key)
+	return player
 
 
 # ----- Volume ----------------------------------------------------------------

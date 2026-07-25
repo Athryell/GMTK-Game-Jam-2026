@@ -128,7 +128,7 @@ func _jump() -> void:
 	_jumping = true
 	velocity.y = -Tuning.cfg.jump_velocity
 	Game.jump_flip(velocity.x)
-	Audio.sfx("jump", 0.0, 0.04)
+	Audio.sfx("jump")
 
 
 # ----- Presentation ----------------------------------------------------------
@@ -141,7 +141,7 @@ func _land(impact_speed: float) -> void:
 		return
 	Burst.dust(get_parent(), global_position + Vector2(0.0, 19.0),
 		Palette.solid(Planes.Kind.BOTH, Game.plane), force)
-	Audio.sfx("land", linear_to_db(lerpf(0.4, 1.0, force)), 0.06)
+	Audio.sfx("land")
 
 
 func _on_flipped(_from_pad: bool) -> void:
