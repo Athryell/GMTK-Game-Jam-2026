@@ -56,8 +56,12 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 
 
 ## World-down expressed in the glass's own frame, then leaned by the slosh.
+##
+## `Game.sand_flow` turns the whole vector over inside an inversion zone, which
+## is the entire reversed visual: `draw_glass` reads this both for where sand
+## pools and for which way the trickle runs, so one sign change moves both.
 func down() -> Vector2:
-	return Vector2.DOWN.rotated(lean - tilt)
+	return Vector2.DOWN.rotated(lean - tilt) * Game.sand_flow
 
 
 ## How full each bulb is, 0 to 1: `x` the bulb at local -y, `y` the one at +y.

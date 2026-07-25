@@ -59,11 +59,16 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, chambers: Vector2, san
 	# The trickle, falling straight down and drying up as the glass tips. Spent at
 	# the bulb wall's own angle, so it is never drawn outside the glass.
 	var wall := cos(atan2(hw - nw, hh - nh))
-	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
-	if chambers.x > 0.01 and pouring > 0.01:
+	# Which bulb feeds the trickle is decided by gravity, not by the drawing:
+	# invert `down` and the lower bulb becomes the one on top. The rate reads off
+	# `absf(down.y)` because the signed version silently returned zero, leaving
+	# both bulbs correctly filled with no sand visibly moving between them.
+	var source: float = chambers.x if down.y >= 0.0 else chambers.y
+	var pouring := clampf((absf(down.y) - wall) / (1.0 - wall), 0.0, 1.0)
+	if source > 0.01 and pouring > 0.01:
 		var sideways := Vector2(-down.y, down.x)
-		# Starts at the underside of the upper bulb, not the origin, or the throat's
-		# height shows as a gap of bare glass.
+		# Starts at the underside of the source bulb, not the origin, or the
+		# throat's height shows as a gap of bare glass.
 		var head := sideways * sin(phase) * 0.6 - down * nh
 		canvas.draw_line(head, head + down * (hh * STREAM_REACH + nh),
 			Color(sand, sand.a * pouring), line_width * 0.8, true)

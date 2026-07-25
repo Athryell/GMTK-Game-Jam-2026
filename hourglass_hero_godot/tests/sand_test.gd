@@ -158,6 +158,26 @@ func _ready() -> void:
 	_check("normally, a FULL glass is safe", is_zero_approx(Game.danger()),
 		"danger = %.3f" % Game.danger())
 
+	# --- The drawn glass follows the flow -------------------------------------
+	# `down()` is what both drawing sites use to decide where sand pools and
+	# which way the trickle runs, so reversing the clock must reverse it too.
+	full_zone.add_to_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	var motion := HourglassMotion.new()
+	_check("inverted, the sand falls UP the glass", motion.down().y < 0.0,
+		"down = %v" % motion.down())
+	full_zone.remove_from_group(Game.INVERSION_GROUP)
+	Game.poll_sand_flow()
+	_check("normally, the sand falls DOWN the glass", motion.down().y > 0.0,
+		"down = %v" % motion.down())
+
+	# The trickle must survive the reversal. Read straight off the same maths
+	# `draw_glass` uses: upright, sand pours at full rate either way.
+	var trickle_wall := cos(atan2(hw - nw, hh - nh))
+	for dir in [Vector2.DOWN, Vector2.UP]:
+		_check("the trickle pours with gravity %v" % dir,
+			clampf((absf(dir.y) - trickle_wall) / (1.0 - trickle_wall), 0.0, 1.0) > 0.99)
+
 	empty_zone.queue_free()
 	full_zone.queue_free()
 
