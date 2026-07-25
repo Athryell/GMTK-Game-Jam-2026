@@ -66,6 +66,21 @@ Read these once; every task assumes them.
   reporting six failures when it should report ten reads as a smaller problem
   than it is. Never index an array a check could have emptied; short-circuit on
   its size in the same expression.
+- **A check that is true by construction is not a check.** Task 2 shipped
+  "every chamber has the same capacity" and "every chamber is convex", both of
+  which hold for *any* `_span` whatsoever, because the chambers are rotations of
+  one congruent trapezoid. Two wrong formulas passed the whole suite. Before
+  writing a check, ask what it would take for it to fail; if the answer is
+  "nothing the task can plausibly get wrong", it is decoration.
+- **Pass `--path` as an absolute path, and redirect output to a file.** The
+  shell's working directory drifts, and `godot --path .` aimed at a directory
+  with no `project.godot` idles forever instead of erroring. A `timeout` kill
+  takes the buffered stdout with it, so a silent hang looks like a mystery
+  rather than the parse error it usually is. Always wrap the run in
+  `timeout 120`.
+- **A loop over a literal array yields `Variant`.** `for count in [2, 3, 4]`
+  makes `count` a Variant, so `var other := (i + 1) % count` fails with "Cannot
+  infer the type". Annotate: `var other: int = ...`.
 
 `godot` is at `/opt/homebrew/bin/godot`.
 
@@ -419,6 +434,27 @@ of `_ready()`:
 		_check("N=%d: every chamber is convex" % count, convex)
 ```
 
+> **What shipped is more than this — and had to be.** The two checks above are
+> true *by construction*: the chambers are rotations of one congruent trapezoid,
+> so equal capacity holds for any `_span` at all, and convexity survives any
+> positive scaling. Both `sin(PI/N)` → `tan(PI/N)` and a rosette shrunk to
+> four-ninths of its size passed this suite untouched. Review added four more
+> families of check, and they are the ones with teeth — read
+> `tests/sand_test.gd` for the shipped form rather than copying the block above:
+>
+> - **the wedge**, split in two because the two ends are bounded by different
+>   things: neck corners against `WEDGE_FILL`, far corners against `1.0`;
+> - **adjacent chambers do not overlap**, via `Geometry2D.intersect_polygons`;
+> - **capacity across N** — the only check that catches a uniformly rescaled
+>   rosette;
+> - **`shell` itself**: the N=2 ring against a frozen copy of the eight-point
+>   literal, at best rotation but rejecting reversal, plus an all-pairs
+>   segment-crossing test at N=2, 3 and 4.
+>
+> `_polygon_drift` also shipped symmetric (a true Hausdorff distance). The
+> one-way version above passes a trapezoid collapsed to a triangle with a
+> repeated vertex.
+
 And add these two helpers at the bottom of `tests/sand_test.gd`, just above
 `_check`:
 
@@ -486,6 +522,12 @@ the `LEVEL_STEPS` const and before `draw_glass`:
 ## `sin(PI / count)` is the widest a chamber can be without touching its
 ## neighbour — they touch at `tan`, and sin is the same number pulled safely
 ## short of it.
+##
+## WRONG, and caught in review: that argument covers the FAR corners only. The
+## neck corners are governed by `NECK_RATIO / THROAT_RATIO`, which has never
+## heard of `count` — at N=4 they reach 52.7° into a 45° wedge, so adjacent
+## chambers overlap and `shell` self-intersects at the throat. N=3 passes with
+## 1.87° to spare. See the shipped `_span` and the `WEDGE_FILL` cap below.
 static func _span(size: Vector2, count: int) -> Vector2:
 	if count == 2:
 		return Vector2(size.y / 2.0, size.x / 2.0)
@@ -502,8 +544,13 @@ static func chamber(size: Vector2, count: int, index: int) -> PackedVector2Array
 	var axis := ChamberLayout.axis(count, index)
 	var side := Vector2(-axis.y, axis.x)
 	var wide := span.y
-	var narrow := wide * NECK_RATIO
 	var throat := span.x * THROAT_RATIO
+	# `wide * NECK_RATIO` alone is the bug above. The cap bounds the neck corner
+	# to `WEDGE_FILL` of the chamber's own wedge; at N=2 it evaluates `tan(72°)`
+	# and the authored value wins by a factor of 2.5, so the shipped glass does
+	# not move. `WEDGE_FILL` must stay strictly inside (0, 1) — past 1 the angle
+	# goes obtuse, `tan` turns negative, and the chamber inverts.
+	var narrow := minf(wide * NECK_RATIO, throat * tan(PI / float(count) * WEDGE_FILL))
 	return PackedVector2Array([
 		axis * span.x - side * wide,
 		axis * span.x + side * wide,
