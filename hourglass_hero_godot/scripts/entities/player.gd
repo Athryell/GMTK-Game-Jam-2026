@@ -51,7 +51,7 @@ const FLOOR_SNAP := 8.0
 ## How far the landing thud is detuned each time, either way. Small on purpose:
 ## enough that a run of hops stops sounding like one sample on repeat, not so
 ## much that the glass sounds like a different object each time it touches down.
-const LAND_PITCH_JITTER := 0.06
+const LAND_PITCH_JITTER := 0.09
 
 
 func _ready() -> void:
