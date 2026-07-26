@@ -32,21 +32,9 @@ const PIECE_CELL := 8
 ## whole pixel at a time instead of sliding smoothly between two of them.
 const PIXEL := 1.0
 
-## How much of its life a piece keeps its pixels at full strength before it starts
-## blinking out. Pixel art has no honest way to half-fade, so the pieces flicker
-## away on the grid's own terms instead.
-const PIECE_SOLID := 0.55
-
-## Blink rate of a piece on its way out, in Hz.
-const PIECE_BLINK := 13.0
-
-## How long the broken glass hangs in the air before its pieces fly, in seconds.
-##
-## Four frames of the sprite standing there in pieces, which is the whole reason
-## to break the art rather than a traced outline: for that beat the player still
-## sees themselves, cracked. Without it the glass is a cloud of debris on the
-## frame it dies and the eye never gets to read what came apart.
-const PIECE_HOLD := 0.07
+## Held near-opaque and dropped late, exactly as the wedges are: the pieces are
+## the same break, and glass that thins out slowly reads as smoke.
+const PIECE_SOLID := 2.2
 
 var kind: Kind = Kind.RING
 var colour := Color.WHITE
@@ -59,11 +47,10 @@ var _velocities: Array[Vector2] = []
 var _pieces: Array[PackedVector2Array] = []
 var _angles: Array[float] = []
 var _spins: Array[float] = []
-## PIECES only: the region of the art each piece carries, the size it is drawn at,
-## and the fraction of `duration` it survives.
+## PIECES only: the region of the art each piece carries, and the size it is
+## drawn at.
 var _regions: Array[Rect2] = []
 var _piece_sizes: Array[Vector2] = []
-var _lives: Array[float] = []
 ## PIECES only: whether the art is drawn a half turn round, because the glass was.
 var _turned := false
 
@@ -213,10 +200,11 @@ func _break_sprite(size: Vector2, turned: bool) -> void:
 		# snapped: snapping a centre would move whole pixels by half of one.
 		_bits.append(corner)
 		# Lifted as well as thrown outwards, for the same reason the wedges are: a
-		# purely radial kick fires the lower half straight into the floor.
-		_velocities.append((away * rng.randf_range(70.0, 165.0))
-			+ Vector2(0.0, rng.randf_range(-250.0, -110.0)))
-		_lives.append(rng.randf_range(0.72, 1.0))
+		# purely radial kick fires the lower half straight into the floor. The
+		# wedges' own numbers — this is the same break, thrown the same way, and only
+		# what each bit is made of has changed.
+		_velocities.append((away * rng.randf_range(90.0, 190.0))
+			+ Vector2(0.0, rng.randf_range(-260.0, -120.0)))
 
 
 func _scatter(count: int, speed: float, from_angle: float, to_angle: float) -> void:
@@ -233,10 +221,6 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed >= duration:
 		queue_free()
-		return
-	if kind == Kind.PIECES and _elapsed < PIECE_HOLD:
-		# Broken but not yet flying — see [constant PIECE_HOLD].
-		queue_redraw()
 		return
 	for i in _bits.size():
 		_velocities[i] += Vector2(0.0, GRAVITY * delta)
@@ -271,18 +255,11 @@ func _draw() -> void:
 			for p in _bits:
 				HourglassShape.draw_grain(self, p, Color(colour, fade * 0.95), PIXEL)
 		Kind.PIECES:
+			# The wedges' own fade, on the art instead of on a fill: uniform alpha
+			# over a piece leaves every texel where it was, so it costs the pixels
+			# nothing and it keeps the break reading the way it always did.
+			var glass := Color(1.0, 1.0, 1.0, clampf(fade * PIECE_SOLID, 0.0, 1.0))
 			for i in _regions.size():
-				var life: float = _lives[i]
-				if t >= life:
-					continue
-				# Solid, then blinking out. No alpha ramp: a piece of pixel art either
-				# has its colours or it does not, and a half-transparent one reads as
-				# the glass having been smoke all along.
-				var own := t / life
-				if own > PIECE_SOLID:
-					var blink := (own - PIECE_SOLID) / (1.0 - PIECE_SOLID)
-					if sin(TAU * PIECE_BLINK * duration * own) < blink * 2.0 - 1.0:
-						continue
 				var at: Vector2 = _bits[i].snapped(Vector2(PIXEL, PIXEL))
 				if _turned:
 					# A half turn as a scale of -1 on both axes: exact, so every texel
@@ -290,10 +267,10 @@ func _draw() -> void:
 					# would be the same picture through a resample.
 					draw_set_transform(at + _piece_sizes[i], 0.0, Vector2(-1.0, -1.0))
 					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i])
+						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i], glass)
 				else:
 					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(at, _piece_sizes[i]), _regions[i])
+						Rect2(at, _piece_sizes[i]), _regions[i], glass)
 			if _turned:
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		Kind.SHARDS:
