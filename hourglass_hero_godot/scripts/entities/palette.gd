@@ -22,6 +22,18 @@ const FLIP_PAD := Color("ffc971") ## Flip-pad: refuels without changing plane.
 const MONSTER := Color("ff4d6d")
 const DOOR := Color("ffd166")
 
+## The inversion field, one entry per theme. The zone is a wide faint wash, so it
+## only reads against a sky it opposes, and three of the four skies are hot:
+## averaged, themes 1, 2 and 4 sit at hue 25-30 and luminance ~0.7, where gold is
+## invisible, so they take a deep cool field. Only theme 3's blue-violet night
+## (luminance 0.38) keeps the gold of time.
+const INVERSION_TINTS: Array[Color] = [
+	Color("2b1a63"), ## 1 — orange sky: deep indigo.
+	Color("1d2470"), ## 2 — rose sky: the same indigo, gone blue.
+	Color("ffc971"), ## 3 — night sky: the flip-pad gold.
+	Color("3a1a5e"), ## 4 — sandstone sky: indigo pulled towards violet.
+]
+
 ## What the brick is tinted, one entry per background. Stone belongs to the
 ## PLACE, not to the plane: it is lit by the sky behind it.
 const BRICK_TINTS: Array[Color] = [
@@ -74,6 +86,12 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 static func marker(plane: Planes.Kind, alpha: float) -> Color:
 	var tint := PLANE_SOLIDS[clampi(int(plane), 0, PLANE_SOLIDS.size() - 1)]
 	return Color(tint.r, tint.g, tint.b, MARKER_ALPHA * alpha)
+
+
+## The inversion zone's field colour in a theme, so the zone is legible in every
+## place without a level having to pick a tint.
+static func inversion(group: int) -> Color:
+	return INVERSION_TINTS[clampi(group, 0, INVERSION_TINTS.size() - 1)]
 
 
 ## The brick tint of a theme, so stone and skyline always change together.
