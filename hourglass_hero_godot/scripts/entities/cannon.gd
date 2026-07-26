@@ -44,6 +44,15 @@ const CORE_RATIO := 0.35
 ## Radius of the glow at the muzzle at full charge, in px.
 const MUZZLE_GLOW := 7.0
 
+## How fast the barrel may swing while it tracks, in rad/s.
+##
+## Capped rather than assigned outright, because the aim is HELD for
+## `lock_time + fire_time` and the player has usually run somewhere else by the
+## time it thaws — snapping to them made the barrel jump-cut on the first frame
+## of every cycle. Still quick: a half turn takes 0.45 s, well inside `aim_time`,
+## so the cannon spends most of the beat leading you rather than catching up.
+const TRACK_SPEED := 7.0
+
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 
 @export_group("Timing")
@@ -111,7 +120,7 @@ func _physics_process(delta: float) -> void:
 	# The aim is only ever changed in the first beat. Everything after it —
 	# the charge, the shot, what the shot hits — reads the line already given.
 	if _clock < aim_time:
-		_track_player()
+		_track_player(delta)
 		_charge = 0.0
 		_reach = 0.0
 	elif not _firing:
@@ -204,14 +213,19 @@ func _period() -> float:
 
 ## The player is spawned by `main.gd` after the level exists, so there is no
 ## looking it up in `_ready` — it is found on the first frame it is there for.
-func _track_player() -> void:
+func _track_player(delta: float) -> void:
 	if not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group(Game.PLAYER_GROUP) as Player
 		if _player == null:
 			return
 	var towards := to_local(_player.global_position)
-	if towards.length_squared() > 1.0:
-		_aim = towards.normalized()
+	if towards.length_squared() <= 1.0:
+		return
+	# Turned towards the player at `TRACK_SPEED`, not set to face them. `angle_to`
+	# is signed and shortest-way-round, so the clamp only ever slows the swing it
+	# was already going to make.
+	var step := TRACK_SPEED * delta
+	_aim = _aim.rotated(clampf(_aim.angle_to(towards), -step, step))
 
 
 func _on_plane_changed(current: Planes.Kind) -> void:
