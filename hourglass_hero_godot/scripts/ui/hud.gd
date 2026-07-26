@@ -78,5 +78,5 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""
 		Game.Status.VICTORY:
-			_overlay.text = "YOU MADE IT!\n\nYour time: %s\n\nPress R to play again    ESC / M for the menu" \
+			_overlay.text = "YOU MADE IT!\n\nThanks for playing!!\n\nShare your time: %s\n\nPress R to play again    ESC / M for the menu" \
 				% Game.format_time(Game.run_time)
