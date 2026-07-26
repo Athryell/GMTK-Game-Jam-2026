@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="4_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="5_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/entities/hint_sign.tscn" id="6_hint"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+world_size = Vector2(2150, 540)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(53, 479)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="Entities"]
+collision_mask = 0
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground"]
+polygon = PackedVector2Array(0, 502, 2150, 502, 2150, 600, 0, 600)
+
+[node name="Ceiling" type="StaticBody2D" parent="Entities"]
+collision_mask = 0
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ceiling"]
+polygon = PackedVector2Array(0, 300, 2150, 300, 2150, 390, 0, 390)
+
+[node name="Teeth" parent="Entities" instance=ExtResource("5_spikes")]
+position = Vector2(0, 390)
+size = Vector2(2150, 24)
+facing = 1
+
+[node name="Pad1" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(420, 502)
+size = Vector2(110, 38)
+kind = 1
+
+[node name="Pad2" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(850, 502)
+size = Vector2(110, 38)
+kind = 1
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(2000, 438)
+
+[node name="PadHint" parent="Entities" instance=ExtResource("6_hint")]
+position = Vector2(210, 452)
+text = "No room to leap. The gold pads turn the glass for you."
+
+[node name="WaitHint" parent="Entities" instance=ExtResource("6_hint")]
+position = Vector2(700, 452)
+text = "A turn gives back only what has already run out. Wait for it."
