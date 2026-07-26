@@ -6,7 +6,8 @@ extends Node2D
 enum Kind {
 	RING, ## Flip: a ring in the plane just landed in.
 	DUST, ## Landing chips.
-	SHARDS, ## Death: glass fragments.
+	SHARDS, ## Death: glass fragments, for a glass with no painting of its own.
+	PIECES, ## Death: the player's sprite, broken along the pixel grid.
 	SAND, ## Death: spilled sand.
 	SWEAT, ## Low on sand: a single bead.
 }
@@ -21,6 +22,32 @@ const SPIN := 7.0
 ## Grains spilled by a completely full hourglass.
 const GRAINS_FULL := 46
 
+## How big a piece of the player's sprite is, in art px a side. The art is 32×64,
+## so 8 cuts it into a 4×8 grid — big enough that a piece still reads as a bit of
+## the glass rather than as confetti, small enough that a dozen or more fly.
+const PIECE_CELL := 8
+
+## One world px, and one art px: the grid the whole game's pixels sit on. Every
+## death effect is snapped to it, so a flying piece or grain crosses the screen a
+## whole pixel at a time instead of sliding smoothly between two of them.
+const PIXEL := 1.0
+
+## How much of its life a piece keeps its pixels at full strength before it starts
+## blinking out. Pixel art has no honest way to half-fade, so the pieces flicker
+## away on the grid's own terms instead.
+const PIECE_SOLID := 0.55
+
+## Blink rate of a piece on its way out, in Hz.
+const PIECE_BLINK := 13.0
+
+## How long the broken glass hangs in the air before its pieces fly, in seconds.
+##
+## Four frames of the sprite standing there in pieces, which is the whole reason
+## to break the art rather than a traced outline: for that beat the player still
+## sees themselves, cracked. Without it the glass is a cloud of debris on the
+## frame it dies and the eye never gets to read what came apart.
+const PIECE_HOLD := 0.07
+
 var kind: Kind = Kind.RING
 var colour := Color.WHITE
 var duration := 0.35
@@ -32,6 +59,13 @@ var _velocities: Array[Vector2] = []
 var _pieces: Array[PackedVector2Array] = []
 var _angles: Array[float] = []
 var _spins: Array[float] = []
+## PIECES only: the region of the art each piece carries, the size it is drawn at,
+## and the fraction of `duration` it survives.
+var _regions: Array[Rect2] = []
+var _piece_sizes: Array[Vector2] = []
+var _lives: Array[float] = []
+## PIECES only: whether the art is drawn a half turn round, because the glass was.
+var _turned := false
 
 
 ## The plane swap.
@@ -46,10 +80,22 @@ static func dust(parent: Node, at: Vector2, tint: Color, force: float) -> void:
 	b._scatter(int(4 + 9 * force), 70.0 + 210.0 * force, -0.9, 0.9)
 
 
-## Death, the glass half: the hourglass breaks into wedges fanning out from its
+## Death, the glass half: the hourglass comes apart and its bits fan out from its
 ## centre. `life` must not exceed the death-screen pause — the level, and every
 ## effect in it, is freed when that pause ends.
-static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life: float) -> void:
+##
+## Two chambers is the painted glass, and it breaks into pieces of its own art:
+## the sprite cut along the pixel grid, each piece keeping the texels that were on
+## screen the frame before. Any other count is a rosette the game draws itself,
+## with no painting to break, so that one still shatters into traced wedges.
+## `turned` is whether the glass was standing on its head when it died, which is
+## the one attitude the pieces can honour exactly — see [method _break_sprite].
+static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life: float,
+		turned := false) -> void:
+	if Game.chamber_count == 2:
+		var p := _make(parent, at, Kind.PIECES, tint, life)
+		p._break_sprite(size, turned)
+		return
 	var b := _make(parent, at, Kind.SHARDS, tint, life)
 	# The glass the player was actually holding, not a two-bulb stand-in: a
 	# three-lobed level must shatter into a three-lobed outline.
@@ -82,6 +128,14 @@ static func _make(parent: Node, at: Vector2, kind_: Kind, tint: Color, life: flo
 	b.global_position = at
 	# Above every solid, so effects are not hidden behind terrain.
 	b.z_index = 20
+	if kind_ == Kind.PIECES or kind_ == Kind.SAND:
+		# The death effects are pixel art and are snapped to the grid as they fly.
+		# That snap is done in the node's own frame, so the node has to start on the
+		# grid too — otherwise every piece lands a fraction of a pixel off it, and
+		# the whole point is lost. Safe to move: the player is dead and still.
+		b.global_position = b.global_position.snapped(Vector2(PIXEL, PIXEL))
+		# The art's own texels, at the size every other pixel in the game is.
+		b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	parent.add_child(b)
 	return b
 
@@ -129,6 +183,42 @@ func _split(outline: PackedVector2Array) -> void:
 		_spins.append(SPIN * rng.randf_range(0.4, 1.0) * (1.0 if rng.randf() < 0.5 else -1.0))
 
 
+## Cuts the player's sprite into pieces of [constant PIECE_CELL] art px and throws
+## each one from where it stood on the glass.
+##
+## Nothing is turned by any angle but a half circle. A texture turned off the axis
+## has to resample, and the art comes back with its pixels smeared into sizes no
+## other pixel on screen has — which is the one thing this effect exists to avoid.
+## A half turn is exact, which is why `turned` gets one and the tilt of a glass
+## caught mid-flip gets nothing. The tumble the wedges get from spinning, the
+## pieces get from their spread instead: each is thrown along the line from the
+## throat out through its own centre, so the caps go up, the bulbs go wide, and
+## the pieces at the throat get the hardest kick.
+func _break_sprite(size: Vector2, turned: bool) -> void:
+	_turned = turned
+	var rng := RandomNumberGenerator.new()
+	for region in HourglassSprite.chunks(PIECE_CELL):
+		var piece_size := HourglassSprite.chunk_size(size, region)
+		var corner := HourglassSprite.chunk_offset(size, region)
+		if turned:
+			# The half turn, applied to where the piece starts. The art it carries is
+			# turned with it at draw time.
+			corner = -corner - piece_size
+		var centre := corner + piece_size * 0.5
+		var away := centre.normalized() if centre.length() > 0.01 else Vector2.UP
+
+		_regions.append(region)
+		_piece_sizes.append(piece_size)
+		# Held as the piece's top-left, which is what gets drawn and what gets
+		# snapped: snapping a centre would move whole pixels by half of one.
+		_bits.append(corner)
+		# Lifted as well as thrown outwards, for the same reason the wedges are: a
+		# purely radial kick fires the lower half straight into the floor.
+		_velocities.append((away * rng.randf_range(70.0, 165.0))
+			+ Vector2(0.0, rng.randf_range(-250.0, -110.0)))
+		_lives.append(rng.randf_range(0.72, 1.0))
+
+
 func _scatter(count: int, speed: float, from_angle: float, to_angle: float) -> void:
 	var rng := RandomNumberGenerator.new()
 	for i in count:
@@ -143,6 +233,10 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed >= duration:
 		queue_free()
+		return
+	if kind == Kind.PIECES and _elapsed < PIECE_HOLD:
+		# Broken but not yet flying — see [constant PIECE_HOLD].
+		queue_redraw()
 		return
 	for i in _bits.size():
 		_velocities[i] += Vector2(0.0, GRAVITY * delta)
@@ -169,9 +263,39 @@ func _draw() -> void:
 			for p in _bits:
 				draw_circle(p, 1.4 + 1.4 * fade, Color(colour, fade * 0.9))
 		Kind.SAND:
+			# The same grain, on the same grid, wearing the same speckle as the sand
+			# that was in the glass a frame ago: a spilled pile is the pile that was
+			# in the bulb, coming apart, and it has to be made of the same pixels to
+			# read that way. One cell each, not a 3px blob — a grain in a bulb is one
+			# pixel, so a grain in the air is too.
 			for p in _bits:
-				draw_rect(Rect2(p - Vector2(1.5, 1.5), Vector2(3.0, 3.0)),
-					Color(colour, fade * 0.95))
+				HourglassShape.draw_grain(self, p, Color(colour, fade * 0.95), PIXEL)
+		Kind.PIECES:
+			for i in _regions.size():
+				var life: float = _lives[i]
+				if t >= life:
+					continue
+				# Solid, then blinking out. No alpha ramp: a piece of pixel art either
+				# has its colours or it does not, and a half-transparent one reads as
+				# the glass having been smoke all along.
+				var own := t / life
+				if own > PIECE_SOLID:
+					var blink := (own - PIECE_SOLID) / (1.0 - PIECE_SOLID)
+					if sin(TAU * PIECE_BLINK * duration * own) < blink * 2.0 - 1.0:
+						continue
+				var at: Vector2 = _bits[i].snapped(Vector2(PIXEL, PIXEL))
+				if _turned:
+					# A half turn as a scale of -1 on both axes: exact, so every texel
+					# still lands on one whole pixel. `draw_set_transform` with an angle
+					# would be the same picture through a resample.
+					draw_set_transform(at + _piece_sizes[i], 0.0, Vector2(-1.0, -1.0))
+					draw_texture_rect_region(HourglassSprite.TEXTURE,
+						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i])
+				else:
+					draw_texture_rect_region(HourglassSprite.TEXTURE,
+						Rect2(at, _piece_sizes[i]), _regions[i])
+			if _turned:
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
 			var solid := clampf(fade * 2.2, 0.0, 1.0)

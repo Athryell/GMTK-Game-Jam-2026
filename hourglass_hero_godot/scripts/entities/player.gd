@@ -219,7 +219,10 @@ func _on_status_changed(status: Game.Status) -> void:
 	var full := 0.0
 	for fill in chambers:
 		full += fill
-	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life)
+	# The glass breaks the way up it was standing: gravity inverted means the art
+	# was a half turn round, and the pieces have to start there too.
+	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life,
+		pull < 0.0)
 	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
 		full / (chambers.size() / 2.0), life)
 	_visual.hide()
