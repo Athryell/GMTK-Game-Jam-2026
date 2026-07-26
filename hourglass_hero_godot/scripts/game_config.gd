@@ -57,7 +57,11 @@ extends Resource
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.
-@export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
+##
+## Doubles as the lifetime of everything the death throws — see [method
+## Burst.shatter] — so it is what you get to WATCH the glass come apart in, not
+## just a pause. At 0.6 the sand was on the floor before the eye had found it.
+@export_range(0.1, 3.0, 0.1) var death_delay: float = 1.2
 
 @export_group("Camera")
 

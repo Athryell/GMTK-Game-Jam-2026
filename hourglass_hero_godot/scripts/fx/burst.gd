@@ -33,8 +33,15 @@ const SPILL_KEEP := 0.34
 ## first, then lifted, so it leaves the glass rather than dropping through it. Well
 ## under the wedges' own numbers — sand is what the glass was carrying, and it has
 ## to be seen falling out of the pieces rather than racing them off screen.
-const SPILL_OUT := Vector2(40.0, 150.0)
-const SPILL_LIFT := Vector2(40.0, 190.0)
+const SPILL_OUT := Vector2(50.0, 175.0)
+const SPILL_LIFT := Vector2(90.0, 280.0)
+
+## What the sand falls at, against [constant GRAVITY] for everything else. The
+## glass is thrown clear and forgotten; the sand has to be followed from the break
+## to the floor, and at full weight — most deaths happening a body length above the
+## ground — that is over before the eye has found it. Light enough to watch, heavy
+## enough that it still reads as falling rather than drifting.
+const SPILL_GRAVITY := 520.0
 
 ## How much of a wedge's own glass is left under the painting. The art paints the
 ## frame and leaves the cavity clear, so a piece of pure texture is a piece of
@@ -325,7 +332,7 @@ func _process(delta: float) -> void:
 	for i in _bits.size():
 		if space != null and _rested[i]:
 			continue
-		_velocities[i] += Vector2(0.0, GRAVITY * delta)
+		_velocities[i] += Vector2(0.0, (SPILL_GRAVITY if kind == Kind.SAND else GRAVITY) * delta)
 		var to: Vector2 = _bits[i] + _velocities[i] * delta
 		if space != null and _land(space, i, to):
 			continue
