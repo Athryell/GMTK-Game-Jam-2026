@@ -45,6 +45,18 @@ func _touched(_player: Player) -> void:
 	pass
 
 
+## Override this instead of `_draw`: the base owns the frame so it can stamp the
+## editor plane tag over every entity without each one remembering to.
+func _paint() -> void:
+	pass
+
+
+func _draw() -> void:
+	_paint()
+	if Engine.is_editor_hint():
+		PlaneMarker.tag(self, Polygons.rect(Rect2(Vector2.ZERO, size)), plane)
+
+
 ## `base` solid in this plane, ghosted in the other. Always solid in the editor.
 func _shade(base: Color) -> Color:
 	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)

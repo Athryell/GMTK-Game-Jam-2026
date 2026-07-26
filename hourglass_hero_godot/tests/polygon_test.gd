@@ -19,10 +19,21 @@ static var SQUARE_CW := PackedVector2Array([
 
 
 func _ready() -> void:
+	_boxes()
 	_winding()
 	_normals()
 	_growth()
 	_finish()
+
+
+## The entity plane tag rings a hitbox through `rect()`, and the tag's chip hangs
+## off the polygon's first corner, so the order of the four points is load-bearing.
+func _boxes() -> void:
+	var box := Polygons.rect(Rect2(Vector2(4.0, 9.0), Vector2(32.0, 16.0)))
+	_check("a rect starts at its top-left corner", box[0] == Vector2(4.0, 9.0))
+	_check("a rect winds clockwise on screen", Polygons.winding(box) > 0.0)
+	_check("a unit rect is the unit square",
+		Polygons.rect(Rect2(Vector2.ZERO, Vector2.ONE)) == SQUARE_CW)
 
 
 ## Clockwise on screen is positive. Everything else here is turned by this sign,

@@ -78,7 +78,7 @@ func _pad_rect(across: float, depth: float, across_len: float, depth_len: float)
 
 
 ## Only the plate moves on impact, so the closing gap reads as compression.
-func _draw() -> void:
+func _paint() -> void:
 	var colour := _shade(Palette.SPRING)
 	var sideways := facing == Facing.LEFT or facing == Facing.RIGHT
 	var depth := size.x if sideways else size.y

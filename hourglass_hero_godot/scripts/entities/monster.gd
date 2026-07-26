@@ -79,7 +79,7 @@ func _touched(_player: Player) -> void:
 ## takes the hitbox's longer side, so it still covers everything that can kill
 ## you. Only reachable by resizing a monster, which breaks the
 ## one-art-px-to-one-world-px rule anyway.
-func _draw() -> void:
+func _paint() -> void:
 	var span := maxf(size.x, size.y)
 	var face := Rect2((size - Vector2(span, span)) * 0.5, Vector2(span, span))
 	# White modulate is the sprite's own colours untouched; out of plane `_shade`

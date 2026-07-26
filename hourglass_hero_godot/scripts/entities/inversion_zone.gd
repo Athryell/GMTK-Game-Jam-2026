@@ -52,7 +52,7 @@ func contains_player() -> bool:
 	return _active and has_overlapping_bodies()
 
 
-func _draw() -> void:
+func _paint() -> void:
 	var tint := _shade(Palette.FLIP_PAD)
 	var boost := HELD_BOOST if contains_player() else 1.0
 	var edge := Color(tint, minf(tint.a * EDGE_ALPHA * boost, 1.0))
