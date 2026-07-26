@@ -18,7 +18,7 @@ position = Vector2(100, 1427)
 [node name="Entities" type="Node2D" parent="." unique_id=2138021771]
 
 [node name="Door" parent="Entities" unique_id=1860747257 instance=ExtResource("2_7mng4")]
-position = Vector2(418, 774)
+position = Vector2(418, 752)
 size = Vector2(34, 62)
 
 [node name="Platform1" parent="Entities" unique_id=1205676973 instance=ExtResource("3_malo8")]
@@ -58,7 +58,7 @@ plane = 0
 [node name="Platform6" parent="Entities" unique_id=47625660 instance=ExtResource("3_malo8")]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(440, 1040)
+position = Vector2(440, 1016)
 size = Vector2(140, 16)
 
 [node name="Platform8" parent="Entities" unique_id=1288934711 instance=ExtResource("3_malo8")]
@@ -73,7 +73,7 @@ texture_filter = 1
 texture_repeat = 2
 position = Vector2(200, 1008)
 size = Vector2(110, 18)
-plane = 0
+plane = 1
 
 [node name="Platform11" parent="Entities" unique_id=130973261 instance=ExtResource("3_malo8")]
 texture_filter = 1
@@ -85,7 +85,7 @@ plane = 0
 [node name="Platform10" parent="Entities" unique_id=547939539 instance=ExtResource("3_malo8")]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(268, 836)
+position = Vector2(268, 814)
 size = Vector2(220, 18)
 
 [node name="Monster3" parent="Entities" unique_id=791614986 instance=ExtResource("4_yqovl")]
@@ -103,6 +103,7 @@ move_distance = 86.0
 move_speed = 120.0
 move_phase = 0.4
 size = Vector2(30, 34)
+plane = 0
 
 [node name="Monster5" parent="Entities" unique_id=1574690048 instance=ExtResource("4_yqovl")]
 texture_filter = 1
@@ -116,7 +117,7 @@ plane = 0
 [node name="Monster2" parent="Entities" unique_id=228255912 instance=ExtResource("4_yqovl")]
 texture_filter = 1
 position = Vector2(200, 968)
-move_distance = 400.0
+move_distance = 300.0
 move_speed = 250.0
 size = Vector2(30, 34)
 plane = 1
