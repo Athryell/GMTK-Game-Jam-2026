@@ -60,8 +60,10 @@ extends Resource
 ##
 ## Doubles as the lifetime of everything the death throws — see [method
 ## Burst.shatter] — so it is what you get to WATCH the glass come apart in, not
-## just a pause. At 0.6 the sand was on the floor before the eye had found it.
-@export_range(0.1, 3.0, 0.1) var death_delay: float = 1.2
+## just a pause. At 0.6 the sand was on the floor before the eye had found it, and
+## the sand now drifts down at a seventh of the glass's weight, so it needs the
+## room to get there.
+@export_range(0.1, 3.0, 0.1) var death_delay: float = 1.6
 
 @export_group("Camera")
 
