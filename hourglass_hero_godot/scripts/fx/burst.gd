@@ -34,11 +34,6 @@ const SPILL_LIFT := Vector2(10.0, 60.0)
 ## watched leaving the break.
 const SPILL_GRAVITY := 120.0
 
-## How strongly the fresh cut down the side of a piece is drawn, against the fade
-## the piece is already at: the art paints the glass's own outline, and this is the
-## edge that was not there a frame ago.
-const PIECE_EDGE := 0.5
-
 ## One world px, and one art px. Every death effect is snapped to it, so a flying
 ## piece crosses the screen a whole pixel at a time.
 const PIXEL := 1.0
@@ -396,18 +391,14 @@ func _draw() -> void:
 			# thins out on the curve it always did and the pixels pay nothing.
 			var strength := clampf(fade * PIECE_SOLID, 0.0, 1.0)
 			var glass := Color(1.0, 1.0, 1.0, strength)
-			var cut := Color(colour, strength * PIECE_EDGE)
 			for i in _pieces.size():
 				var at: Vector2 = _bits[i].snapped(Vector2(PIXEL, PIXEL))
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
-				# Nothing under the painting: a piece wears the art's own texels and no more.
+				# Nothing under the painting and nothing round it: a piece wears the art's
+				# own texels and no more, so the wedge it was cut as never shows.
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
-				piece.append(piece[0])
-				# Not antialiased, unlike the flat wedges: a soft line leaves half-lit pixels
-				# down every cut, at a size no other pixel in the game comes in.
-				draw_polyline(piece, cut, 1.0)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
 			var solid := clampf(fade * 2.2, 0.0, 1.0)
