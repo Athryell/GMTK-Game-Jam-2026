@@ -34,12 +34,6 @@ const SPILL_LIFT := Vector2(10.0, 60.0)
 ## watched leaving the break.
 const SPILL_GRAVITY := 120.0
 
-## How much of a wedge's own glass is left under the painting. The art paints the
-## frame and leaves the cavity clear, so a piece of pure texture is a piece of
-## outline with a hole in it; this is the body it broke off with. At 0.22 the
-## wedges read as scratches against a bright sky.
-const PIECE_BODY := 0.32
-
 ## How strongly the fresh cut down the side of a piece is drawn, against the fade
 ## the piece is already at: the art paints the glass's own outline, and this is the
 ## edge that was not there a frame ago.
@@ -408,9 +402,7 @@ func _draw() -> void:
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
-				# The wedge's own glass first, then the painting over it: the art is a frame
-				# round a clear cavity, so texture alone leaves most of a piece a hole.
-				draw_colored_polygon(piece, Color(colour, strength * PIECE_BODY))
+				# Nothing under the painting: a piece wears the art's own texels and no more.
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
 				piece.append(piece[0])
 				# Not antialiased, unlike the flat wedges: a soft line leaves half-lit pixels
