@@ -110,12 +110,20 @@ func _build_sky() -> void:
 	add_child(layer)
 
 
+## Which background a level belongs to, UNCLAMPED — the caller knows how many it
+## actually has. Public because the background is what the place is: the brick
+## the level is built from and the music it plays are grouped by this too, so
+## all three change on the same level or none of them do.
+static func group_for_level(level_index: int) -> int:
+	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
+	return level_index / LEVELS_PER_BACKGROUND
+
+
 func _background_index_for_level(level_index: int) -> int:
 	var count := _count_backgrounds()
 	if count <= 0:
 		return -1
-	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
-	return clampi(level_index / LEVELS_PER_BACKGROUND, 0, count - 1)
+	return clampi(group_for_level(level_index), 0, count - 1)
 
 
 ## How many "background N" folders exist under `BG_ROOT`.

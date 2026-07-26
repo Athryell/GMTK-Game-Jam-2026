@@ -11,6 +11,8 @@
 [ext_resource type="AudioStream" uid="uid://cmmusr2qbbnfh" path="res://audio/music/falling_sand.wav" id="6_sand"]
 [ext_resource type="AudioStream" path="res://audio/music/return_8_bit.mp3" id="7_return"]
 [ext_resource type="AudioStream" path="res://audio/music/menu.mp3" id="11_menu"]
+[ext_resource type="AudioStream" path="res://audio/music/techno_polka.mp3" id="12_polka"]
+[ext_resource type="AudioStream" path="res://audio/music/game_8_bit.mp3" id="13_game8"]
 
 [node name="SoundBank" type="Node" unique_id=1992489972]
 
@@ -73,5 +75,15 @@ bus = &"Music"
 
 [node name="return_8_bit" type="AudioStreamPlayer" parent="Music"]
 stream = ExtResource("7_return")
+volume_db = -13.0
+bus = &"Music"
+
+[node name="techno_polka" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("12_polka")
+volume_db = -10.0
+bus = &"Music"
+
+[node name="game_8_bit" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("13_game8")
 volume_db = -13.0
 bus = &"Music"
