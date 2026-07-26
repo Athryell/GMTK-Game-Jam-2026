@@ -16,15 +16,22 @@ const TREMBLE_RATES := Vector2(47.0, 61.3)
 ## How fast the glass swings round when the world turns over, in rad/s.
 const UPSET_RATE := 11.0
 
+## The charged bloom: reach in px, and strength.
+const CHARGED_GLOW_RADIUS := 52.0
+const CHARGED_GLOW_ALPHA := 0.5
+
 var _shiver := 0.0
 ## Where the half-turn currently is, in radians: chases `PI` while the world is
 ## upside down, 0 while it is not. Eased rather than snapped.
 var _upset := 0.0
+var _glow: Glow
 
 
 func _ready() -> void:
 	# See `terrain.gd` for why this is per-node rather than a project default.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_glow = Glow.halo(Palette.SAND_CHARGED, CHARGED_GLOW_RADIUS, CHARGED_GLOW_ALPHA)
+	add_child(_glow)
 
 
 func _process(delta: float) -> void:
@@ -41,6 +48,7 @@ func _process(delta: float) -> void:
 		sin(_shiver * TREMBLE_RATES.x),
 		cos(_shiver * TREMBLE_RATES.y)) * amount
 	scale.x = -1.0 if _mirrored() else 1.0
+	_glow.visible = Game.feathered
 	queue_redraw()
 
 
@@ -57,7 +65,8 @@ func _mirrored() -> bool:
 
 func _draw() -> void:
 	var motion := Glass.motion
-	var sand_colour := Palette.sand(Game.danger())
+	# Gold whatever is left: running out reads on the screen edge and the gauge.
+	var sand_colour := Palette.glass_sand(Game.feathered)
 	var down := motion.sprite_down()
 	# Mirroring the node mirrors the glass's own frame with it, so world-down has
 	# to be carried across too or the sand sloshes against the way you are moving.

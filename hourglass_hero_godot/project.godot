@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Hourglass Hero"
+config/name="Sandbound"
 config/description="A platformer where the player IS an hourglass. Every jump flips the glass, swaps plane and launches you."
 run/main_scene="uid://dvknasl0juliy"
 config/features=PackedStringArray("4.7", "GL Compatibility")
