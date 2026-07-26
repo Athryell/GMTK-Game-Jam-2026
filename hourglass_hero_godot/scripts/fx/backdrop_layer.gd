@@ -9,8 +9,8 @@ extends Node2D
 var scroll := 0.35
 var texture: Texture2D
 
-## The air in front of this depth: a veil of `fog` at `fog_alpha`, drawn over
-## this layer's own art and so over every layer behind it.
+## The air in front of this depth. Drawn over this layer's own art, so it veils
+## every layer behind it too.
 var fog := Color.WHITE
 var fog_alpha := 0.0
 
@@ -98,9 +98,8 @@ func _draw() -> void:
 	_draw_fog(left, right, bottom - size.y, bottom)
 
 
-## The veil over this depth, thinning towards the top of the art. A gouraud quad
-## rather than a rect: `draw_rect` is one flat colour, and a flat veil reads as a
-## sheet of tinted glass instead of air.
+## A gouraud quad rather than a `draw_rect`: a rect is one flat colour, and a
+## flat veil reads as a sheet of tinted glass instead of air.
 func _draw_fog(left: float, right: float, top: float, bottom: float) -> void:
 	if fog_alpha <= 0.0:
 		return

@@ -38,26 +38,23 @@ const ART_SCALE := 2.0
 const ART_DROP := 28.0
 
 ## Parallax speed of the nearest layer; the farthest sits at the opposite end,
-## with any layers between graded evenly across the range. Both well under the
-## world's own speed: the slower a layer answers the camera, the further off it
-## reads, and the room behind the level is meant to be a horizon rather than a
-## wall a few metres back.
+## with any layers between graded evenly across the range. The whole range sits
+## far under the world's own speed: the slower a layer answers the camera, the
+## further off it reads.
 const FAR_SCROLL := 0.05
 const NEAR_SCROLL := 0.26
 
-## How much air each layer puts in front of everything behind it, as the alpha of
-## a fog-coloured veil drawn over its own art. The veils stack: the farthest
-## layer is seen through all of them and the nearest only through its own, which
-## is what separates two silhouettes painted from the same eleven colours.
+## Alpha of the fog-coloured veil each layer draws over its own art. The veils
+## stack — the farthest layer is seen through all of them, the nearest only
+## through its own — which is what separates silhouettes painted from the same
+## eleven colours.
 const FOG_FAR := 0.48
 const FOG_NEAR := 0.30
 
-## Fraction of a layer's fog left at the top of the art. Haze piles up along the
-## ground, so a distant roofline still cuts the sky while the streets under it
-## wash out.
+## Fraction of a layer's fog left at the top of the art: haze piles up along the
+## ground, so a distant roofline still cuts the sky.
 const FOG_TOP := 0.45
 
-## Used when the sky texture cannot be read for a fog colour.
 const FOG_FALLBACK := Color(0.62, 0.66, 0.76)
 
 ## How fast the art tracks the camera VERTICALLY, as a fraction of the world's
@@ -183,9 +180,9 @@ func _rebuild_layers(index: int) -> void:
 		_layers.append(layer)
 
 
-## The colour the distance dissolves into, read off the bottom of this
-## background's own sky so each one hazes towards its own horizon rather than
-## towards a grey the art never uses.
+## The colour the distance dissolves into, read off this background's own sky so
+## each one hazes towards its own horizon rather than towards a grey the art
+## never uses.
 func _fog_colour(sky: Texture2D) -> Color:
 	var image := sky.get_image()
 	if image == null:
@@ -196,7 +193,7 @@ func _fog_colour(sky: Texture2D) -> Color:
 	var height := image.get_height()
 	if width <= 0 or height <= 0:
 		return FOG_FALLBACK
-	# The bottom row only: it is the band the skyline actually stands against.
+	# The bottom row only: the band the skyline actually stands against.
 	var total := Color(0.0, 0.0, 0.0)
 	for x in width:
 		total += image.get_pixel(x, height - 1)
