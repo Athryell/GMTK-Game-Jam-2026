@@ -59,6 +59,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	# Out of plane it is scenery: the ghost holds its pose, hand and all, and
+	# picks the patrol back up where it stopped rather than somewhere across the
+	# room. The cannon already freezes the same way.
+	if not _active:
+		return
 	# Before the patrol guard: a monster told to hold still is still a clock.
 	_hand = fmod(_hand + delta * TAU / HAND_PERIOD, TAU)
 	queue_redraw()
