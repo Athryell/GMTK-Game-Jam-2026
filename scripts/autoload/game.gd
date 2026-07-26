@@ -88,6 +88,9 @@ var flow_blend := 0.0
 var clock_running := true
 ## `Level.jump_locked_first_life`, pushed here by `main.gd`.
 var jump_locked_first_life := false
+## `Level.counts_towards_run`, pushed here by `main.gd`. Gates `run_time` and
+## `run_deaths`, and with them whether the HUD shows either.
+var counts_towards_run := true
 ## Deaths on the level being played. Survives `restart`, cleared by moving to
 ## another level.
 var level_deaths := 0
@@ -329,8 +332,11 @@ func set_status(new_status: Status) -> void:
 		return
 	# Counted before the signal goes out, so listeners read the toll including it.
 	if new_status == Status.DEAD:
+		# `level_deaths` counts either way: the jump lock is spent by the death
+		# whether or not the run is charged for it.
 		level_deaths += 1
-		run_deaths += 1
+		if counts_towards_run:
+			run_deaths += 1
 	status = new_status
 	status_changed.emit(status)
 

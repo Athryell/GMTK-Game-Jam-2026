@@ -29,6 +29,9 @@ var level_name: String: get = _get_level_name
 @export var clock_starts_on_move := false
 ## Takes the jump away for the first life only; the death hands it back.
 @export var jump_locked_first_life := false
+## Keeps the level off the run clock and the run's death toll. A level that
+## teaches by killing you must not charge the run for the lesson.
+@export var counts_towards_run := true
 
 @onready var spawn: Marker2D = $Spawn
 

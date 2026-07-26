@@ -68,8 +68,12 @@ func _draw() -> void:
 
 func _on_level_loaded(index: int, level_name: String) -> void:
 	_level_label.text = "%d/%d — %s" % [index + 1, Game.level_scenes.size(), level_name]
-	# Emitted after the level's rules are applied, so the jump lock is settled.
+	# Emitted after the level's rules are applied, so the jump lock and whether the
+	# run is being scored are both settled.
 	_hint.text = HINT_FULL if Game.jump_enabled else HINT_NO_JUMP
+	# A level off the run cannot show a clock or a toll that is not moving.
+	_time_label.visible = Game.counts_towards_run
+	_death_label.visible = Game.counts_towards_run
 
 
 func _on_status_changed(status: Game.Status) -> void:

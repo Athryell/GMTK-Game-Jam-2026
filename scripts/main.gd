@@ -51,7 +51,7 @@ func _process(delta: float) -> void:
 
 	# Counted here rather than in `Game`, which outlives the level: the menu is not
 	# on the clock. A level waiting for you to move still is.
-	if Game.status == Game.Status.PLAY:
+	if Game.status == Game.Status.PLAY and Game.counts_towards_run:
 		Game.run_time += delta
 
 	if _advance_timer > 0.0:
@@ -114,6 +114,7 @@ func _load_current_level() -> void:
 func _apply_level_rules() -> void:
 	Game.clock_running = not _level.clock_starts_on_move
 	Game.jump_locked_first_life = _level.jump_locked_first_life
+	Game.counts_towards_run = _level.counts_towards_run
 	Game.set_gravity(1.0)
 	var top := _level.sand_start_override if _level.sand_start_override > 0.0 \
 		else Tuning.cfg.sand_start

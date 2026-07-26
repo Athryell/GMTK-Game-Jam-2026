@@ -58,6 +58,7 @@ On the level root, under **Rules**:
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
 | `clock_starts_on_move` | The sand does not run until the player first steers. |
 | `jump_locked_first_life` | No jump until this level has killed you once. |
+| `counts_towards_run` | Off keeps the level off the run clock and the death toll, and hides both from the HUD. |
 
 All are applied by `main.gd` after the scene exists and reset between levels, so
 a level cannot leak its rules into the next.

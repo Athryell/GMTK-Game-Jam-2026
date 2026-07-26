@@ -44,6 +44,18 @@ func _ready() -> void:
 	_check("the next level keeps the run's toll", Game.run_deaths == 2,
 		"%d" % Game.run_deaths)
 
+	# The teaching level: it kills you to make its point, and the run is not
+	# charged for it — but the lock still has to be spent, or the jump never comes
+	# back.
+	Game.counts_towards_run = false
+	Game.jump_locked_first_life = true
+	Game.level_deaths = 0
+	_die()
+	_check("an unscored level does not add to the run's toll", Game.run_deaths == 2,
+		"%d" % Game.run_deaths)
+	_check("an unscored death still hands the jump back", Game.jump_enabled)
+	Game.counts_towards_run = true
+
 	_finish()
 
 

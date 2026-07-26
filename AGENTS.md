@@ -139,7 +139,7 @@ which would file `level_100` between `level_09` and `level_10`.
 
 `Level` (`scripts/level.gd`) is data and scenery only — `world_size`, `theme`,
 and the `Rules` group (`chambers`, `sand_start_override`, `clock_starts_on_move`,
-`jump_locked_first_life`).
+`jump_locked_first_life`, `counts_towards_run`).
 
 ### Entities
 

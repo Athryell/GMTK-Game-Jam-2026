@@ -9,6 +9,7 @@
 script = ExtResource("1_level")
 clock_starts_on_move = true
 jump_locked_first_life = true
+counts_towards_run = false
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=447216131]
 position = Vector2(53, 479)
