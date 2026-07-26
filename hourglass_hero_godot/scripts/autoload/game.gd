@@ -119,7 +119,7 @@ func set_gravity(sign: float) -> void:
 func _ready() -> void:
 	level_scenes = _discover_levels()
 	for scene in level_scenes:
-		level_names.append(Level.title_from_path(scene.resource_path))
+		level_names.append(_read_level_name(scene))
 	if level_scenes.is_empty():
 		push_error("No levels found in %s" % LEVELS_DIR)
 
@@ -192,6 +192,25 @@ func _discover_levels() -> Array[PackedScene]:
 		if scene != null:
 			out.append(scene)
 	return out
+
+
+## Reads `level_name` from a scene without instantiating it; falls back to the
+## filename.
+func _read_level_name(scene: PackedScene) -> String:
+	var state := scene.get_state()
+	if state.get_node_count() > 0:
+		for i in state.get_node_property_count(0):
+			if state.get_node_property_name(0, i) == "level_name":
+				return str(state.get_node_property_value(0, i))
+	# "level_04_the_spring.tscn" -> "The Spring"
+	var stem := scene.resource_path.get_file().get_basename()
+	var words := stem.split("_", false)
+	var out := ""
+	for w in words:
+		if w.is_valid_int() or w == "level":
+			continue
+		out += (" " if out != "" else "") + w.capitalize()
+	return out if out != "" else stem
 
 
 ## Is this level playable from the menu?

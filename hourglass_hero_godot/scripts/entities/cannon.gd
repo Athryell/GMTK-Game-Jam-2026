@@ -20,23 +20,21 @@ const BEAM_SPEED := 1500.0
 const BASE: Texture2D = preload("res://art/sprites/cannon_base.png")
 const BARREL: Texture2D = preload("res://art/sprites/cannon_barrell.png")
 
-## Both sprites are 16×16, drawn at two world px per art px so the cannon's
-## pixels are the size of the backdrop's rather than half of it. Whole number on
-## purpose: at anything fractional the doubled texels straddle world pixels and
-## the 1-px outlines tear as the barrel turns. See `Backdrop.ART_SCALE`.
-const ART_SIZE := 16.0
-const ART_SCALE := 2.0
-## The arch in the base is a 2×2 hole about this pixel, and the barrel's butt is
-## the middle of its bottom edge. Putting the two on the node's origin is what
-## makes the barrel turn IN the hole rather than beside it, so these are measured
-## off the art, not guessed — retracing either sprite is the only thing that can
-## pull them apart.
-const BASE_PIVOT := Vector2(8.0, 15.0)
-const BARREL_PIVOT := Vector2(8.0, 16.0)
+## Both sprites are 32×32, drawn one art px to one world px — the density the
+## hourglass, the clock and the brick are all struck at.
+const ART_SIZE := 32.0
 
-## How far the muzzle sits from the pivot: the barrel's whole drawn length, since
-## the butt is on the pivot and the art points straight up its own sprite.
-const BARREL_LENGTH := ART_SIZE * ART_SCALE
+## The arch in the base is a semicircle of radius 3 about this pixel, and the
+## barrel's butt is the middle of its bottom edge. Laying both on the node's
+## origin is what makes the barrel turn IN the hole rather than beside it, so
+## these are measured off the art, not guessed — retracing either sprite is the
+## only thing that can pull them apart.
+const BASE_PIVOT := Vector2(16.0, 30.0)
+const BARREL_PIVOT := Vector2(16.0, 32.0)
+
+## How far the muzzle sits from the pivot: the barrel's whole length, since the
+## butt is on the pivot and the art points straight up its own sprite.
+const BARREL_LENGTH := ART_SIZE
 ## The line is thin and see-through while it tracks, and grows to the full shot
 ## across the lock.
 const AIM_WIDTH := 2.0
@@ -91,10 +89,7 @@ func _ready() -> void:
 	_barrel.texture = BARREL
 	_barrel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_barrel.centered = false
-	# Offset is in the sprite's own space, so the scale carries it: the butt still
-	# lands on the origin and the whole barrel grows away from it.
 	_barrel.offset = -BARREL_PIVOT
-	_barrel.scale = Vector2.ONE * ART_SCALE
 	if Engine.is_editor_hint():
 		set_physics_process(false)
 		_refresh()
@@ -161,7 +156,7 @@ func _draw() -> void:
 
 ## Where the base sits, so its arch lands on the origin.
 func _base_rect() -> Rect2:
-	return Rect2(-BASE_PIVOT * ART_SCALE, Vector2.ONE * ART_SIZE * ART_SCALE)
+	return Rect2(-BASE_PIVOT, Vector2.ONE * ART_SIZE)
 
 
 func _tint() -> Color:

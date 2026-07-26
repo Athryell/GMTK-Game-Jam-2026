@@ -22,8 +22,7 @@ var _pulse := 0.0
 
 
 func _init() -> void:
-	# Wider than the 16×16 sprite, so it reads as an item and not as a speck of
-	# scenery.
+	# Exactly the sprite, so the feather is drawn one art px to one world px.
 	size = Vector2(24.0, 24.0)
 	# The spring's family, for the spring's reason: height that costs no sand.
 	light_tint = Palette.SPRING
@@ -54,7 +53,11 @@ func _touched(player: Player) -> void:
 
 func _paint() -> void:
 	var colour := _shade(Color.WHITE)
-	var lift := BOB * sin(_pulse * BOB_RATE)
+	# Rounded to whole px. The sprite is drawn 1:1 and filtered NEAREST, so a bob
+	# that stops between two pixels resamples the art — rows double and drop as it
+	# rises, and the feather crawls instead of floating. The halo is a gradient and
+	# does not care, but it rides the same value so the two stay locked together.
+	var lift := roundf(BOB * sin(_pulse * BOB_RATE))
 	draw_texture_rect(LightKit.falloff(),
 		Rect2(size / 2.0 - Vector2(HALO_RADIUS, HALO_RADIUS - lift),
 			Vector2(HALO_RADIUS, HALO_RADIUS) * 2.0),
