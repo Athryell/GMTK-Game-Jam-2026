@@ -214,8 +214,9 @@ static func load_layer_textures(dir_path: String) -> Array[Texture2D]:
 
 	var names: Array[String] = []
 	for file in dir.get_files():
-		# In an exported build, files are remapped to `<name>.remap`.
-		var clean := file.trim_suffix(".remap")
+		# An exported build lists the art by its import bookkeeping, not by its
+		# source name: `1.png` comes back as `1.png.import`, or `1.png.remap`.
+		var clean := file.trim_suffix(".remap").trim_suffix(".import")
 		if clean.get_extension() == "png" and clean.get_basename().is_valid_int():
 			names.append(clean)
 	names.sort_custom(func(a, b): return a.get_basename().to_int() < b.get_basename().to_int())

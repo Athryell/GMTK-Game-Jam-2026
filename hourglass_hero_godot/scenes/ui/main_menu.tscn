@@ -211,7 +211,7 @@ offset_top = 424.0
 offset_right = 468.0
 offset_bottom = 438.0
 theme_type_variation = &"Caption"
-text = "← → / A D  MOVE      SPACE / ↑  JUMP      R  RESTART"
+text = "ARROWS / A D  MOVE    SPACE / UP  JUMP    R  RESTART    ESC / M  MENU"
 horizontal_alignment = 1
 vertical_alignment = 1
 

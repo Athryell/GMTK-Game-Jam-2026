@@ -10,8 +10,8 @@ extends Control
 
 ## The bar along the bottom. A level that has taken the jump away must not go on
 ## advertising it.
-const HINT_FULL := "← → / A D move    SPACE / ↑ jump (turns the glass + moves you on)    R restart    ESC menu"
-const HINT_NO_JUMP := "← → / A D move    R restart    ESC menu"
+const HINT_FULL := "ARROWS / A D move    SPACE / UP jump (turns the glass + moves you on)    R restart    ESC / M menu"
+const HINT_NO_JUMP := "ARROWS / A D move    R restart    ESC / M menu"
 
 ## The bloom around the gauge while a feather's jump is in hand.
 const CHARGED_GLOW_RADIUS := 46.0
@@ -78,5 +78,5 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""
 		Game.Status.VICTORY:
-			_overlay.text = "YOU MADE IT!\n\nYour time: %s\n\nPress R to play again    ESC for the menu" \
+			_overlay.text = "YOU MADE IT!\n\nYour time: %s\n\nPress R to play again    ESC / M for the menu" \
 				% Game.format_time(Game.run_time)
