@@ -33,8 +33,8 @@ size = Vector2(956, 54)
 [node name="Platform2" parent="Entities" unique_id=1427779578 instance=ExtResource("3_f4fe7")]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(619, 504)
-size = Vector2(346, 54)
+position = Vector2(604, 504)
+size = Vector2(361, 54)
 
 [node name="PadUp" parent="Entities" unique_id=1413375619 instance=ExtResource("4_gravity_pad")]
 position = Vector2(172, 487)

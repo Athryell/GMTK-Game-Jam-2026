@@ -40,10 +40,12 @@ func _touched(player: Player) -> void:
 	# World space, not gravity's: a pad drawn pointing up throws you up the screen
 	# even with the world over.
 	var push := Vector2.UP.rotated(global_rotation)
-	# Only on the way in: leaving the pad the way it pushes must not fire it again.
-	if player.velocity.dot(push) > 0.0:
+	var strength := power if power > 0.0 else Tuning.cfg.spring_power
+	# A plane flip re-arms the area under a player this pad has just launched;
+	# only launch speed tells that apart from walking into the pad sideways.
+	if player.velocity.dot(push) > strength * 0.5:
 		return
-	player.bounce(power if power > 0.0 else Tuning.cfg.spring_power, push)
+	player.bounce(strength, push)
 	_compress = 1.0
 	Audio.sfx("bounce")
 	queue_redraw()

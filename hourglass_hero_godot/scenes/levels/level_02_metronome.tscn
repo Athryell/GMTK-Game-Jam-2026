@@ -18,52 +18,73 @@ position = Vector2(50, 479)
 position = Vector2(1330, 438)
 
 [node name="Platform1" parent="Entities" unique_id=615537183 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(0, 502)
 size = Vector2(260, 38)
 
 [node name="Platform2" parent="Entities" unique_id=2097855623 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(1140, 502)
 size = Vector2(260, 38)
+plane = 0
 
 [node name="Platform3" parent="Entities" unique_id=1380708933 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(280, 350)
 size = Vector2(110, 18)
+plane = 0
 move_axis = 2
 move_distance = 100.0
 move_speed = 100.0
 
 [node name="Platform4" parent="Entities" unique_id=257276144 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(470, 350)
 size = Vector2(110, 18)
+plane = 1
 move_axis = 2
 move_distance = 100.0
 move_speed = 100.0
 move_phase = 0.2
 
 [node name="Platform5" parent="Entities" unique_id=1623356288 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(660, 350)
 size = Vector2(110, 18)
+plane = 0
 move_axis = 2
 move_distance = 100.0
 move_speed = 100.0
 move_phase = 0.4
 
 [node name="Platform6" parent="Entities" unique_id=1023469364 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(850, 350)
 size = Vector2(110, 18)
+plane = 1
 move_axis = 2
 move_distance = 100.0
 move_speed = 100.0
 move_phase = 0.6
 
 [node name="Platform7" parent="Entities" unique_id=1111459673 instance=ExtResource("3_4a2f6")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(1020, 350)
 size = Vector2(110, 18)
+plane = 0
 move_axis = 2
 move_distance = 100.0
 move_speed = 100.0
 move_phase = 0.8
 
 [node name="Spikes1" parent="Entities" unique_id=29941275 instance=ExtResource("4_5adc5")]
+texture_filter = 1
 position = Vector2(260, 505)
 size = Vector2(880, 35)
