@@ -92,7 +92,7 @@ var jump_locked_first_life := false
 ## another level.
 var level_deaths := 0
 ## Deaths since the run started. Only `start_run` clears it, so it survives both a
-## retry and a level change and reads as the toll of the whole attempt.
+## retry and a level change.
 var run_deaths := 0
 
 ## The lock is spent by the first death, so what the level killed you for is what
