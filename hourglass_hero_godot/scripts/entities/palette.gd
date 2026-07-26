@@ -91,15 +91,20 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 ##
 ## Lifted by `BRICK_GAIN`, because a modulate is a MULTIPLY: the tile averages
 ## 47% grey, so handing it the colour raw lays the stone at half the colour.
+##
+## The wash lands AFTER that lift and mixes towards the UNLIFTED plane hue: the
+## plane hues are already near the top of their channels, and lifting one of them
+## clips the courses into a flat slab of colour.
 static func bricks(level_index: int, plane := Planes.Kind.BOTH) -> Color:
 	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
 	var group := level_index / Backdrop.LEVELS_PER_BACKGROUND
 	var tint := BRICK_TINTS[clampi(group, 0, BRICK_TINTS.size() - 1)]
-	if plane != Planes.Kind.BOTH:
-		tint = tint.lerp(solid(plane, plane), Tuning.cfg.plane_wash)
 	# Rebuilt rather than scaled: `Color * float` takes the alpha with it, and
 	# the alpha is `ghost`'s to set.
-	return Color(tint.r * BRICK_GAIN, tint.g * BRICK_GAIN, tint.b * BRICK_GAIN)
+	var body := Color(tint.r * BRICK_GAIN, tint.g * BRICK_GAIN, tint.b * BRICK_GAIN)
+	if plane != Planes.Kind.BOTH:
+		body = body.lerp(solid(plane, plane), Tuning.cfg.plane_wash)
+	return body
 
 
 ## Faded when the entity lives in another plane, and less faded in the one a jump
