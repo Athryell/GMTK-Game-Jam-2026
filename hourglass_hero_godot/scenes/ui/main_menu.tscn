@@ -207,11 +207,12 @@ vertical_alignment = 1
 
 [node name="Controls" type="Label" parent="Right"]
 layout_mode = 0
+offset_left = -452.0
 offset_top = 424.0
-offset_right = 468.0
+offset_right = 508.0
 offset_bottom = 438.0
 theme_type_variation = &"Caption"
-text = "ARROWS / A D  MOVE    SPACE / UP  JUMP    R  RESTART    ESC / M  MENU"
+text = "ARROWS / A D  MOVE    SPACE / UP  JUMP    R  RESTART    ESC / M  MENU    F  FULLSCREEN"
 horizontal_alignment = 1
 vertical_alignment = 1
 

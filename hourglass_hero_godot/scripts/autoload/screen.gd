@@ -1,6 +1,6 @@
 ## Autoload `Screen` — fullscreen toggle only. The game launches fullscreen via
 ## `window/size/mode` in `project.godot`; the `toggle_fullscreen` action (Alt+Enter,
-## F11 — macOS may swallow F11) is the way back out.
+## F11 — macOS may swallow F11, browsers always do — and F) is the way back out.
 extends Node
 
 
