@@ -59,6 +59,10 @@ extends Resource
 @export_range(0.0, 12.0, 1.0) var next_outline_gap: float = 2.0
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
+## How long the curtain takes to close on the exit, and to open on the level
+## that follows, in s. Held under `level_clear_delay`: the swap has to happen
+## behind a screen that is already covered.
+@export_range(0.0, 2.0, 0.05) var level_fade: float = 0.45
 ## How long the death screen stays up before the level restarts itself, in s.
 @export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
 
