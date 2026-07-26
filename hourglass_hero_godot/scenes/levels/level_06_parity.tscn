@@ -7,7 +7,6 @@
 
 [node name="Level" type="Node2D" unique_id=540990937]
 script = ExtResource("1_level")
-level_name = "Parity"
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1903549200]
 position = Vector2(53, 479)

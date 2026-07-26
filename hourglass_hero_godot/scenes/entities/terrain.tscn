@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://b62bjh4xkmsp0" path="res://scripts/entities/terrain.gd" id="1_terrain"]
+
+[node name="Terrain" type="StaticBody2D"]
+collision_mask = 0
+script = ExtResource("1_terrain")

@@ -33,8 +33,9 @@ display.
 ## The menu
 
 `scenes/ui/main_menu.tscn` is the entry point: one button per level, built from
-`Game.level_scenes`, each label read from the level's own `level_name`. A new
-level shows up on the next run with nothing to wire.
+`Game.level_scenes`, each label titled from the level's own filename
+(`level_04_the_spring.tscn` → "The Spring"). A new level shows up on the next
+run with nothing to wire.
 
 Every level is unlocked. Set `Game.unlock_all = false` and `Game.is_unlocked()`
 falls back to `levels_reached`.
@@ -63,9 +64,9 @@ Adding a tunable is one line; its slider appears automatically under its
 ## Adding a level
 
 1. Duplicate `scenes/levels/level_01_wake_up.tscn` and rename it, keeping the
-   numbered prefix — **play order follows the filename**.
-2. On the root, set `level_name` and `world_size` (bounds the camera; falling
-   below it kills).
+   numbered prefix — **play order follows the filename, and so does the title
+   shown in the menu and the HUD**.
+2. On the root, set `world_size` (bounds the camera; falling below it kills).
 3. Move the `Spawn` marker.
 4. Draw the ground: add a **`Terrain`** node under `Entities`, select its
    `Shape` child and use Godot's polygon tool. What you draw is what you stand
@@ -80,7 +81,7 @@ Adding a tunable is one line; its slider appears automatically under its
 |---|---|---|
 | **`Terrain`** (node) | The ground, as a polygon: floor, ledge, wall and **slope** in one node. | `plane` |
 | `platform.tscn` | A rectangle that MOVES, or a refuel pad (`kind = FLIP_PAD`). Static ground belongs in a `Terrain`. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
-| `spring.tscn` | Throws you the way it points — no flip, no plane change. Turn it sideways and swap `size` too (e.g. 14 x 56) for a wall pad. | `size`, `plane`, `facing`, `power` (0 = tuned default) |
+| `spring.tscn` | Throws you the way it is turned — no flip, no plane change. Rotate the node and the launch follows it, at any angle. | `size`, `plane`, `rotation`, `power` (0 = tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, in its own plane only. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. | `size`, `plane`, `facing` |
 | `cannon.tscn` | Tracks you while it charges, then fires along the line it held. Blocked by solids, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |

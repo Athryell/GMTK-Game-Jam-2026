@@ -6,7 +6,11 @@
 
 [node name="Level" type="Node2D" unique_id=8172153]
 script = ExtResource("1_level")
+<<<<<<< HEAD
 level_name = "Trefoil"
+=======
+world_size = Vector2(960, 540)
+>>>>>>> c11354a0e33b05fa0003e1cc74c18216cfa1db3d
 chambers = 3
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1416240910]

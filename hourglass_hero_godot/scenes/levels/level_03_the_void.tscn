@@ -6,7 +6,6 @@
 
 [node name="Level" type="Node2D" unique_id=910728674]
 script = ExtResource("1_m3la6")
-level_name = "The Void"
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1336534992]
 position = Vector2(49, 479)

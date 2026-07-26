@@ -9,7 +9,6 @@
 [node name="Level" type="Node2D" unique_id=195482827]
 position = Vector2(0, -8)
 script = ExtResource("1_yybon")
-level_name = "Patrol"
 world_size = Vector2(960, 1520)
 metadata/_edit_vertical_guides_ = [381.0]
 
