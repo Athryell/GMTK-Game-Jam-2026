@@ -167,7 +167,9 @@ func _first_polygon() -> CollisionPolygon2D:
 
 
 ## The child is owned by the EDITED SCENE, not by this node: the editor hides
-## unowned children, and with them the handles this node exists to expose.
+## unowned children, and with them the handles this node exists to expose. That
+## is also why `scenes/entities/terrain.tscn` carries no polygon of its own — one
+## saved in there would be an instance child, and stay hidden.
 func _plant_shape() -> void:
 	if _first_polygon() != null or not is_inside_tree():
 		return
@@ -179,6 +181,11 @@ func _plant_shape() -> void:
 	shape.polygon = STARTER
 	add_child(shape)
 	shape.owner = root
+	# Grouped, so a click in the viewport grabs the ground and drags it whole
+	# rather than grabbing the polygon under it. The points stay reachable by
+	# picking `Shape` in the Scene dock, and Ctrl+G undoes this.
+	if self != root:
+		set_meta(&"_edit_group_", true)
 
 
 func _refresh() -> void:
