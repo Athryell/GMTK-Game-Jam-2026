@@ -40,6 +40,40 @@ static func faces_up(a: Vector2, b: Vector2, wind: float) -> bool:
 	return edge_normal(a, b, wind).y < -0.2
 
 
+## The box `points` fit in. Empty for anything with fewer than three points.
+static func bounds(points: PackedVector2Array) -> Rect2:
+	if points.size() < 3:
+		return Rect2()
+	var box := Rect2(points[0], Vector2.ZERO)
+	for point in points:
+		box = box.expand(point)
+	return box
+
+
+## The same polygon stretched out of its own bounding box and into `box`. A slope
+## keeps its shape, since every point moves by the same two factors. An axis the
+## polygon is flat on has no length to scale from, and is only shifted.
+static func fit(points: PackedVector2Array, box: Rect2) -> PackedVector2Array:
+	var from := bounds(points)
+	if from.size == Vector2.ZERO:
+		return points
+	var factor := Vector2(
+		box.size.x / from.size.x if from.size.x > 0.001 else 1.0,
+		box.size.y / from.size.y if from.size.y > 0.001 else 1.0)
+	var out := PackedVector2Array()
+	out.resize(points.size())
+	for i in points.size():
+		out[i] = box.position + (points[i] - from.position) * factor
+	return out
+
+
+## The same polygon resized about the TOP-LEFT of its own bounding box, which is
+## what typing a size into the inspector means: the corner the ground was placed
+## by stays put.
+static func resize(points: PackedVector2Array, size: Vector2) -> PackedVector2Array:
+	return fit(points, Rect2(bounds(points).position, size))
+
+
 ## The same polygon pushed `amount` px outwards along its own normals. A corner
 ## belongs to two edges, so it leaves along the sum of theirs — and travels
 ## further than `amount`, by the miter length `amount / cos(half the corner)`,

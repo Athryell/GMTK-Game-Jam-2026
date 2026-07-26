@@ -18,9 +18,10 @@ const PAD_DETECT_HEIGHT := 8.0
 @export var kind: Kind = Kind.NORMAL: set = _set_kind
 
 @export_group("Movement")
-@export var move_axis: PingPong.Axis = PingPong.Axis.NONE
-## Travel, in px, from the editor-placed position.
-@export_range(0.0, 800.0, 1.0) var move_distance := 0.0
+@export var move_axis: PingPong.Axis = PingPong.Axis.NONE: set = _set_move_axis
+## Travel, in px, from the editor-placed position. Also draggable in the 2D
+## editor, by the knob at the far end of the track.
+@export_range(0.0, 800.0, 1.0) var move_distance := 0.0: set = _set_move_distance
 ## Speed, in px/s.
 @export_range(0.0, 400.0, 1.0) var move_speed := 0.0
 ## Start offset in the cycle. All movers share one clock, so equal-period
@@ -81,6 +82,8 @@ func _draw() -> void:
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
 	_marker.draw(self, _corners(), plane)
+	if Engine.is_editor_hint():
+		PatrolPath.draw(self, size, move_axis, move_distance, colour)
 
 
 ## The rectangle as a polygon, wound clockwise on screen.
@@ -142,6 +145,16 @@ func _set_size(value: Vector2) -> void:
 
 func _set_plane(value: Planes.Kind) -> void:
 	plane = value
+	queue_redraw()
+
+
+func _set_move_axis(value: PingPong.Axis) -> void:
+	move_axis = value
+	queue_redraw()
+
+
+func _set_move_distance(value: float) -> void:
+	move_distance = value
 	queue_redraw()
 
 

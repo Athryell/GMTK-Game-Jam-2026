@@ -106,7 +106,58 @@ func shadow_outline() -> PackedVector2Array:
 	return out
 
 
+# ----- Size ------------------------------------------------------------------
+#
+# `size` is the polygon's bounding box, typed rather than dragged. NOT stored:
+# the polygon on the child stays the one truth, and this is only read off it and
+# written back into it.
+
+const MIN_SIZE := 1.0
+
+
+func _get_property_list() -> Array[Dictionary]:
+	return [{
+		"name": "size",
+		"type": TYPE_VECTOR2,
+		"hint": PROPERTY_HINT_NONE,
+		"usage": PROPERTY_USAGE_EDITOR,
+	}]
+
+
+func _get(property: StringName) -> Variant:
+	if property != &"size":
+		return null
+	return Polygons.bounds(_points).size
+
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property != &"size":
+		return false
+	_resize(value)
+	return true
+
+
+func _resize(wanted: Vector2) -> void:
+	_refresh()
+	if _shape == null or _points.size() < 3:
+		return
+	var scaled := Polygons.resize(_points,
+		Vector2(maxf(wanted.x, MIN_SIZE), maxf(wanted.y, MIN_SIZE)))
+	if scaled == _points:
+		return
+	_shape.polygon = scaled
+	_refresh()
+	# Fetched by name: `EditorInterface` does not exist outside an editor build.
+	if Engine.has_singleton("EditorInterface"):
+		Engine.get_singleton("EditorInterface").mark_scene_as_unsaved()
+
+
 # ----- Shape -----------------------------------------------------------------
+
+## The child the ground's points live on. `addons/level_tools` resizes it.
+func shape() -> CollisionPolygon2D:
+	return _first_polygon()
+
 
 func _first_polygon() -> CollisionPolygon2D:
 	for child in get_children():
@@ -141,6 +192,9 @@ func _refresh() -> void:
 		else PackedInt32Array()
 	update_configuration_warnings()
 	queue_redraw()
+	# The points just moved, so the `size` shown in the inspector is stale.
+	if Engine.is_editor_hint():
+		notify_property_list_changed()
 
 
 # ----- Plane -----------------------------------------------------------------

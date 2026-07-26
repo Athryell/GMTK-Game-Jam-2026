@@ -21,9 +21,10 @@ const ART_WIDTH := 2.0
 const HAND_PERIOD := 0.55
 
 @export_group("Patrol")
-@export var move_axis: PingPong.Axis = PingPong.Axis.X
-## Patrol travel, in px, from the editor-placed position.
-@export_range(0.0, 800.0, 1.0) var move_distance := 90.0
+@export var move_axis: PingPong.Axis = PingPong.Axis.X: set = _set_move_axis
+## Patrol travel, in px, from the editor-placed position. Also draggable in the
+## 2D editor, by the knob at the far end of the track.
+@export_range(0.0, 800.0, 1.0) var move_distance := 90.0: set = _set_move_distance
 ## Patrol speed, in px/s.
 @export_range(0.0, 400.0, 1.0) var move_speed := 115.0
 ## Start offset in the cycle. All movers share one clock, so equal-period
@@ -72,6 +73,16 @@ func _touched(_player: Player) -> void:
 	Game.kill()
 
 
+func _set_move_axis(value: PingPong.Axis) -> void:
+	move_axis = value
+	queue_redraw()
+
+
+func _set_move_distance(value: float) -> void:
+	move_distance = value
+	queue_redraw()
+
+
 ## The dial, then the hand over it.
 ##
 ## Drawn SQUARE and centred on the hitbox rather than stretched to fill it: the
@@ -80,6 +91,9 @@ func _touched(_player: Player) -> void:
 ## you. Only reachable by resizing a monster, which breaks the
 ## one-art-px-to-one-world-px rule anyway.
 func _paint() -> void:
+	if Engine.is_editor_hint():
+		PatrolPath.draw(self, size, move_axis, move_distance, Palette.MONSTER)
+
 	var span := maxf(size.x, size.y)
 	var face := Rect2((size - Vector2(span, span)) * 0.5, Vector2(span, span))
 	# White modulate is the sprite's own colours untouched; out of plane `_shade`
