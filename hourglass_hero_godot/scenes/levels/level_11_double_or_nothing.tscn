@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://dbwoi4cfrwj7b"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="7_feather"]
+
+[node name="Level" type="Node2D" unique_id=2128132642]
+script = ExtResource("1_level")
+level_name = "Double or Nothing"
+world_size = Vector2(1400, 540)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=291825726]
+position = Vector2(50, 479)
+
+[node name="Entities" type="Node2D" parent="." unique_id=1846019267]
+
+[node name="Door" parent="Entities" unique_id=105194758 instance=ExtResource("2_door")]
+position = Vector2(1330, 438)
+
+[node name="Platform1" parent="Entities" unique_id=1614720791 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 502)
+size = Vector2(300, 38)
+
+[node name="Platform2" parent="Entities" unique_id=1870115958 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(460, 502)
+size = Vector2(340, 38)
+
+[node name="Feather" parent="Entities" unique_id=643874536 instance=ExtResource("7_feather")]
+texture_filter = 1
+position = Vector2(560, 470)
+size = Vector2(24, 24)
+
+[node name="Platform4" parent="Entities" unique_id=197050796 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1120, 502)
+size = Vector2(280, 38)
+
+[node name="Spikes1" parent="Entities" unique_id=1369487177 instance=ExtResource("6_spikes")]
+texture_filter = 1
+position = Vector2(300, 505)
+size = Vector2(160, 35)
+
+[node name="Spikes2" parent="Entities" unique_id=581944794 instance=ExtResource("6_spikes")]
+texture_filter = 1
+position = Vector2(800, 505)
+size = Vector2(320, 35)

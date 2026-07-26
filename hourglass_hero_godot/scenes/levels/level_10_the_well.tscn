@@ -195,7 +195,6 @@ position = Vector2(612, 622)
 move_axis = 2
 move_distance = 70.0
 move_speed = 400.0
-plane = 0
 
 [node name="Monster4" parent="Entities" unique_id=1084898158 instance=ExtResource("4_monster")]
 texture_filter = 1
@@ -203,69 +202,59 @@ position = Vector2(310, 622)
 move_axis = 2
 move_distance = 70.0
 move_speed = 400.0
-plane = 0
 
 [node name="Monster7" parent="Entities" unique_id=127545974 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(466, 303)
 move_axis = 2
 move_distance = 70.0
-plane = 0
 
 [node name="Monster3" parent="Entities" unique_id=402936590 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(279, 561)
 move_distance = 370.0
-move_speed = 50.0
-plane = 0
+move_speed = 250.0
 
 [node name="Monster5" parent="Entities" unique_id=1035768879 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(274, 880)
 move_distance = 170.0
 move_speed = 50.0
-plane = 0
 
 [node name="Monster6" parent="Entities" unique_id=441628771 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(486, 880)
 move_distance = 170.0
 move_speed = 50.0
-plane = 0
 
 [node name="Monster2" parent="Entities" unique_id=1696538968 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(337, 1042)
 move_distance = 250.0
 move_speed = 200.0
-plane = 1
 
 [node name="Monster8" parent="Entities" unique_id=834310334 instance=ExtResource("4_monster")]
 texture_filter = 1
-position = Vector2(337, 1202)
-move_distance = 100.0
-move_speed = 110.0
-plane = 1
+position = Vector2(292, 1369)
+move_distance = 20.0
+move_speed = 400.0
 
 [node name="Monster10" parent="Entities" unique_id=1710843550 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(302, 1281)
 move_axis = 2
-move_distance = 10.0
+move_distance = 20.0
 move_speed = 400.0
-plane = 1
 
 [node name="Monster11" parent="Entities" unique_id=1250554322 instance=ExtResource("4_monster")]
 texture_filter = 1
 position = Vector2(637, 1281)
 move_axis = 2
-move_distance = 10.0
+move_distance = 20.0
 move_speed = 400.0
-plane = 1
 
 [node name="Monster9" parent="Entities" unique_id=1072877754 instance=ExtResource("4_monster")]
 texture_filter = 1
-position = Vector2(482, 1203)
-move_distance = 100.0
-move_speed = 110.0
-plane = 1
+position = Vector2(616, 1370)
+move_distance = 20.0
+move_speed = 400.0
