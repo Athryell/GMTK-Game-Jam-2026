@@ -8,7 +8,6 @@
 
 [node name="Level" type="Node2D" unique_id=195482827]
 script = ExtResource("1_eqeyr")
-level_name = "Fly"
 world_size = Vector2(1400, 600)
 metadata/_edit_vertical_guides_ = [381.0]
 

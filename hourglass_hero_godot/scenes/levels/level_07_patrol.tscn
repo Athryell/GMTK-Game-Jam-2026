@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_yqovl"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_7mng4"]
 
-[node name="Level" type="Node2D" unique_id=195482827]
+[node name="Level2" type="Node2D" unique_id=195482827]
 position = Vector2(0, -8)
 script = ExtResource("1_yybon")
 world_size = Vector2(960, 1520)
