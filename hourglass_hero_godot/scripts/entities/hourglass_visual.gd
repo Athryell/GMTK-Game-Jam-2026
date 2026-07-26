@@ -57,8 +57,7 @@ func _mirrored() -> bool:
 
 func _draw() -> void:
 	var motion := Glass.motion
-	# Gold whatever is left of it: the warning is the screen edge, the HUD gauge
-	# and the shake, and the glass you are looking at stays readable.
+	# Gold whatever is left: running out reads on the screen edge and the gauge.
 	var sand_colour := Palette.SAND_FULL
 	var down := motion.sprite_down()
 	# Mirroring the node mirrors the glass's own frame with it, so world-down has

@@ -100,8 +100,7 @@ extends Resource
 ## Seconds for a full-strength shake to die away.
 @export_range(0.05, 3.0, 0.05) var camera_shake_decay: float = 0.55
 ## Shake amplitude with an all but empty glass, in px. Held for as long as the
-## danger lasts, so it has to sit well under `camera_shake_strength`: this is a
-## tremor you play through, not a hit.
+## danger lasts, so it belongs well under `camera_shake_strength`.
 @export_range(0.0, 20.0, 0.5) var camera_danger_shake: float = 3.5
 
 @export_group("Light")
