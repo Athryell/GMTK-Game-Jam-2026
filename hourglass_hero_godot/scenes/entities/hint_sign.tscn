@@ -5,7 +5,7 @@
 [node name="HintSign" type="Node2D"]
 z_index = 10
 script = ExtResource("1_hint")
-text = "A / ←    D / →    to move"
+text = "A / LEFT    D / RIGHT    to move"
 
 [node name="Label" type="Label" parent="."]
 offset_left = -300.0

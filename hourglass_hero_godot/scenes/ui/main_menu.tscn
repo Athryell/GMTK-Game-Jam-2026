@@ -96,5 +96,5 @@ text = "Cheat mode — unlock every level"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.604, 0.651, 0.769, 1)
 theme_override_font_sizes/font_size = 12
-text = "← → / A D move    SPACE / ↑ jump    R restart    ESC back to menu"
+text = "ARROWS / A D move    SPACE / UP jump    R restart    ESC back to menu"
 horizontal_alignment = 1

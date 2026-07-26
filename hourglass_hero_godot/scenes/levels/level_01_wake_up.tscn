@@ -28,9 +28,9 @@ polygon = PackedVector2Array(0, 502, 960, 502, 960, 560, 0, 560)
 [node name="MoveHint" parent="Entities" instance=ExtResource("4_hint")]
 position = Vector2(230, 420)
 hide_after_deaths = 1
-text = "A / ←        D / →"
+text = "A / LEFT        D / RIGHT"
 
 [node name="JumpHint" parent="Entities" instance=ExtResource("4_hint")]
 position = Vector2(250, 420)
 after_deaths = 1
-text = "SPACE / ↑   turns the glass over: the sand runs back"
+text = "SPACE / UP   turns the glass over: the sand runs back"
