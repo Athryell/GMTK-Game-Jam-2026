@@ -72,6 +72,11 @@ const PIXEL := 1.0
 ## what gets the grain back to the weight the pile had.
 const SPILL_GRAIN := 2.0
 
+## How many cells a grain may climb looking for somewhere to rest before it gives
+## up and sits where it is. Only reached by a heap several times taller than any a
+## glass this size can pour, so it is a runaway guard and not a shape.
+const HEAP_STACK := 24
+
 ## How much faster than the death itself a piece fades: the painting stays at full
 ## strength for the first two thirds and only then thins out. The texture is the
 ## whole point of these pieces, and one that starts dissolving straight away is a
@@ -95,6 +100,10 @@ var _uvs: Array[PackedVector2Array] = []
 ## SAND only: which grains have landed. A landed grain stops dead and stays put
 ## for the rest of the death, so the spill ends as a heap on the floor.
 var _rested: Array[bool] = []
+## SAND only: the cells of the [constant SPILL_GRAIN] grid a landed grain is
+## already sitting in, so the next one lands ON it rather than inside it. Keyed by
+## cell, in this node's own frame; the value is never read.
+var _heap: Dictionary = {}
 
 
 ## The plane swap.
@@ -370,10 +379,40 @@ func _land(space: PhysicsDirectSpaceState2D, i: int, to: Vector2) -> bool:
 		return false
 	# One grain back out along the surface's own normal, so it sits ON the brick
 	# rather than in its first rows of pixels.
-	_bits[i] = hit.position - global_position + hit.normal * SPILL_GRAIN
+	var at: Vector2 = hit.position - global_position + hit.normal * SPILL_GRAIN
+	var cell := Vector2i(floori(at.x / SPILL_GRAIN), floori(at.y / SPILL_GRAIN))
+	cell = _settle(cell)
+	_heap[cell] = true
+	# The cell's centre, because that is the point [method HourglassShape.draw_grain]
+	# reads back down to a cell.
+	_bits[i] = (Vector2(cell) + Vector2(0.5, 0.5)) * SPILL_GRAIN
 	_velocities[i] = Vector2.ZERO
 	_rested[i] = true
 	return true
+
+
+## Where a grain that has just hit the terrain at `cell` actually comes to rest.
+## The ray stops it at the bricks, but the grains already down there stop it
+## sooner, and every grain taking the cell it hit leaves the whole spill inside a
+## single one.
+##
+## Rolls off the shoulder before it stacks, so a column slumps into a mound instead
+## of growing into a tower — which is the difference between a heap of sand and a
+## bar chart. A grain only rolls onto something that will hold it: the floor row it
+## landed on, or another grain.
+func _settle(cell: Vector2i) -> Vector2i:
+	const DOWN := Vector2i(0, 1)
+	var floor_row := cell.y
+	var climbed := 0
+	while _heap.has(cell) and climbed < HEAP_STACK:
+		var side := Vector2i(1 if randf() < 0.5 else -1, 0)
+		if not _heap.has(cell + side) \
+				and (cell.y == floor_row or _heap.has(cell + side + DOWN)):
+			cell += side
+		else:
+			cell -= DOWN
+		climbed += 1
+	return cell
 
 
 func _draw() -> void:
