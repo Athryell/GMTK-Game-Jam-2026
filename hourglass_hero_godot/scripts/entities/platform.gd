@@ -86,6 +86,12 @@ func _draw() -> void:
 		draw_texture_rect(Bricks.TEXTURE,
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
+	# What the next jump brings in is marked at its edge rather than lifted out of
+	# the ghosts — see `Outline.dashes`. Last, so the brick cannot cover it.
+	if _next and not _active:
+		Outline.dashes(self, PackedVector2Array([
+			Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)]),
+			Palette.halo(plane, 1.0), Tuning.cfg.next_outline_gap)
 
 
 ## Painted under the brick, not lit: there is nothing behind a platform but the
@@ -112,8 +118,10 @@ func shadow_outline() -> PackedVector2Array:
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
-	# A ghost lives in the other plane: visible, but not solid.
-	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
+	# A ghost lives in the other plane: visible, but not solid. `next` is
+	# deliberately not passed on — a slab says where the jump lands with its
+	# dashes, not by pretending to be more solid than it is.
+	return Palette.ghost(base, _active or Engine.is_editor_hint())
 
 
 # ----- Plane -----------------------------------------------------------------

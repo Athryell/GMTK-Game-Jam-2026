@@ -110,8 +110,11 @@ would bury the dozen sliders that actually change how the game plays.
 | `hint_sign.tscn` | A line of text standing in the world, where the lesson is. `after_deaths` holds it back until the level has killed you that many times; `hide_after_deaths` takes it away again, so only one sentence is ever up. | `text`, `after_deaths`, `hide_after_deaths` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
-turns into a faint, non-solid ghost — except the one plane a jump would land you
-in, which is drawn part of the way back towards solid (`ghost_next_lift`). Past
+turns into a faint, non-solid ghost. Solids in the one plane a jump would land
+you in stay just as faint and get a dashed marker outside their silhouette
+instead (`next_outline_gap`), so what you cannot stand on never looks any more
+solid than it is; hazards and zones still lift towards solid (`ghost_next_lift`)
+because there is nothing to stand on to mislead you about. Past
 two chambers there are several ghost planes and only one of them is where you are
 going, so leaning left or right lights up the world you are choosing before you
 commit to it. Moving entities travel `move_distance` px
