@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://dcgbjj08rkugn"]
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="5_hcm0f"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_spring"]
 
 [node name="Level" type="Node2D" unique_id=489568776]
@@ -16,33 +17,53 @@ position = Vector2(180, 1300)
 [node name="Entities" type="Node2D" parent="." unique_id=2136732548]
 
 [node name="Door" parent="Entities" unique_id=1889695029 instance=ExtResource("2_door")]
-position = Vector2(291, 819)
+position = Vector2(487, 1277)
 size = Vector2(34, 62)
 
 [node name="Platform1" parent="Entities" unique_id=996033924 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(160, 1340)
 size = Vector2(640, 60)
 
 [node name="Platform2" parent="Entities" unique_id=658340362 instance=ExtResource("3_platform")]
-position = Vector2(418, 1102)
-size = Vector2(320, 20)
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(431, 1100)
+size = Vector2(208.36, 24.05)
 
-[node name="Platform3" parent="Entities" unique_id=1692352867 instance=ExtResource("3_platform")]
-position = Vector2(151, 881)
-size = Vector2(240, 20)
+[node name="Platform4" parent="Entities" unique_id=130973261 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(407, 996)
+size = Vector2(24.715, 343.845)
 
 [node name="Spring1" parent="Entities" unique_id=1095997758 instance=ExtResource("5_spring")]
 position = Vector2(292, 1326)
-size = Vector2(56, 14)
 power = 1400.0
+size = Vector2(56, 14)
 
 [node name="Spring2" parent="Entities" unique_id=1349763696 instance=ExtResource("5_spring")]
-position = Vector2(542, 1088)
-size = Vector2(52, 14)
+position = Vector2(549, 1085)
 power = 1400.0
+<<<<<<< Updated upstream
 
 [node name="Spring3" parent="Entities" unique_id=1349763697 instance=ExtResource("5_spring")]
 position = Vector2(470, 1284)
 size = Vector2(14, 56)
 facing = 2
 power = 900.0
+=======
+size = Vector2(52, 14)
+
+[node name="Spring3" parent="Entities" unique_id=1851974612 instance=ExtResource("5_spring")]
+position = Vector2(716, 1324)
+power = 1400.0
+size = Vector2(52, 14)
+
+[node name="Spikes2" parent="Entities" unique_id=2071473468 instance=ExtResource("5_hcm0f")]
+texture_filter = 1
+position = Vector2(387, 995)
+facing = 2
+size = Vector2(20, 345.905)
+>>>>>>> Stashed changes

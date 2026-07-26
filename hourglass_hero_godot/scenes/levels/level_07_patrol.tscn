@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://03dachks7swm"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_yybon"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_7mng4"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_malo8"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_yqovl"]
+
+[node name="Level" type="Node2D" unique_id=195482827]
+position = Vector2(0, -8)
+script = ExtResource("1_yybon")
+level_name = "Patrol"
+world_size = Vector2(960, 1520)
+metadata/_edit_vertical_guides_ = [381.0]
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1441826477]
+position = Vector2(100, 1427)
+
+[node name="Entities" type="Node2D" parent="." unique_id=2138021771]
+
+[node name="Door" parent="Entities" unique_id=1860747257 instance=ExtResource("2_7mng4")]
+position = Vector2(418, 774)
+size = Vector2(34, 62)
+
+[node name="Platform1" parent="Entities" unique_id=1205676973 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(60, 1450)
+size = Vector2(500, 20)
+
+[node name="Platform2" parent="Entities" unique_id=1673553362 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(320, 1352)
+size = Vector2(160, 16)
+plane = 1
+
+[node name="Platform3" parent="Entities" unique_id=298821651 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(170, 1272)
+size = Vector2(150, 16)
+plane = 0
+
+[node name="Platform4" parent="Entities" unique_id=1012931643 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(440, 1208)
+size = Vector2(140, 16)
+plane = 1
+
+[node name="Platform5" parent="Entities" unique_id=775875650 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(622, 1120)
+size = Vector2(130, 16)
+plane = 0
+
+[node name="Platform6" parent="Entities" unique_id=47625660 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(440, 1040)
+size = Vector2(140, 16)
+
+[node name="Platform8" parent="Entities" unique_id=1288934711 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(360, 952)
+size = Vector2(50, 18)
+plane = 1
+
+[node name="Platform9" parent="Entities" unique_id=986581192 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(200, 1008)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="Platform11" parent="Entities" unique_id=130973261 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(64, 904)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="Platform10" parent="Entities" unique_id=547939539 instance=ExtResource("3_malo8")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(268, 836)
+size = Vector2(220, 18)
+
+[node name="Monster3" parent="Entities" unique_id=791614986 instance=ExtResource("4_yqovl")]
+texture_filter = 1
+position = Vector2(280, 1312)
+move_axis = 2
+move_distance = 128.0
+move_speed = 120.0
+size = Vector2(30, 34)
+
+[node name="Monster4" parent="Entities" unique_id=243506668 instance=ExtResource("4_yqovl")]
+texture_filter = 1
+position = Vector2(320, 1312)
+move_distance = 86.0
+move_speed = 120.0
+move_phase = 0.4
+size = Vector2(30, 34)
+
+[node name="Monster5" parent="Entities" unique_id=1574690048 instance=ExtResource("4_yqovl")]
+texture_filter = 1
+position = Vector2(622, 1080)
+move_distance = 86.0
+move_speed = 100.0
+move_phase = 0.4
+size = Vector2(30, 34)
+plane = 0
+
+[node name="Monster2" parent="Entities" unique_id=228255912 instance=ExtResource("4_yqovl")]
+texture_filter = 1
+position = Vector2(200, 968)
+move_distance = 400.0
+move_speed = 250.0
+size = Vector2(30, 34)
+plane = 1
