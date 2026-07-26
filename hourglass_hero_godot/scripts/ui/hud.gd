@@ -19,6 +19,7 @@ const CHARGED_GLOW_ALPHA := 0.45
 
 @onready var _level_label: Label = $LevelLabel
 @onready var _time_label: Label = $TimeLabel
+@onready var _death_label: Label = $DeathLabel
 @onready var _overlay: Label = $Overlay
 @onready var _hint: Label = $Hint
 
@@ -39,6 +40,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_glow.visible = Game.feathered
 	_time_label.text = Game.format_time(Game.run_time)
+	_death_label.text = "DEATHS %d" % Game.run_deaths
 	queue_redraw()
 
 
@@ -78,5 +80,5 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""
 		Game.Status.VICTORY:
-			_overlay.text = "YOU MADE IT!\n\nThanks for playing!!\n\nShare your time: %s\n\nPress R to play again    ESC / M for the menu" \
-				% Game.format_time(Game.run_time)
+			_overlay.text = "YOU MADE IT!\n\nThanks for playing!!\n\nShare your time: %s    Deaths: %d\n\nPress R to play again    ESC / M for the menu" \
+				% [Game.format_time(Game.run_time), Game.run_deaths]

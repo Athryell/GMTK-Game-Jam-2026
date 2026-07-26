@@ -91,6 +91,9 @@ var jump_locked_first_life := false
 ## Deaths on the level being played. Survives `restart`, cleared by moving to
 ## another level.
 var level_deaths := 0
+## Deaths since the run started. Only `start_run` clears it, so it survives both a
+## retry and a level change and reads as the toll of the whole attempt.
+var run_deaths := 0
 
 ## The lock is spent by the first death, so what the level killed you for is what
 ## hands the jump back.
@@ -285,6 +288,7 @@ func _save_progress() -> void:
 ## from the menu is timed like any other attempt.
 func start_run(index: int) -> void:
 	run_time = 0.0
+	run_deaths = 0
 	start_level(index)
 
 
@@ -326,6 +330,7 @@ func set_status(new_status: Status) -> void:
 	# Counted before the signal goes out, so listeners read the toll including it.
 	if new_status == Status.DEAD:
 		level_deaths += 1
+		run_deaths += 1
 	status = new_status
 	status_changed.emit(status)
 

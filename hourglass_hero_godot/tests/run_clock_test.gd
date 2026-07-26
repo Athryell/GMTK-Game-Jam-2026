@@ -28,11 +28,30 @@ func _ready() -> void:
 		Game.format_time(-5.0))
 
 	Game.run_time = 12.5
+	Game.run_deaths = 7
 	Game.start_run(0)
 	_check("starting a run puts the clock back", is_zero_approx(Game.run_time),
 		"%f" % Game.run_time)
+	_check("starting a run puts the death count back", Game.run_deaths == 0,
+		"%d" % Game.run_deaths)
+
+	_die()
+	_die()
+	_check("every death is counted once", Game.run_deaths == 2, "%d" % Game.run_deaths)
+	Game.start_level(Game.level_index, true)
+	_check("a retry keeps the run's toll", Game.run_deaths == 2, "%d" % Game.run_deaths)
+	Game.start_level(Game.level_index + 1)
+	_check("the next level keeps the run's toll", Game.run_deaths == 2,
+		"%d" % Game.run_deaths)
 
 	_finish()
+
+
+## `set_status` only counts a change, so a second death has to be preceded by
+## coming back to life.
+func _die() -> void:
+	Game.set_status(Game.Status.DEAD)
+	Game.set_status(Game.Status.PLAY)
 
 
 func _check(label: String, ok: bool, detail := "") -> void:
