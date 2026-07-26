@@ -22,6 +22,11 @@ var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
 
+## Sideways push from a spring, in px/s, bleeding off. Steering rewrites
+## `velocity.x` outright every frame, so a horizontal launch cannot live there:
+## it rides on top of the steering instead.
+var _launch := 0.0
+
 ## The light the glass gives off; its brightness is the remaining sand.
 var _light: PointLight2D
 var _pulse := 0.0
@@ -121,7 +126,8 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var steer := Input.get_axis("move_left", "move_right")
-	velocity.x = steer * cfg.move_speed
+	velocity.x = steer * cfg.move_speed + _launch
+	_launch = move_toward(_launch, 0.0, cfg.spring_launch_decay * delta)
 	Game.aim(steer)
 	if not is_zero_approx(steer):
 		Game.start_clock()
@@ -150,6 +156,10 @@ func _physics_process(delta: float) -> void:
 	var was_airborne := not is_on_floor()
 	var impact := velocity.y * pull
 	move_and_slide()
+
+	# Otherwise a launch into a wall keeps pinning the glass to it until it decays.
+	if is_on_wall():
+		_launch = 0.0
 
 	if is_on_floor():
 		if was_airborne and _settled:
@@ -222,8 +232,17 @@ func _on_status_changed(status: Game.Status) -> void:
 
 ## Launched by a spring: no flip, no plane change, and no variable-height cut.
 ## A spring does not refill the feather — nothing does.
-func bounce(power: float) -> void:
-	velocity.y = -power * pull
+##
+## `direction` is the one drawn on the pad, NOT one relative to gravity: a pad
+## pointing up throws you up the screen even with the world over. Only the pushed
+## axis is touched, so a vertical pad leaves your run speed alone and a
+## horizontal one leaves you falling.
+func bounce(power: float, direction: Vector2) -> void:
+	var push := direction * power
+	if not is_zero_approx(push.y):
+		velocity.y = push.y
+	if not is_zero_approx(push.x):
+		_launch = push.x
 	_jumping = false
 	_coyote = 0.0
 	Audio.sfx("spring")

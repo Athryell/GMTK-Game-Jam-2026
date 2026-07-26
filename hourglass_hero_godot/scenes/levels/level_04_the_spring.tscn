@@ -40,3 +40,9 @@ power = 1400.0
 position = Vector2(542, 1088)
 size = Vector2(52, 14)
 power = 1400.0
+
+[node name="Spring3" parent="Entities" unique_id=1349763697 instance=ExtResource("5_spring")]
+position = Vector2(470, 1284)
+size = Vector2(14, 56)
+facing = 2
+power = 900.0
