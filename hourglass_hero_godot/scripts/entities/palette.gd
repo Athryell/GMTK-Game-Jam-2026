@@ -41,8 +41,8 @@ const BRICK_GAIN := 1.5
 const GLASS := Color("eef2ff") ## Hourglass frame.
 const SAND_FULL := Color("ffb03a")
 const SAND_LOW := Color("ff4d6d")
-## The sand while a feather's jump is in hand. The one place the glass leaves the
-## warm family, so the charge is legible without an icon.
+## The one colour that leaves the warm family, and the only sign that a feather's
+## jump is in hand.
 const SAND_CHARGED := Color("3fb8ff")
 
 # ----- Text ------------------------------------------------------------------
@@ -99,16 +99,15 @@ static func ghost(base: Color, active: bool, next := false) -> Color:
 	return Color(base.r, base.g, base.b, alpha)
 
 
-## The sand's colour at a given `Game.danger()`. Shared by sprite, HUD and light.
-## Danger still reads the same way when charged: the ramp runs from the blue
-## instead of from the gold, and ends on the same red.
+## The sand's colour at a given `Game.danger()`. Shared by the HUD gauge and the
+## player's lamp; the glass itself takes `glass_sand`.
 static func sand(danger: float, charged := false) -> Color:
 	var full := SAND_CHARGED if charged else SAND_FULL
 	return full.lerp(SAND_LOW, danger)
 
 
 ## What the GLASS itself is filled with. No danger ramp — that reads on the
-## screen edge and on the gauge, not in the hand you are looking at.
+## screen edge and on the gauge.
 static func glass_sand(charged: bool) -> Color:
 	return SAND_CHARGED if charged else SAND_FULL
 

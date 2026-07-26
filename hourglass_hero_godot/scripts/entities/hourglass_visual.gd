@@ -16,8 +16,7 @@ const TREMBLE_RATES := Vector2(47.0, 61.3)
 ## How fast the glass swings round when the world turns over, in rad/s.
 const UPSET_RATE := 11.0
 
-## The bloom the glass gives off while a feather's jump is in hand: reach in px,
-## and strength.
+## The charged bloom: reach in px, and strength.
 const CHARGED_GLOW_RADIUS := 52.0
 const CHARGED_GLOW_ALPHA := 0.5
 

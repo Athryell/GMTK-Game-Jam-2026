@@ -1,8 +1,6 @@
-## A soft breathing halo, drawn ADDITIVELY so it reads as light rather than as
-## paint. Its own node, because the additive blend belongs to the halo alone and
-## would otherwise wash out everything else its parent draws.
-##
-## Sits behind its parent's own drawing: negative `z_index`.
+## A soft breathing halo, drawn ADDITIVELY so it reads as light and not as paint.
+## Its own node because that blend mode would otherwise wash out everything else
+## its parent draws.
 class_name Glow
 extends Node2D
 
@@ -17,7 +15,6 @@ var alpha := 0.5
 var _pulse := 0.0
 
 
-## Ready to be added as a child; starts hidden.
 static func halo(tint: Color, radius: float, alpha: float) -> Glow:
 	var glow := Glow.new()
 	glow.tint = tint

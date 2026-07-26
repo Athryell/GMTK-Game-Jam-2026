@@ -50,8 +50,8 @@ const FLOOR_SNAP := 8.0
 ## How far the landing thud is detuned each time, either way.
 const LAND_PITCH_JITTER := 0.09
 
-## What a feather's charge does to the lamp: brighter and further, both by this.
-## Kept under 1.5 — past that the glass lights the whole room and the plane hues
+## What a feather's charge does to the lamp, to its energy and its reach alike.
+## Kept under 1.5: past that the glass lights the whole room and the plane hues
 ## wash out.
 const CHARGED_LIGHT_LIFT := 1.3
 
@@ -76,8 +76,6 @@ func _process(delta: float) -> void:
 	var danger := Game.danger()
 	var fuel: float = clampf(Game.sand / maxf(cfg.sand_max, 1.0), 0.0, 1.0)
 	var throb := 1.0 + 0.14 * sin(_pulse * 13.0) * danger
-	# A charged glass burns brighter and reaches further, so the blue reads as
-	# light and not as a repaint.
 	var charge := CHARGED_LIGHT_LIFT if Game.feathered else 1.0
 	_light.color = Palette.sand(danger, Game.feathered)
 	# The 0.42 floor keeps an empty glass still lighting the way.

@@ -99,11 +99,9 @@ var flip_dir: float = 1.0
 ## Seconds left on the "flip-pad triggered" flash.
 var pad_flash: float = 0.0
 
-## True while a [Feather]'s mid-air jump is in hand. Spending it empties it, and
-## nothing — not landing, not a spring — puts it back.
-##
-## Lives here rather than on the player because the HUD gauge, off in another
-## scene, colours itself with it.
+## True while a [Feather]'s mid-air jump is in hand. Nothing — not landing, not a
+## spring — puts it back once spent. On [Game] rather than on the player because
+## the HUD gauge, off in another scene, colours itself with it.
 var feathered := false
 
 
