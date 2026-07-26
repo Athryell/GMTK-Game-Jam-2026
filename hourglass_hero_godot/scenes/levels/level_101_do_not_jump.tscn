@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_q4kb3"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="2_evpw8"]
-[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_b1ejw"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_b1ejw"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="4_sjbox"]
 [ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_j80in"]
 [ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="6_tybf4"]
