@@ -14,6 +14,8 @@ var _buttons: Array[Button] = []
 
 func _ready() -> void:
 	_play.pressed.connect(_on_play_pressed)
+	# Quitting a browser tab from inside it only leaves a dead black canvas.
+	_quit.visible = not OS.has_feature("web")
 	_quit.pressed.connect(get_tree().quit)
 	_cheat.set_pressed_no_signal(Game.cheat_mode)
 	_cheat.toggled.connect(_on_cheat_toggled)
