@@ -476,7 +476,11 @@ func jump_flip(travel_dir: float) -> void:
 ## A flip-pad: refuels with no jump and no plane change. Only reads right at two
 ## chambers, where the pad just swaps the two bulbs; no wider level places one.
 func pad_flip() -> void:
+	# `flip_dir` has to agree with the turn above, or the glass is drawn tumbling
+	# one way while its chambers move the other.
+	flip_dir = 1.0
 	rotate_glass(1)
+	flip_anim = Tuning.cfg.flip_duration
 	pad_flash = Tuning.cfg.pad_flash_duration
 	flipped.emit(true)
 
