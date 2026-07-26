@@ -1,10 +1,10 @@
 ## The track a patrolling entity runs along, drawn in the editor only.
 ##
-## Screen space, node-local: the caller's origin is the TOP-LEFT of its `size`,
-## so everything here is offset by half of it to sit on the centre.
+## Node-local, and the caller's origin is the TOP-LEFT of its `size` — so
+## everything here is offset by half of it to sit on the centre.
 ##
-## `addons/level_tools` draws the grab handles over the same track. This part is
-## in the entity so every patrol shows up at once, selected or not.
+## Drawn by the entity rather than by `addons/level_tools`, which only adds the
+## grab knob: this way every patrol in the level shows up at once, unselected.
 class_name PatrolPath
 extends RefCounted
 
@@ -25,7 +25,7 @@ static func travel(axis: PingPong.Axis, distance: float) -> Vector2:
 			return Vector2.ZERO
 
 
-## Where the grab handles sit: the entity's centre at each end of the track.
+## The two ends of the track, where the grab knob sits.
 static func handles(size: Vector2, axis: PingPong.Axis,
 		distance: float) -> PackedVector2Array:
 	var centre := size * 0.5

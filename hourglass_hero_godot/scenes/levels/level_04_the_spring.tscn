@@ -40,6 +40,7 @@ size = Vector2(24.715, 343.845)
 
 [node name="Spring1" parent="Entities" unique_id=1095997758 instance=ExtResource("5_spring")]
 position = Vector2(292, 1326)
+rotation = -0.54541546
 power = 1400.0
 size = Vector2(56, 14)
 

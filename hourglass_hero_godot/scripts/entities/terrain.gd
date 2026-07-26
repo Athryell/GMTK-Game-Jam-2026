@@ -108,9 +108,9 @@ func shadow_outline() -> PackedVector2Array:
 
 # ----- Size ------------------------------------------------------------------
 #
-# `size` is the polygon's bounding box, typed in the inspector instead of dragged
-# vertex by vertex. It is NOT stored: the polygon on the child is the one truth,
-# and this is only ever read off it and written back into it.
+# `size` is the polygon's bounding box, typed rather than dragged. NOT stored:
+# the polygon on the child stays the one truth, and this is only read off it and
+# written back into it.
 
 const MIN_SIZE := 1.0
 
@@ -192,7 +192,7 @@ func _refresh() -> void:
 		else PackedInt32Array()
 	update_configuration_warnings()
 	queue_redraw()
-	# The polygon was just dragged by hand: tell the inspector its `size` is stale.
+	# The points just moved, so the `size` shown in the inspector is stale.
 	if Engine.is_editor_hint():
 		notify_property_list_changed()
 

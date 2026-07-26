@@ -3,9 +3,7 @@
 ## rectangle, or the box a `Terrain`'s ground fits in.
 ##
 ## Dragging a side moves THAT side only — the opposite one stays where it is, so
-## a floor grows away from the wall it was butted against. A platform takes the
-## new box on its `size` and shifts its origin to match; a terrain stretches its
-## polygon into it, which keeps the angle of a slope.
+## a floor grows away from the wall it was butted against.
 extends "res://addons/level_tools/gizmo.gd"
 
 ## Half a handle square's side, in screen px.

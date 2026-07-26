@@ -1,10 +1,9 @@
 @tool
-## Base for the handles drawn over the 2D viewport: the screen transform they all
-## need, and the four calls `plugin.gd` drives them by.
+## Base for the handles drawn over the 2D viewport.
 ##
 ## A gizmo owns its own drag state; the plugin only decides which one has the
-## mouse. `grab` returning true means "this drag is mine", and the plugin then
-## sends every motion to that gizmo until the button comes back up.
+## mouse. `grab` returning true means "this drag is mine", and every motion then
+## goes to that gizmo until the button comes back up.
 extends RefCounted
 
 ## Screen px around a handle that still count as a grab.

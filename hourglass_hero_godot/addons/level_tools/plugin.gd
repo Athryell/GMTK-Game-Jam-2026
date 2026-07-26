@@ -1,10 +1,8 @@
 @tool
 ## Editor-only: the handles a level is built with, drawn over the 2D viewport.
 ##
-## Patrol tracks and the size of a solid, both draggable where you can see them
-## instead of typed into the inspector. Every gizmo also works as a number: this
-## edits the same exported properties, so nothing here is a second source of
-## truth.
+## Every gizmo writes the same exported properties the inspector does, so a
+## level's numbers stay the one place its shape is stored.
 extends EditorPlugin
 
 const PatrolGizmo := preload("res://addons/level_tools/patrol_gizmo.gd")

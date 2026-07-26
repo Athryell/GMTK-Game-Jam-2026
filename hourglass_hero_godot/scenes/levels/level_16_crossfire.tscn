@@ -1,37 +1,49 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://dwaxyxqmgh3vo"]
 
-[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" uid="uid://b62bjh4xkmsp0" path="res://scripts/entities/terrain.gd" id="3_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/entities/cannon.tscn" id="4_cannon"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_yvijg"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=567933069]
 script = ExtResource("1_level")
 level_name = "Crossfire"
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=1305655727]
 position = Vector2(60, 479)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=1406894775]
 
-[node name="Ground" type="StaticBody2D" parent="Entities"]
+[node name="Ground" type="StaticBody2D" parent="Entities" unique_id=1429391397]
+texture_filter = 1
+texture_repeat = 2
+collision_mask = 0
 script = ExtResource("3_terrain")
 
-[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground"]
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground" unique_id=1914501933]
 polygon = PackedVector2Array(0, 502, 260, 502, 260, 494, 300, 494, 300, 502, 600, 502, 600, 494, 640, 494, 640, 502, 960, 502, 960, 560, 0, 560)
 
-[node name="Shelter" type="StaticBody2D" parent="Entities"]
+[node name="Shelter" type="StaticBody2D" parent="Entities" unique_id=165414918]
+texture_filter = 1
+texture_repeat = 2
+collision_mask = 0
 script = ExtResource("3_terrain")
 
-[node name="Shape" type="CollisionPolygon2D" parent="Entities/Shelter"]
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Shelter" unique_id=2135099867]
 polygon = PackedVector2Array(450, 458, 500, 458, 500, 502, 450, 502)
 
-[node name="CannonNear" parent="Entities" instance=ExtResource("4_cannon")]
+[node name="CannonNear" parent="Entities" unique_id=1593068851 instance=ExtResource("4_cannon")]
 position = Vector2(280, 481)
 
-[node name="CannonFar" parent="Entities" instance=ExtResource("4_cannon")]
+[node name="CannonFar" parent="Entities" unique_id=104782792 instance=ExtResource("4_cannon")]
 position = Vector2(620, 481)
 phase = 0.5
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+[node name="Door" parent="Entities" unique_id=1777228813 instance=ExtResource("2_door")]
 position = Vector2(890, 438)
+
+[node name="Spring" parent="." unique_id=54364975 instance=ExtResource("5_yvijg")]
+position = Vector2(105, 457)
+rotation = 1.4583061
+size = Vector2(56, 14)
