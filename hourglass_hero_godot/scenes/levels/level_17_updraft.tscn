@@ -3,10 +3,11 @@
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_y0bpb"]
 [ext_resource type="PackedScene" path="res://scenes/entities/cannon.tscn" id="3_44ebj"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="4_dli14"]
-[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="4_xseoh"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="4_xseoh"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_knycj"]
 [ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_oultk"]
 [ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="6_44ebj"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="8_dli14"]
 
 [node name="Level" type="Node2D" unique_id=567933069]
 script = ExtResource("1_y0bpb")
@@ -74,16 +75,6 @@ position = Vector2(459, 1061)
 rotation = 4.712389
 plane = 0
 
-[node name="Cannon14" parent="Entities" unique_id=1217009637 instance=ExtResource("3_44ebj")]
-texture_filter = 1
-position = Vector2(514, 1039)
-plane = 0
-
-[node name="Cannon15" parent="Entities" unique_id=1795856908 instance=ExtResource("3_44ebj")]
-texture_filter = 1
-position = Vector2(575, 1039)
-plane = 0
-
 [node name="Cannon13" parent="Entities" unique_id=197779767 instance=ExtResource("3_44ebj")]
 texture_filter = 1
 position = Vector2(342, 1061)
@@ -130,7 +121,7 @@ size = Vector2(20, 233)
 texture_filter = 1
 texture_repeat = 2
 position = Vector2(483, 1044)
-size = Vector2(114, 20)
+size = Vector2(49, 20)
 
 [node name="Platform8" parent="Entities" unique_id=1371268093 instance=ExtResource("4_xseoh")]
 texture_filter = 1
@@ -154,8 +145,8 @@ size = Vector2(322, 18)
 [node name="Platform4" parent="Entities" unique_id=1591631423 instance=ExtResource("4_xseoh")]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(618, 994)
-size = Vector2(311, 18)
+position = Vector2(597, 994)
+size = Vector2(332, 18)
 
 [node name="InversionZone" parent="Entities" unique_id=1521030229 instance=ExtResource("5_oultk")]
 position = Vector2(284, 1368)
@@ -177,3 +168,8 @@ size = Vector2(56, 14)
 [node name="Spring3" parent="." unique_id=735085351 instance=ExtResource("5_knycj")]
 position = Vector2(46, 974)
 size = Vector2(56, 14)
+
+[node name="Spikes" parent="." unique_id=2046172029 instance=ExtResource("8_dli14")]
+texture_filter = 1
+position = Vector2(460, 1012)
+size = Vector2(79.97, 32)

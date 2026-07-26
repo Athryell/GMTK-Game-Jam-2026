@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://bbxhbksgetgkk"]
+[gd_scene format=3 uid="uid://vwd31ydbwu0w"]
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_monster"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
 
@@ -17,7 +17,6 @@ position = Vector2(41, 479)
 
 [node name="Door" parent="Entities" unique_id=1387439796 instance=ExtResource("2_door")]
 position = Vector2(1350, 438)
-plane = 1
 
 [node name="Platform1" parent="Entities" unique_id=2098269149 instance=ExtResource("3_platform")]
 texture_filter = 1
@@ -30,7 +29,6 @@ texture_filter = 1
 texture_repeat = 2
 position = Vector2(1000, 502)
 size = Vector2(400, 38)
-plane = 1
 
 [node name="Platform3" parent="Entities" unique_id=1135208768 instance=ExtResource("3_platform")]
 texture_filter = 1
@@ -70,11 +68,10 @@ size = Vector2(780, 35)
 
 [node name="Monster1" parent="Entities" unique_id=582371600 instance=ExtResource("4_monster")]
 texture_filter = 1
-position = Vector2(482, 415)
-move_axis = 0
-move_distance = 64.0
+position = Vector2(415, 331)
+move_axis = 2
+move_distance = 81.0
 size = Vector2(30, 34)
-plane = 0
 
 [node name="Monster2" parent="Entities" unique_id=1300343788 instance=ExtResource("4_monster")]
 texture_filter = 1

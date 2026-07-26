@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_q4kb3"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="2_evpw8"]
-[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_b1ejw"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_b1ejw"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="4_sjbox"]
 [ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_j80in"]
 [ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="6_tybf4"]
@@ -37,7 +37,8 @@ plane = 0
 texture_filter = 1
 position = Vector2(328, 264)
 move_axis = 2
-move_distance = 201.0
+move_distance = 87.0
+move_speed = 41.0
 size = Vector2(30, 34)
 
 [node name="Door" parent="Entities" unique_id=1396874587 instance=ExtResource("4_sjbox")]

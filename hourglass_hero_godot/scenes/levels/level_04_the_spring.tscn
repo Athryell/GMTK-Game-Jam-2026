@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="5_hcm0f"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_spring"]
 
@@ -16,7 +16,7 @@ position = Vector2(180, 1300)
 [node name="Entities" type="Node2D" parent="." unique_id=2136732548]
 
 [node name="Door" parent="Entities" unique_id=1889695029 instance=ExtResource("2_door")]
-position = Vector2(487, 1277)
+position = Vector2(432, 1272)
 size = Vector2(34, 62)
 
 [node name="Platform1" parent="Entities" unique_id=996033924 instance=ExtResource("3_platform")]
@@ -49,12 +49,12 @@ power = 1400.0
 size = Vector2(52, 14)
 
 [node name="Spring3" parent="Entities" unique_id=1851974612 instance=ExtResource("5_spring")]
-position = Vector2(561, 1321)
+position = Vector2(535, 1321)
 power = 1400.0
 size = Vector2(52, 14)
 
 [node name="Spring4" parent="Entities" unique_id=1584351314 instance=ExtResource("5_spring")]
-position = Vector2(673, 1321)
+position = Vector2(680, 1323)
 power = 1400.0
 size = Vector2(52, 14)
 
