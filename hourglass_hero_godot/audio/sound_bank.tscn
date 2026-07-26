@@ -10,6 +10,7 @@
 [ext_resource type="AudioStream" path="res://audio/sfx/portal.wav" id="10_portal"]
 [ext_resource type="AudioStream" uid="uid://cmmusr2qbbnfh" path="res://audio/music/falling_sand.wav" id="6_sand"]
 [ext_resource type="AudioStream" path="res://audio/music/return_8_bit.mp3" id="7_return"]
+[ext_resource type="AudioStream" path="res://audio/music/menu.mp3" id="11_menu"]
 
 [node name="SoundBank" type="Node" unique_id=1992489972]
 
@@ -58,6 +59,7 @@ bus = &"SFX"
 [node name="Music" type="Node" parent="." unique_id=278794889]
 
 [node name="menu" type="AudioStreamPlayer" parent="Music" unique_id=1812269997]
+stream = ExtResource("11_menu")
 volume_db = -12.0
 bus = &"Music"
 
