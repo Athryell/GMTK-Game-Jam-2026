@@ -218,10 +218,10 @@ func _aim_marker() -> void:
 
 
 func _colour() -> Color:
-	var level := 0 if Engine.is_editor_hint() else Game.level_index
 	# `next` is deliberately not passed on: the ground says where the jump lands
 	# with its dashes, not by looking more solid than it is.
-	return Palette.ghost(Palette.bricks(level), _active or Engine.is_editor_hint())
+	return Palette.ghost(Palette.bricks(Level.group_of(self)),
+		_active or Engine.is_editor_hint())
 
 
 func _set_plane(value: Planes.Kind) -> void:

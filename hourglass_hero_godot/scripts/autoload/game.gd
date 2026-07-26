@@ -25,7 +25,7 @@ signal gravity_changed(sign: float)
 signal flow_changed(flow: float)
 signal level_loaded(index: int, level_name: String)
 
-## Level scenes, sorted by filename (level_01_… before level_02_…).
+## Level scenes, sorted by the number in the filename.
 var level_scenes: Array[PackedScene] = []
 ## Display names, parallel to `level_scenes`.
 var level_names: Array[String] = []
@@ -184,7 +184,7 @@ func _discover_levels() -> Array[PackedScene]:
 		var clean := file.trim_suffix(".remap")
 		if clean.get_extension() == "tscn":
 			names.append(clean)
-	names.sort()
+	names.sort_custom(level_before)
 
 	var out: Array[PackedScene] = []
 	for n in names:
@@ -192,6 +192,16 @@ func _discover_levels() -> Array[PackedScene]:
 		if scene != null:
 			out.append(scene)
 	return out
+
+
+## A plain string sort files level_100 between level_09 and level_10, because
+## "0" sorts before "_".
+static func level_before(a: String, b: String) -> bool:
+	var na := Level.number_from_path(a)
+	var nb := Level.number_from_path(b)
+	if na != nb:
+		return na < nb
+	return a < b
 
 
 ## Reads `level_name` from a scene without instantiating it; falls back to the

@@ -65,11 +65,11 @@ func _ready() -> void:
 	_build_sky()
 
 
-## Fits the room to a level, swapping in a new background's art the moment
-## `level_index` crosses into the next group of `LEVELS_PER_BACKGROUND`.
-## `view_bottom` is the lowest world y the opening frame shows.
-func configure(level: Level, level_index: int, view_bottom: float) -> void:
-	var index := _background_index_for_level(level_index)
+## Fits the room to a level, swapping in the art of `group` — the level's theme —
+## whenever it differs from the one already up. `view_bottom` is the lowest world
+## y the opening frame shows.
+func configure(level: Level, group: int, view_bottom: float) -> void:
+	var index := _background_index_for_group(group)
 	if index != _background_index:
 		_background_index = index
 		_rebuild_layers(index)
@@ -127,20 +127,20 @@ func _build_sky() -> void:
 	add_child(layer)
 
 
-## Which background a level belongs to, UNCLAMPED — the caller knows how many it
-## actually has. Public because the background is what the place is: the brick
-## the level is built from and the music it plays are grouped by this too, so
-## all three change on the same level or none of them do.
+## The theme a level falls in from its rank alone, UNCLAMPED — what a level that
+## picked no theme of its own gets. Public because the theme is what the place
+## is: the brick the level is built from and the music it plays are grouped by
+## this too, so all three change on the same level or none of them do.
 static func group_for_level(level_index: int) -> int:
 	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
 	return level_index / LEVELS_PER_BACKGROUND
 
 
-func _background_index_for_level(level_index: int) -> int:
+func _background_index_for_group(group: int) -> int:
 	var count := _count_backgrounds()
 	if count <= 0:
 		return -1
-	return clampi(group_for_level(level_index), 0, count - 1)
+	return clampi(group, 0, count - 1)
 
 
 ## How many "background N" folders exist under `BG_ROOT`.
