@@ -15,12 +15,10 @@ So **you can only refuel by net-changing plane**. Two elements bend that: a
 **spring** throws you with no flip, and a **flip-pad** flips the sand with no jump
 and no plane change.
 
-Godot 4 port of the vanilla-JS prototype in `../hourglass_hero`.
-
 ## Running
 
 ```bash
-godot --path hourglass_hero_godot
+godot --path .
 ```
 
 `←`/`→` or `A`/`D` move, `Space`/`W`/`↑` jump, `R` restarts, `Esc` returns to
@@ -232,7 +230,7 @@ The levels are played, not tested. The benches cover the maths under them and
 nothing else.
 
 ```bash
-godot --path hourglass_hero_godot --headless tests/sand_test.tscn
+godot --path . --headless tests/sand_test.tscn
 ```
 
 The sand test checks the geometry: that the area drawn equals the sand there is
@@ -240,7 +238,7 @@ at every tilt, that the free surface stays level in *world* space rather than
 turning with the walls, and that a flip lands with no jump in the sand.
 
 ```bash
-godot --path hourglass_hero_godot --headless tests/chamber_layout_test.tscn
+godot --path . --headless tests/chamber_layout_test.tscn
 ```
 
 The chamber layout test checks the multi-chamber glass: which chambers drain,
@@ -248,7 +246,7 @@ receive or seal shut at each count, who pours into whom, and the lessons the
 three- and four-chamber levels are built to teach.
 
 ```bash
-godot --path hourglass_hero_godot --headless tests/polygon_test.tscn
+godot --path . --headless tests/polygon_test.tscn
 ```
 
 The polygon test checks the geometry the drawn ground stands on: which way a

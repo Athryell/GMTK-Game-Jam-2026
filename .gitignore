@@ -25,6 +25,7 @@ mono_crash.*.json
 
 # stuff
 build/
+shots/
 .serena/
 .claude/
 .DS_Store

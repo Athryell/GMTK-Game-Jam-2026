@@ -1,6 +1,6 @@
 ## Screenshot harness: boots the real game and saves frames to disk.
 ##
-##   godot --path hourglass_hero_godot tests/screenshot.tscn -- <out_dir> [flip] [dry] [levels…]
+##   godot --path . tests/screenshot.tscn -- <out_dir> [flip] [dry] [levels…]
 ##
 ## Levels are 1-based; none given shoots every level. `flip` jumps once first,
 ## the only way to see the BACK plane. Needs a real window — under `--headless`
@@ -11,7 +11,7 @@ const MAIN := preload("res://scenes/main.tscn")
 ## Frames to let the camera, parallax and flip tween settle before shooting.
 const SETTLE_FRAMES := 45
 
-var _out_dir := "res://../shots"
+var _out_dir := "res://shots"
 var _levels: Array[int] = []
 var _flip := false
 var _dry := false

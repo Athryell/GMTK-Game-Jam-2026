@@ -1,6 +1,6 @@
 ## Flow-turn harness: one contact sheet of the sand reversing, step by step.
 ##
-##   godot --path hourglass_hero_godot tests/flow_sheet.tscn -- <out.png> [fill]
+##   godot --path . tests/flow_sheet.tscn -- <out.png> [fill]
 ##
 ## The glass alone, drawn once per value of `invert`, reading left to right then
 ## top to bottom: a glitch shows up as one cell out of step with its neighbours.
@@ -17,7 +17,7 @@ var _fill := 0.65
 
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
-	var path := args[0] if args.size() > 0 else "res://../shots/flow_sheet.png"
+	var path := args[0] if args.size() > 0 else "res://shots/flow_sheet.png"
 	if args.size() > 1 and args[1].is_valid_float():
 		_fill = args[1].to_float()
 	queue_redraw()
