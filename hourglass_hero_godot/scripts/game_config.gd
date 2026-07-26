@@ -57,12 +57,7 @@ extends Resource
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.
-##
-## Also the whole length of the death animation — the pieces of the broken glass
-## and the spilled sand are freed with the level. At 0.6 the glass had barely come
-## apart before the restart cut it off; this is the shortest pause the break and
-## the fall both fit inside, and it is still under a second.
-@export_range(0.1, 3.0, 0.1) var death_delay: float = 0.9
+@export_range(0.1, 3.0, 0.1) var death_delay: float = 0.6
 
 @export_group("Camera")
 
