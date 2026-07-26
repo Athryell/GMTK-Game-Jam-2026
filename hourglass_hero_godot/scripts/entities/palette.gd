@@ -20,8 +20,8 @@ const PLANE_SOLIDS: Array[Color] = [
 	Color("7fe04c"), ## P2 — lime.
 	Color("f0764c"), ## P3 — terracotta.
 ]
-## Strength of the glow `halo` hands out, before the host's own alpha.
-const HALO_ALPHA := 0.85
+## Strength of the tint `marker` hands out, before the marker's own fade.
+const MARKER_ALPHA := 0.85
 const SPRING := Color("5fe6c0") ## Spring: launches without flipping.
 const FLIP_PAD := Color("ffc971") ## Flip-pad: refuels without changing plane.
 const MONSTER := Color("ff4d6d")
@@ -81,12 +81,12 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 	return PLANE_SOLIDS[clampi(int(effective), 0, PLANE_SOLIDS.size() - 1)]
 
 
-## The glow a solid bound to a plane sits in, so what the next jump takes away is
-## readable while the stone still looks like every other stone. `alpha` is the
-## host's own, so a ghost's glow fades with it.
-static func halo(plane: Planes.Kind, alpha: float) -> Color:
+## The hue `PlaneMarker` dashes a plane-bound solid in, so which world a slab
+## belongs to stays readable while the stone still looks like every other stone.
+## `alpha` is the marker's own fade.
+static func marker(plane: Planes.Kind, alpha: float) -> Color:
 	var tint := PLANE_SOLIDS[clampi(int(plane), 0, PLANE_SOLIDS.size() - 1)]
-	return Color(tint.r, tint.g, tint.b, HALO_ALPHA * alpha)
+	return Color(tint.r, tint.g, tint.b, MARKER_ALPHA * alpha)
 
 
 ## The brick tint a level is built in, grouped exactly as the backgrounds are so
