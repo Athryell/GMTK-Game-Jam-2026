@@ -76,11 +76,10 @@ static func marker(plane: Planes.Kind, alpha: float) -> Color:
 	return Color(tint.r, tint.g, tint.b, MARKER_ALPHA * alpha)
 
 
-## The brick tint a level is built in, grouped as the backgrounds are so stone
-## and skyline change on the same level. Lifted by `BRICK_GAIN` because a
-## modulate is a MULTIPLY and the tile averages 47% grey.
-static func bricks(level_index: int) -> Color:
-	var group := Backdrop.group_for_level(level_index)
+## The brick tint of a theme, so stone and skyline always change together.
+## Lifted by `BRICK_GAIN` because a modulate is a MULTIPLY and the tile averages
+## 47% grey.
+static func bricks(group: int) -> Color:
 	var tint := BRICK_TINTS[clampi(group, 0, BRICK_TINTS.size() - 1)]
 	# Rebuilt rather than scaled: `Color * float` takes the alpha with it, and
 	# the alpha is `ghost`'s to set.
