@@ -49,8 +49,9 @@ const SPILL_GRAVITY := 820.0
 
 ## How much of a wedge's own glass is left under the painting. The art paints the
 ## frame and leaves the cavity clear, so a piece of pure texture is a piece of
-## outline with a hole in it; this is the body it broke off with.
-const PIECE_BODY := 0.22
+## outline with a hole in it; this is the body it broke off with. Raised from
+## 0.22, where the wedges read as scratches against a bright sky.
+const PIECE_BODY := 0.32
 
 ## How strongly the fresh cut down the side of a piece is drawn, against the fade
 ## the piece is already at. The art paints the glass's own outline; this is the
@@ -70,9 +71,11 @@ const PIXEL := 1.0
 ## what gets the grain back to the weight the pile had.
 const SPILL_GRAIN := 2.0
 
-## Held near-opaque and dropped late, exactly as the wedges are: the pieces are
-## the same break, and glass that thins out slowly reads as smoke.
-const PIECE_SOLID := 2.2
+## How much faster than the death itself a piece fades: the painting stays at full
+## strength for the first two thirds and only then thins out. The texture is the
+## whole point of these pieces, and one that starts dissolving straight away is a
+## texture nobody gets to read.
+const PIECE_SOLID := 3.0
 
 var kind: Kind = Kind.RING
 var colour := Color.WHITE
