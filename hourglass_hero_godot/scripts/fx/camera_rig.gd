@@ -80,6 +80,12 @@ func _physics_process(delta: float) -> void:
 	# instead of buzzing at low amplitude.
 	_trauma = maxf(0.0, _trauma - delta / maxf(cfg.camera_shake_decay, 0.01))
 	var amount := _trauma * _trauma * cfg.camera_shake_strength
+	# A glass about to run out shakes the view for as long as it lasts. Squared
+	# like the trauma, so it only arrives at the very end, and kept out of
+	# `_trauma` itself, which is meant to decay.
+	if Game.status == Game.Status.PLAY:
+		var fear := Game.danger()
+		amount += fear * fear * cfg.camera_danger_shake
 	offset = Vector2(_rng.randf_range(-amount, amount), _rng.randf_range(-amount, amount))
 
 
