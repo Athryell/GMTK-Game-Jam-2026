@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=23 format=3]
+[gd_resource type="Theme" load_steps=25 format=3]
 
 [ext_resource type="FontFile" path="res://art/fonts/PixelOperator.ttf" id="1_body"]
 [ext_resource type="FontFile" path="res://art/fonts/PixelOperator-Bold.ttf" id="2_bold"]
@@ -11,6 +11,10 @@ content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
 bg_color = Color(0.078431, 0.188235, 0.290196, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 1)
 corner_detail = 1
 
@@ -20,6 +24,10 @@ content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
 bg_color = Color(0.105882, 0.243137, 0.360784, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.298039, 0.788235, 0.941176, 0.6)
 corner_detail = 1
 
@@ -29,6 +37,10 @@ content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 5.0
 bg_color = Color(0.062745, 0.160784, 0.254902, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.298039, 0.788235, 0.941176, 1)
 corner_detail = 1
 
@@ -47,6 +59,10 @@ content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
 bg_color = Color(0.05098, 0.078431, 0.12549, 0.6)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 0.55)
 corner_detail = 1
 
@@ -56,6 +72,10 @@ content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
 bg_color = Color(0.145, 0.118, 0.066, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.819608, 0.4, 1)
 corner_detail = 1
 
@@ -65,6 +85,10 @@ content_margin_top = 6.0
 content_margin_right = 10.0
 content_margin_bottom = 6.0
 bg_color = Color(0.235, 0.19, 0.1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.819608, 0.4, 1)
 corner_detail = 1
 
@@ -74,21 +98,37 @@ content_margin_top = 7.0
 content_margin_right = 10.0
 content_margin_bottom = 5.0
 bg_color = Color(0.105, 0.085, 0.048, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.819608, 0.4, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="chip_open"]
 bg_color = Color(0.078431, 0.188235, 0.290196, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="chip_open_hover"]
 bg_color = Color(0.105882, 0.243137, 0.360784, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.298039, 0.788235, 0.941176, 0.6)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="chip_locked"]
 bg_color = Color(0.05098, 0.078431, 0.12549, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 0.55)
 corner_detail = 1
 
@@ -112,11 +152,19 @@ corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="chip_cleared"]
 bg_color = Color(0.145, 0.118, 0.066, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.819608, 0.4, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="chip_cleared_hover"]
 bg_color = Color(0.235, 0.19, 0.1, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.819608, 0.4, 1)
 corner_detail = 1
 
@@ -126,11 +174,32 @@ content_margin_top = 3.0
 content_margin_right = 0.0
 content_margin_bottom = 3.0
 bg_color = Color(0.05098, 0.078431, 0.12549, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="slider_track_focus"]
+content_margin_left = 0.0
+content_margin_top = 5.0
+content_margin_right = 0.0
+content_margin_bottom = 5.0
+bg_color = Color(0.05098, 0.078431, 0.12549, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.298039, 0.788235, 0.941176, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="slider_fill"]
 bg_color = Color(0.298039, 0.788235, 0.941176, 0.85)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="slider_fill_focus"]
+bg_color = Color(0.6, 0.921569, 1, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="panel_card"]
@@ -139,6 +208,10 @@ content_margin_top = 10.0
 content_margin_right = 16.0
 content_margin_bottom = 10.0
 bg_color = Color(0.078431, 0.188235, 0.290196, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.105882, 0.243137, 0.360784, 1)
 corner_detail = 1
 
@@ -165,6 +238,10 @@ HSlider/styles/grabber_area = SubResource("slider_fill")
 HSlider/styles/grabber_area_highlight = SubResource("slider_fill")
 HSlider/styles/slider = SubResource("slider_track")
 PanelContainer/styles/panel = SubResource("panel_card")
+FocusedSlider/base_type = &"HSlider"
+FocusedSlider/styles/grabber_area = SubResource("slider_fill_focus")
+FocusedSlider/styles/grabber_area_highlight = SubResource("slider_fill_focus")
+FocusedSlider/styles/slider = SubResource("slider_track_focus")
 PrimaryButton/base_type = &"Button"
 PrimaryButton/colors/font_color = Color(1, 0.819608, 0.4, 1)
 PrimaryButton/colors/font_focus_color = Color(1, 0.921, 0.7, 1)
