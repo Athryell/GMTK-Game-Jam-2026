@@ -36,16 +36,11 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
-## The way the plate faces, in world space. Turning the node in the editor turns
-## the art, the hitbox and the launch together, and the launch is NOT relative to
-## gravity: a pad drawn pointing up throws you up the screen, world over or not.
-func push_direction() -> Vector2:
-	return Vector2.UP.rotated(global_rotation)
-
-
 func _touched(player: Player) -> void:
+	# World space, not gravity's: a pad drawn pointing up throws you up the screen
+	# even with the world over.
+	var push := Vector2.UP.rotated(global_rotation)
 	# Only on the way in: leaving the pad the way it pushes must not fire it again.
-	var push := push_direction()
 	if player.velocity.dot(push) > 0.0:
 		return
 	player.bounce(power if power > 0.0 else Tuning.cfg.spring_power, push)

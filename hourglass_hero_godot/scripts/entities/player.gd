@@ -233,10 +233,8 @@ func _on_status_changed(status: Game.Status) -> void:
 ## Launched by a spring: no flip, no plane change, and no variable-height cut.
 ## A spring does not refill the feather — nothing does.
 ##
-## `direction` is the way the pad is turned, NOT one relative to gravity: a pad
-## drawn pointing up throws you up the screen even with the world over. An axis
-## the pad does not push on is left alone, so an upright pad keeps your run speed
-## and a pad on its side leaves you falling.
+## An axis `direction` does not push on is left alone, so an upright pad keeps
+## your run speed and a pad on its side leaves you falling.
 func bounce(power: float, direction: Vector2) -> void:
 	var push := direction * power
 	if not is_zero_approx(push.y):
