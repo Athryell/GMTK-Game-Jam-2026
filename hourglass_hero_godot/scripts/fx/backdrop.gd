@@ -49,8 +49,8 @@ const NEAR_SCROLL := 0.38
 ## a fog-coloured veil drawn over its own art. The veils stack: the farthest
 ## layer is seen through all of them and the nearest only through its own, which
 ## is what separates two silhouettes painted from the same eleven colours.
-const FOG_FAR := 0.34
-const FOG_NEAR := 0.10
+const FOG_FAR := 0.48
+const FOG_NEAR := 0.16
 
 ## Fraction of a layer's fog left at the top of the art. Haze piles up along the
 ## ground, so a distant roofline still cuts the sky while the streets under it
