@@ -39,7 +39,9 @@ func _process(delta: float) -> void:
 	# Half a turn while gravity is inverted, so the sand pools the way it falls.
 	var upside_down: float = PI if get_parent().pull < 0.0 else 0.0
 	_upset = move_toward(_upset, upside_down, UPSET_RATE * delta)
-	rotation = Glass.motion.sprite_tilt() + _upset
+	# Down the portal the glass tumbles, so its spin is added on top of the tilt.
+	var drawn_in: float = get_parent().swallow
+	rotation = Glass.motion.sprite_tilt() + _upset + drawn_in * Player.SWALLOW_SPINS * TAU
 	# Squared, so the shake only arrives at the very end.
 	var fear := Game.danger()
 	var amount := TREMBLE * fear * fear
@@ -47,7 +49,13 @@ func _process(delta: float) -> void:
 	position = Vector2(
 		sin(_shiver * TREMBLE_RATES.x),
 		cos(_shiver * TREMBLE_RATES.y)) * amount
-	scale.x = -1.0 if _mirrored() else 1.0
+	# Cubed: the glass keeps its size most of the way in and then goes at the last
+	# moment, which is what makes the mouth look like it is eating rather than the
+	# glass look like it is walking away.
+	var left := 1.0 - drawn_in
+	# Floored: a zero scale is a transform nothing can be drawn through.
+	var shrink := maxf(left * left * left, 0.02)
+	scale = Vector2(-shrink if _mirrored() else shrink, shrink)
 	_glow.visible = Game.feathered
 	queue_redraw()
 

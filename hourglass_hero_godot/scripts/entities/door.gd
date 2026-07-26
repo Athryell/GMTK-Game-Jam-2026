@@ -25,8 +25,22 @@ const HALO_RADIUS := 46.0
 const HALO_SWELL := 0.08
 const HALO_ALPHA := 0.5
 
+## The hitbox: a slit on the mouth itself rather than the whole doorway. The lit
+## ring is 18 art px of a 34 px cell, so a full-rect hitbox cleared the level a
+## body's width before the glass ever reached the light.
+const MOUTH := Vector2(12.0, 46.0)
+
+## What swallowing does to the halo, and how much faster the ring spins for it.
+const SWALLOW_FLARE := 0.7
+const SWALLOW_SPEED_UP := 3.0
+
 
 var _pulse := 0.0
+## Where the ring's animation has got to, in frames.
+var _spin := 0.0
+## Mirrors the player's `swallow` while one is being drawn in.
+var _swallow := 0.0
+var _swallowing := false
 
 
 func _init() -> void:
@@ -42,22 +56,44 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_pulse += delta
+	if _swallowing:
+		_swallow = minf(_swallow + delta / Player.SWALLOW_TIME, 1.0)
+	# Counted rather than read off `_pulse`: the ring has to speed up on a swallow
+	# without the frame it is on jumping when the rate changes.
+	_spin += delta * FRAMES_PER_SECOND * (1.0 + SWALLOW_SPEED_UP * _swallow)
 	queue_redraw()
 
 
-func _touched(_player: Player) -> void:
-	if Game.status == Game.Status.PLAY:
-		Audio.sfx("portal")
-		Game.win()
+## The level is won on the spot, but the glass is not gone yet: the clear delay is
+## the cover the swallow plays under.
+func _touched(player: Player) -> void:
+	if Game.status != Game.Status.PLAY:
+		return
+	Audio.sfx("portal")
+	_swallowing = true
+	player.swallowed_by(global_position + size / 2.0)
+	Game.win()
+
+
+## The hitbox is the mouth, centred in the doorway, not the doorway.
+func _apply_size() -> void:
+	queue_redraw()
+	if not is_node_ready():
+		return
+	var rect := _shape.shape as RectangleShape2D
+	rect.size = MOUTH
+	_shape.position = size / 2.0
 
 
 func _paint() -> void:
 	var colour := _shade(Palette.DOOR)
-	var glow := HALO_RADIUS * (1.0 + HALO_SWELL * sin(_pulse * PULSE_RATE))
+	# Half a breath of flare: the mouth gulps as the glass goes down and settles.
+	var gulp := 1.0 + SWALLOW_FLARE * sin(_swallow * PI)
+	var glow := HALO_RADIUS * gulp * (1.0 + HALO_SWELL * sin(_pulse * PULSE_RATE))
 	draw_texture_rect(LightKit.falloff(),
 		Rect2(size / 2.0 - Vector2(glow, glow), Vector2(glow, glow) * 2.0),
-		false, Color(Palette.DOOR, HALO_ALPHA * colour.a))
-	var frame := int(_pulse * FRAMES_PER_SECOND) % FRAME_COUNT
+		false, Color(Palette.DOOR, minf(HALO_ALPHA * gulp, 1.0) * colour.a))
+	var frame := int(_spin) % FRAME_COUNT
 	var cell := Vector2(frame % FRAME_COLUMNS, frame / FRAME_COLUMNS) * FRAME_SIZE
 	var source := Rect2(cell + FRAME_CONTENT.position, FRAME_CONTENT.size)
 	draw_texture_rect_region(TEXTURE, Rect2(Vector2.ZERO, size), source,
