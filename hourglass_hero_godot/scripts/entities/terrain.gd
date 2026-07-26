@@ -1,11 +1,10 @@
 @tool
 ## A stretch of ground drawn as a polygon: floor, ledge, wall and SLOPE in one
 ## node. The points live on the child `CollisionPolygon2D`, so selecting it hands
-## you Godot's own polygon tool, and this script draws that same collision
-## polygon — what you see is exactly what you can stand on.
+## you Godot's own polygon tool, and this script draws that same polygon.
 ##
 ## `Platform` is still the right node for a small rectangle that MOVES, and for
-## the flip-pad. Terrain is for the ground.
+## the flip-pad.
 class_name Terrain
 extends StaticBody2D
 
@@ -24,10 +23,7 @@ var _points := PackedVector2Array()
 ## almost never convex.
 var _triangles := PackedInt32Array()
 var _active := true
-## True while a jump would land the player in this plane: marked at full
-## strength, still as dim and as inert as any other ghost.
 var _next := false
-## The dashed line that says which plane this ground is in.
 var _marker := PlaneMarker.new()
 
 
@@ -74,10 +70,8 @@ func _draw() -> void:
 		]), body)
 		i += 3
 
-	# The lip follows the geometry, so every edge the light could land on gets it
-	# and the walls get nothing. Filled inwards from the edge rather than stroked
-	# along it: both edges of a fold read the SAME inset vertex, so the joint mitres
-	# instead of leaving a notch.
+	# Filled inwards from the edge rather than stroked along it: both edges of a
+	# fold read the SAME inset vertex, so the joint mitres instead of notching.
 	var lip := body.lightened(Bricks.LIP_LIFT)
 	var wind := Polygons.winding(_points)
 	var inner := Polygons.grow(_points, -Bricks.LIP_WIDTH)
@@ -87,7 +81,6 @@ func _draw() -> void:
 			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
 
-	# Last, so nothing lands on top of it.
 	_marker.draw(self, _points, plane)
 
 
@@ -102,8 +95,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 
 ## The outline this casts a shadow from, in this node's own space. `CastShadows`
-## asks once and then follows the node's transform, so a shadow is not
-## re-measured every frame just because its caster slid sideways.
+## asks once and then follows the node's transform.
 func shadow_outline() -> PackedVector2Array:
 	if _points.size() < 3:
 		return PackedVector2Array()
@@ -123,9 +115,8 @@ func _first_polygon() -> CollisionPolygon2D:
 	return null
 
 
-## A fresh Terrain is given a rectangle to start dragging. The child is owned by
-## the EDITED SCENE, not by this node: the editor hides unowned children, and
-## with them the handles this node exists to expose.
+## The child is owned by the EDITED SCENE, not by this node: the editor hides
+## unowned children, and with them the handles this node exists to expose.
 func _plant_shape() -> void:
 	if _first_polygon() != null or not is_inside_tree():
 		return
