@@ -57,9 +57,19 @@ func configure(world_size: Vector2, floor_y: float) -> void:
 func sync(camera_position: Vector2) -> void:
 	if is_nan(_datum_y):
 		_datum_y = camera_position.y
+	var drop := camera_position.y - _datum_y
 	position = Vector2(
 		_snap(camera_position.x * (1.0 - scroll)),
-		_snap((camera_position.y - _datum_y) * (1.0 - Backdrop.VERTICAL_SCROLL)))
+		_snap(drop - vertical_lag(drop)))
+
+
+## How far the art trails a camera that has moved `drop` px down from the datum,
+## in world px. Trailing it is what sells the depth, but only until the trail
+## eats `ART_DROP` and the bottom edge of the art clears the ground it is planted
+## on: past that the layer tracks the camera outright, so that a long fall down a
+## tall level never opens a strip of bare sky under the skyline.
+static func vertical_lag(drop: float) -> float:
+	return minf(drop * Backdrop.VERTICAL_SCROLL, Backdrop.ART_DROP)
 
 
 ## `value` rounded to a whole art px, in world px. At an `ART_SCALE` of 1 this is
