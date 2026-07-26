@@ -61,17 +61,12 @@ func _ready() -> void:
 		EntityLight.attach(self, plane, size, Palette.FLIP_PAD, 150.0, 1.0)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
-	# A level opens with its markers already where they belong: one that dawns on
-	# you over the first fifth of a second reads as something having happened.
-	_marker.settle()
 
 
 func _physics_process(delta: float) -> void:
 	# Otherwise platforms drift while the level is being edited.
 	if Engine.is_editor_hint():
 		return
-	if _marker.advance(delta):
-		queue_redraw()
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
 		return
 	_elapsed += delta
