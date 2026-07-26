@@ -6,6 +6,12 @@ extends PlaneArea
 ## Which way the teeth point — `UP` is a floor of spikes, `DOWN` a ceiling.
 enum Facing { UP, DOWN, LEFT, RIGHT }
 
+const TEXTURE: Texture2D = preload("res://art/sprites/spike.png")
+
+## Empty rows above the tip in the art. The stamp is grown by it so the painted
+## tip, not the sprite's top edge, lands on `TOOTH_DEPTH`.
+const ART_TIP := 3.0 / 16.0
+
 ## Target width of one tooth, in px; the count is rounded so the row ends flush.
 const TOOTH_SIZE := 16.0
 
@@ -17,10 +23,6 @@ const TOOTH_DEPTH := 0.62
 ## `TOOTH_DEPTH`, or the hitbox reaches past the drawn tips.
 const LETHAL_DEPTH := 0.50
 
-## Lighten/darken amounts for the two faces of a tooth.
-const BEVEL_LIGHT := 0.22
-const BEVEL_DARK := 0.36
-
 @export var facing: Facing = Facing.UP: set = _set_facing
 
 
@@ -31,26 +33,44 @@ func _init() -> void:
 	light_energy = 0.55
 
 
+func _ready() -> void:
+	# See `terrain.gd` for why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	super()
+
+
 func _touched(_player: Player) -> void:
 	Game.kill()
 
 
+## One stamp per tooth, in a frame where `x` runs along the band and `y` from the
+## sprite's outer edge in towards the base, so the four facings differ only by it.
 func _draw() -> void:
-	var lit := _shade(Palette.MONSTER.lightened(BEVEL_LIGHT))
-	var dark := _shade(Palette.MONSTER.darkened(BEVEL_DARK))
-	for tooth in _teeth():
-		# The whole tooth, not each half: the seam is a fold in one solid.
-		Outline.polygon(self, _whole(tooth), lit.a)
-		HourglassShape.fill(self, tooth[0], lit)
-		HourglassShape.fill(self, tooth[1], dark)
+	var along_x: bool = _axis()[0]
+	var span := size.x if along_x else size.y
+	var count := maxi(1, int(round(span / TOOTH_SIZE)))
+	var step := span / float(count)
+	var stamp := absf(_tip() - _axis()[1]) / (1.0 - ART_TIP)
+
+	draw_set_transform_matrix(_stamp_frame(stamp))
+	# White is the sprite's own colours untouched; `_shade` only ghosts the alpha.
+	var tint := _shade(Color.WHITE)
+	for i in count:
+		draw_texture_rect(TEXTURE, Rect2(i * step, 0.0, step, stamp), false, tint)
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
-## A tooth's silhouette, read off the halves so a change to `_teeth` cannot leave
-## this drawing the old one.
-static func _whole(tooth: Array) -> PackedVector2Array:
-	var lit_half: PackedVector2Array = tooth[0]
-	var dark_half: PackedVector2Array = tooth[1]
-	return PackedVector2Array([lit_half[0], dark_half[1], lit_half[2]])
+## That frame in node space, for a stamp `depth` px deep.
+func _stamp_frame(depth: float) -> Transform2D:
+	match facing:
+		Facing.UP:
+			return Transform2D(Vector2.RIGHT, Vector2.DOWN, Vector2(0.0, size.y - depth))
+		Facing.DOWN:
+			return Transform2D(Vector2.RIGHT, Vector2.UP, Vector2(0.0, depth))
+		Facing.LEFT:
+			return Transform2D(Vector2.DOWN, Vector2.RIGHT, Vector2(size.x - depth, 0.0))
+		_:
+			return Transform2D(Vector2.DOWN, Vector2.LEFT, Vector2(depth, 0.0))
 
 
 ## `[teeth_run_along_x, base_edge, far_edge]` on the pointing axis. `far_edge`
@@ -66,35 +86,6 @@ func _axis() -> Array:
 ## Where the tips land: `TOOTH_DEPTH` of the way from the base to the far edge.
 func _tip() -> float:
 	return lerpf(_axis()[1], _axis()[2], TOOTH_DEPTH)
-
-
-## One `[lit_half, dark_half]` triangle pair per tooth.
-func _teeth() -> Array[Array]:
-	var along_x: bool = _axis()[0]
-	var base: float = _axis()[1]
-	var tip := _tip()
-	var span := size.x if along_x else size.y
-	var count := maxi(1, int(round(span / TOOTH_SIZE)))
-	var step := span / float(count)
-
-	var out: Array[Array] = []
-	for i in count:
-		var a := i * step
-		var b := a + step
-		var mid := a + step / 2.0
-		if along_x:
-			out.append([
-				PackedVector2Array([
-					Vector2(a, base), Vector2(mid, base), Vector2(mid, tip)]),
-				PackedVector2Array([
-					Vector2(mid, base), Vector2(b, base), Vector2(mid, tip)])])
-		else:
-			out.append([
-				PackedVector2Array([
-					Vector2(base, a), Vector2(base, mid), Vector2(tip, mid)]),
-				PackedVector2Array([
-					Vector2(base, mid), Vector2(base, b), Vector2(tip, mid)])])
-	return out
 
 
 func _set_facing(value: Facing) -> void:
