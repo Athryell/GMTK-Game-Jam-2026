@@ -21,59 +21,85 @@ position = Vector2(55, 1399)
 position = Vector2(831, 912)
 
 [node name="Cannon2" parent="Entities" unique_id=1748958001 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(459, 1130)
+rotation = 4.712389
 plane = 0
 
 [node name="Cannon3" parent="Entities" unique_id=1223396620 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(459, 1196)
+rotation = 4.712389
 plane = 0
 
 [node name="Cannon4" parent="Entities" unique_id=1668632121 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(459, 1263)
+rotation = 4.712389
 plane = 0
 
 [node name="Cannon8" parent="Entities" unique_id=908994193 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(853, 1219)
+rotation = 4.712389
 plane = 1
 
 [node name="Cannon11" parent="Entities" unique_id=687526645 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(853, 1149)
+rotation = 4.712389
 plane = 1
 
 [node name="Cannon9" parent="Entities" unique_id=1155018500 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(853, 1285)
+rotation = 4.712389
 plane = 1
 
 [node name="Cannon10" parent="Entities" unique_id=1258993321 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(853, 1352)
+rotation = 4.712389
 plane = 1
 
 [node name="Cannon5" parent="Entities" unique_id=588257324 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(342, 1130)
+rotation = 1.5707964
 plane = 0
 
 [node name="Cannon12" parent="Entities" unique_id=205401665 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(459, 1061)
+rotation = 4.712389
 plane = 0
 
 [node name="Cannon14" parent="Entities" unique_id=1217009637 instance=ExtResource("3_44ebj")]
-position = Vector2(520, 1061)
+texture_filter = 1
+position = Vector2(514, 1039)
 plane = 0
 
 [node name="Cannon15" parent="Entities" unique_id=1795856908 instance=ExtResource("3_44ebj")]
-position = Vector2(581, 1061)
+texture_filter = 1
+position = Vector2(575, 1039)
 plane = 0
 
 [node name="Cannon13" parent="Entities" unique_id=197779767 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(342, 1061)
+rotation = 1.5707964
 plane = 0
 
 [node name="Cannon6" parent="Entities" unique_id=1357592200 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(342, 1196)
+rotation = 1.5707964
 plane = 0
 
 [node name="Cannon7" parent="Entities" unique_id=550173359 instance=ExtResource("3_44ebj")]
+texture_filter = 1
 position = Vector2(342, 1263)
+rotation = 1.5707964
 plane = 0
 
 [node name="Platform" parent="Entities" unique_id=130973261 instance=ExtResource("4_xseoh")]
@@ -87,6 +113,37 @@ texture_filter = 1
 texture_repeat = 2
 position = Vector2(113, 1343)
 size = Vector2(520, 18)
+
+[node name="Platform6" parent="Entities" unique_id=77051021 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(855, 1131)
+size = Vector2(20, 250)
+
+[node name="Platform7" parent="Entities" unique_id=680049322 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(462, 1044)
+size = Vector2(20, 233)
+
+[node name="Platform9" parent="Entities" unique_id=688002761 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(483, 1044)
+size = Vector2(114, 20)
+
+[node name="Platform8" parent="Entities" unique_id=1371268093 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(320, 1044)
+size = Vector2(20, 233)
+
+[node name="Platform5" parent="Entities" unique_id=1076960361 instance=ExtResource("4_xseoh")]
+visible = false
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(329, 1063)
+size = Vector2(27, 18)
 
 [node name="Platform3" parent="Entities" unique_id=750758373 instance=ExtResource("4_xseoh")]
 texture_filter = 1
