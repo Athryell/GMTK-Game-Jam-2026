@@ -48,8 +48,7 @@ func _process(delta: float) -> void:
 
 
 func _touched(player: Player) -> void:
-	# Only launch on the way in: passing back out the way it pushes must not fire
-	# it, so a spring cannot be ridden through from behind.
+	# Only on the way in: leaving the pad the way it pushes must not fire it again.
 	var push := PUSH[facing]
 	if player.velocity.dot(push) > 0.0:
 		return
@@ -64,8 +63,8 @@ func _set_facing(value: Facing) -> void:
 	queue_redraw()
 
 
-## `across` runs along the plate, `depth` inwards from the face that pushes.
-## Turning the whole drawing is then this one mapping instead of four.
+## `across` runs along the plate, `depth` inwards from the face that pushes, so
+## the drawing is authored once and turned here instead of four times.
 func _pad_rect(across: float, depth: float, across_len: float, depth_len: float) -> Rect2:
 	match facing:
 		Facing.DOWN:
