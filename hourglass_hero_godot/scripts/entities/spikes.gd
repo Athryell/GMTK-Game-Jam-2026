@@ -8,8 +8,8 @@ enum Facing { UP, DOWN, LEFT, RIGHT }
 
 const TEXTURE: Texture2D = preload("res://art/sprites/spike.png")
 
-## Fraction of the art's height that is empty above the tip. The stamp is grown
-## by it so the painted tip, not the sprite's top edge, lands on `TOOTH_DEPTH`.
+## Empty rows above the tip in the art. The stamp is grown by it so the painted
+## tip, not the sprite's top edge, lands on `TOOTH_DEPTH`.
 const ART_TIP := 3.0 / 16.0
 
 ## Target width of one tooth, in px; the count is rounded so the row ends flush.
@@ -43,9 +43,8 @@ func _touched(_player: Player) -> void:
 	Game.kill()
 
 
-## One stamp of the sprite per tooth, drawn in a frame where `x` runs along the
-## band and `y` from the sprite's outer edge in towards the base, so the four
-## facings differ only by that frame.
+## One stamp per tooth, in a frame where `x` runs along the band and `y` from the
+## sprite's outer edge in towards the base, so the four facings differ only by it.
 func _draw() -> void:
 	var along_x: bool = _axis()[0]
 	var span := size.x if along_x else size.y
@@ -54,15 +53,14 @@ func _draw() -> void:
 	var stamp := absf(_tip() - _axis()[1]) / (1.0 - ART_TIP)
 
 	draw_set_transform_matrix(_stamp_frame(stamp))
-	# White modulate is the sprite's own colours untouched; out of plane `_shade`
-	# takes the alpha down and ghosts the whole row at once.
+	# White is the sprite's own colours untouched; `_shade` only ghosts the alpha.
 	var tint := _shade(Color.WHITE)
 	for i in count:
 		draw_texture_rect(TEXTURE, Rect2(i * step, 0.0, step, stamp), false, tint)
 	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
-## Maps that drawing frame onto the node, for a stamp `depth` px deep.
+## That frame in node space, for a stamp `depth` px deep.
 func _stamp_frame(depth: float) -> Transform2D:
 	match facing:
 		Facing.UP:
