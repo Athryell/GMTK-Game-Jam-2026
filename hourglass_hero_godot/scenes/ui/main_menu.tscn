@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://b657brexskrap"]
+[gd_scene format=3 uid="uid://c7ptq2r8q47sd"]
 
 [ext_resource type="Script" uid="uid://1gy2wnvp4tcv" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_settings.tscn" id="2_audio"]
@@ -39,32 +39,18 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.69, 0.227, 1)
 theme_override_font_sizes/font_size = 34
-text = "HOURGLASS HERO"
-horizontal_alignment = 1
-
-[node name="Tagline" type="Label" parent="Layout" unique_id=1182247209]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.604, 0.651, 0.769, 1)
-theme_override_font_sizes/font_size = 15
-text = "Every jump flips the glass and swaps the world."
+text = "Sandbound"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Layout" unique_id=834649907]
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
-[node name="SelectLabel" type="Label" parent="Layout" unique_id=2125353388]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.282, 0.792, 0.894, 1)
-theme_override_font_sizes/font_size = 14
-text = "SELECT A LEVEL"
-horizontal_alignment = 1
-
 [node name="LevelScroll" type="ScrollContainer" parent="Layout" unique_id=1821599909]
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 follow_focus = true
+horizontal_scroll_mode = 0
 
 [node name="Levels" type="GridContainer" parent="Layout/LevelScroll" unique_id=1821599908]
 layout_mode = 2
@@ -93,12 +79,11 @@ custom_minimum_size = Vector2(120, 42)
 layout_mode = 2
 text = "QUIT"
 
-
-[node name="Spacer3" type="Control" parent="Layout"]
+[node name="Spacer3" type="Control" parent="Layout" unique_id=308192211]
 custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
-[node name="Sound" parent="Layout" instance=ExtResource("2_audio")]
+[node name="Sound" parent="Layout" unique_id=559645394 instance=ExtResource("2_audio")]
 layout_mode = 2
 
 [node name="Hint" type="Label" parent="Layout" unique_id=1708571913]
