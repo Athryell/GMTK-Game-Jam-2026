@@ -53,7 +53,15 @@ var _layers: Array[BackdropLayer] = []
 var _background_index := -1
 
 
+## Pushed below zero so there is a rung between the room and the level for things
+## that have to sink INTO the world without falling out the back of it — the
+## cannon's barrel is the first. Being earlier in `main.tscn` is not enough on its
+## own: any negative `z_index` in the level would otherwise land behind the city.
+const DEPTH := -2
+
+
 func _ready() -> void:
+	z_index = DEPTH
 	_build_sky()
 
 

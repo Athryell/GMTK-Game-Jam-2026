@@ -1,6 +1,4 @@
-## Every gameplay variable, in one place. Edit via `resources/game_config.tres`
-## or in game with F1: the tuning panel generates one slider per `@export_range`
-## below, grouped by `@export_group`.
+## Every gameplay variable, in one place. Edit via `resources/game_config.tres`.
 class_name GameConfig
 extends Resource
 

@@ -52,7 +52,6 @@ func _ready() -> void:
 		return
 	Game.plane_changed.connect(_on_plane_changed)
 	Game.next_plane_changed.connect(_on_next_plane_changed)
-	Tuning.changed.connect(queue_redraw)
 	_pad_detector.body_entered.connect(_on_pad_body_entered)
 	if kind == Kind.FLIP_PAD:
 		EntityLight.attach(self, plane, size, Palette.FLIP_PAD, 150.0, 1.0)

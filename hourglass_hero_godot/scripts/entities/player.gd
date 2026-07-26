@@ -27,6 +27,17 @@ var _jumping := false
 ## it rides on top of the steering instead.
 var _launch := 0.0
 
+## How long the portal takes to draw the glass in, in s. Kept under `level_fade`,
+## so the glass is gone before the screen is: the swallow is the exit, not the fade.
+const SWALLOW_TIME := 0.35
+const SWALLOW_SPINS := 1.5
+
+## The portal's hold on the glass: 0 loose, 1 all the way in.
+var swallow := 0.0
+var _swallowing := false
+var _swallow_from := Vector2.ZERO
+var _swallow_to := Vector2.ZERO
+
 ## The light the glass gives off; its brightness is the remaining sand.
 var _light: PointLight2D
 var _pulse := 0.0
@@ -84,8 +95,12 @@ func _process(delta: float) -> void:
 	var charge := CHARGED_LIGHT_LIFT if Game.feathered else 1.0
 	_light.color = Palette.sand(danger, Game.feathered)
 	# The 0.42 floor keeps an empty glass still lighting the way.
-	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb * charge
-	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius * charge)
+	# The lamp goes down with the glass, or a swallowed player leaves a lit hole.
+	var left := 1.0 - swallow
+	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb * charge * left
+	# The reach never reaches zero: a zero-scale light is not a legal one.
+	_light.texture_scale = LightKit.scale_for(
+		cfg.player_light_radius * charge * maxf(left, 0.05))
 	# What still reaches into a shadow. At full strength, nothing.
 	_light.shadow_color = Color(_light.color, 1.0 - cfg.shadow_strength)
 	_sweat(delta, danger)
@@ -115,6 +130,10 @@ func _physics_process(delta: float) -> void:
 	# Sampled here so it is the speed *after* last frame's `move_and_slide` — zero
 	# against a wall.
 	Glass.travel = velocity.x
+
+	if _swallowing:
+		_draw_in(delta)
+		return
 
 	# Every vertical line below reads the DOWNWARD component, `velocity.y * pull`,
 	# and writes it back the same way: one set of arithmetic, either way up.
@@ -230,11 +249,36 @@ func _on_status_changed(status: Game.Status) -> void:
 	Audio.sfx("death")
 
 
+# ----- The portal ------------------------------------------------------------
+
+## The exit has hold of the glass: from here on it is drawn to `mouth` and no
+## longer plays.
+func swallowed_by(mouth: Vector2) -> void:
+	if _swallowing:
+		return
+	_swallowing = true
+	_swallow_from = global_position
+	_swallow_to = mouth
+	velocity = Vector2.ZERO
+
+
+## No gravity and no `move_and_slide`: the glass has to be able to leave through
+## a wall it is standing against.
+##
+## Squared, so it hangs for an instant and then goes: a linear slide reads as the
+## glass walking in of its own accord.
+func _draw_in(delta: float) -> void:
+	swallow = minf(swallow + delta / SWALLOW_TIME, 1.0)
+	global_position = _swallow_from.lerp(_swallow_to, swallow * swallow)
+
+
 ## Launched by a spring: no flip, no plane change, and no variable-height cut.
 ## A spring does not refill the feather — nothing does.
 ##
-## An axis `direction` does not push on is left alone, so an upright pad keeps
-## your run speed and a pad on its side leaves you falling.
+## `direction` is the one drawn on the pad, NOT one relative to gravity: a pad
+## pointing up throws you up the screen even with the world over. Only the pushed
+## axis is touched, so a vertical pad leaves your run speed alone and a
+## horizontal one leaves you falling.
 func bounce(power: float, direction: Vector2) -> void:
 	var push := direction * power
 	if not is_zero_approx(push.y):

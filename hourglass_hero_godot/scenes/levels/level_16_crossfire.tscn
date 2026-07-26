@@ -9,6 +9,7 @@
 [node name="Level" type="Node2D" unique_id=567933069]
 script = ExtResource("1_level")
 theme = null
+level_name = "Crossfire"
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1305655727]
 position = Vector2(60, 479)
@@ -34,10 +35,10 @@ script = ExtResource("3_terrain")
 polygon = PackedVector2Array(450, 458, 500, 458, 500, 502, 450, 502)
 
 [node name="CannonNear" parent="Entities" unique_id=1593068851 instance=ExtResource("4_cannon")]
-position = Vector2(280, 481)
+position = Vector2(280, 492)
 
 [node name="CannonFar" parent="Entities" unique_id=104782792 instance=ExtResource("4_cannon")]
-position = Vector2(620, 481)
+position = Vector2(620, 492)
 phase = 0.5
 
 [node name="Door" parent="Entities" unique_id=1777228813 instance=ExtResource("2_door")]

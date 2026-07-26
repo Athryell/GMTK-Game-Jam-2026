@@ -36,5 +36,5 @@ func _on_play_pressed() -> void:
 func _start(index: int) -> void:
 	if Game.level_scenes.is_empty():
 		return
-	Game.start_level(index)
+	Game.start_run(index)
 	get_tree().change_scene_to_file(GAME_SCENE)

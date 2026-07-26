@@ -17,17 +17,41 @@ const RANGE := 2000.0
 ## How fast the shot travels down the line it was given, in px/s.
 const BEAM_SPEED := 1500.0
 
-const BODY_RADIUS := 13.0
-const BARREL_LENGTH := 20.0
-const BARREL_WIDTH := 9.0
+const BASE: Texture2D = preload("res://art/sprites/cannon_base.png")
+const BARREL: Texture2D = preload("res://art/sprites/cannon_barrell.png")
+
+## Both sprites are 32×32, drawn one art px to one world px — the density the
+## hourglass, the clock and the brick are all struck at.
+const ART_SIZE := 32.0
+
+## The arch in the base is a semicircle of radius 3 about this pixel, and the
+## barrel's butt is the middle of its bottom edge. Laying both on the node's
+## origin is what makes the barrel turn IN the hole rather than beside it, so
+## these are measured off the art, not guessed — retracing either sprite is the
+## only thing that can pull them apart.
+const BASE_PIVOT := Vector2(16.0, 30.0)
+const BARREL_PIVOT := Vector2(16.0, 32.0)
+
+## How far the muzzle sits from the pivot: the barrel's whole length, since the
+## butt is on the pivot and the art points straight up its own sprite.
+const BARREL_LENGTH := ART_SIZE
 ## The line is thin and see-through while it tracks, and grows to the full shot
 ## across the lock.
 const AIM_WIDTH := 2.0
 const AIM_ALPHA := 0.28
 const FIRE_WIDTH := 8.0
 const CORE_RATIO := 0.35
-## How much the muzzle swells while charging, as a fraction of `BODY_RADIUS`.
-const MUZZLE_SWELL := 0.9
+## Radius of the glow at the muzzle at full charge, in px.
+const MUZZLE_GLOW := 7.0
+
+## How fast the barrel may swing while it tracks, in rad/s.
+##
+## Capped rather than assigned outright, because the aim is HELD for
+## `lock_time + fire_time` and the player has usually run somewhere else by the
+## time it thaws — snapping to them made the barrel jump-cut on the first frame
+## of every cycle. Still quick: a half turn takes 0.45 s, well inside `aim_time`,
+## so the cannon spends most of the beat leading you rather than catching up.
+const TRACK_SPEED := 7.0
 
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 
@@ -44,6 +68,10 @@ const MUZZLE_SWELL := 0.9
 @export_range(0.0, 1.0, 0.05) var phase := 0.0
 
 @onready var _ray: RayCast2D = $Ray
+## Its own node, not a shape in `_draw`, purely so it can sit on its own `z_index`:
+## swung low the barrel passes through the ground it is bolted to, and drawn over
+## the bricks it gives the emplacement away as a flat cut-out.
+@onready var _barrel: Sprite2D = $Barrel
 
 var _player: Player
 ## Unit vector the barrel points along, in this node's own space.
@@ -62,13 +90,22 @@ var _next := false
 
 func _ready() -> void:
 	_ray.collision_mask = Layers.SOLID | Layers.PLAYER
+	# See `terrain.gd` for why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# Set here rather than in the scene so the pivot stays measured in ONE place:
+	# a `Sprite2D` offset typed into the .tscn would drift from `BARREL_PIVOT` the
+	# first time the art moves.
+	_barrel.texture = BARREL
+	_barrel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_barrel.centered = false
+	_barrel.offset = -BARREL_PIVOT
 	if Engine.is_editor_hint():
 		set_physics_process(false)
+		_refresh()
 		return
 	_clock = phase * _period()
 	Game.plane_changed.connect(_on_plane_changed)
 	Game.next_plane_changed.connect(_on_next_plane_changed)
-	Tuning.changed.connect(queue_redraw)
 	EntityLight.attach(self, plane, Vector2.ZERO, Palette.MONSTER, 130.0, 0.5)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
@@ -82,7 +119,7 @@ func _physics_process(delta: float) -> void:
 	# The aim is only ever changed in the first beat. Everything after it —
 	# the charge, the shot, what the shot hits — reads the line already given.
 	if _clock < aim_time:
-		_track_player()
+		_track_player(delta)
 		_charge = 0.0
 		_reach = 0.0
 	elif not _firing:
@@ -96,31 +133,54 @@ func _physics_process(delta: float) -> void:
 	_ray.force_raycast_update()
 	if _firing and _ray.get_collider() is Player and _reach >= _hit_distance():
 		Game.kill()
-	queue_redraw()
+	_refresh()
 
 
+## The node's origin IS the pivot: the hole in the base and the butt of the
+## barrel are both laid on it, so the emplacement stays put while the barrel
+## swings in its socket.
 func _draw() -> void:
-	var tint := Palette.ghost(Palette.MONSTER, _active or Engine.is_editor_hint(), _next)
+	var tint := _tint()
+	var art := Color(1.0, 1.0, 1.0, tint.a)
 	var muzzle := _aim * BARREL_LENGTH
+
+	# The barrel is `$Barrel`, a rung below on `z_index`, so the emplacement and the
+	# ground both cover it. Only the base is struck here.
+	draw_texture_rect(BASE, _base_rect(), false, art)
+
 	# No beam in the editor: without physics the ray has never been cast, so its
 	# collision point is whatever it last happened to hold.
 	if not Engine.is_editor_hint():
 		_draw_beam(muzzle, tint)
-	# Both outlines before either fill, so each shape covers the other's line
-	# where they overlap: ink at the joint would seam a cannon that is one piece.
-	Outline.polygon(self,
-		HourglassShape.thread_quad(Vector2.ZERO, muzzle, BARREL_WIDTH), tint.a)
-	Outline.circle(self, Vector2.ZERO, BODY_RADIUS, tint.a)
-	draw_line(Vector2.ZERO, muzzle, tint.darkened(0.25), BARREL_WIDTH)
-	draw_circle(Vector2.ZERO, BODY_RADIUS, tint.darkened(0.5))
-	# The eye swells and lights up with the charge, so the cannon warns you even
-	# when the line itself is behind a wall.
-	draw_circle(Vector2.ZERO, BODY_RADIUS * (0.45 + MUZZLE_SWELL * _charge * 0.45),
-		tint.darkened(0.2).lerp(Color.WHITE, _charge))
+	# The muzzle lights up as it charges, so the cannon still warns you when the
+	# line itself is behind a wall. On the muzzle rather than the body, now the
+	# body is a sprite with nothing to swell.
+	if _charge > 0.0:
+		draw_circle(muzzle, MUZZLE_GLOW * _charge, Color(1.0, 1.0, 1.0, tint.a * _charge))
 	if Engine.is_editor_hint():
-		# The body only: tagging the barrel too would move the chip with the aim.
-		PlaneMarker.tag(self, Polygons.rect(
-			Rect2(-Vector2.ONE * BODY_RADIUS, Vector2.ONE * BODY_RADIUS * 2.0)), plane)
+		# The base only: tagging the barrel too would move the chip with the aim.
+		PlaneMarker.tag(self, Polygons.rect(_base_rect()), plane)
+
+
+## Where the base sits, so its arch lands on the origin.
+func _base_rect() -> Rect2:
+	return Rect2(-BASE_PIVOT, Vector2.ONE * ART_SIZE)
+
+
+func _tint() -> Color:
+	return Palette.ghost(Palette.MONSTER, _active or Engine.is_editor_hint(), _next)
+
+
+## Everything the cannon shows in one call, because the barrel is a separate node
+## and only the beam and the base go through `_draw`: aiming one without the
+## other leaves the shot coming out of a barrel pointing somewhere else.
+func _refresh() -> void:
+	if _barrel != null:
+		# The art points up its own sprite, so the turn is measured from UP rather
+		# than from RIGHT — `_aim` is a direction in this node's space either way.
+		_barrel.rotation = Vector2.UP.angle_to(_aim)
+		_barrel.modulate = Color(1.0, 1.0, 1.0, _tint().a)
+	queue_redraw()
 
 
 func _draw_beam(muzzle: Vector2, tint: Color) -> void:
@@ -152,26 +212,31 @@ func _period() -> float:
 
 ## The player is spawned by `main.gd` after the level exists, so there is no
 ## looking it up in `_ready` — it is found on the first frame it is there for.
-func _track_player() -> void:
+func _track_player(delta: float) -> void:
 	if not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group(Game.PLAYER_GROUP) as Player
 		if _player == null:
 			return
 	var towards := to_local(_player.global_position)
-	if towards.length_squared() > 1.0:
-		_aim = towards.normalized()
+	if towards.length_squared() <= 1.0:
+		return
+	# Turned towards the player at `TRACK_SPEED`, not set to face them. `angle_to`
+	# is signed and shortest-way-round, so the clamp only ever slows the swing it
+	# was already going to make.
+	var step := TRACK_SPEED * delta
+	_aim = _aim.rotated(clampf(_aim.angle_to(towards), -step, step))
 
 
 func _on_plane_changed(current: Planes.Kind) -> void:
 	_active = Planes.is_active(plane, current)
-	queue_redraw()
+	_refresh()
 
 
 func _on_next_plane_changed(next: Planes.Kind) -> void:
 	_next = plane == next
-	queue_redraw()
+	_refresh()
 
 
 func _set_plane(value: Planes.Kind) -> void:
 	plane = value
-	queue_redraw()
+	_refresh()

@@ -123,5 +123,4 @@ godot --path <path-to>/hourglass_hero_godot
 ```
 
 It launches fullscreen at a 960×540 design resolution, letterboxed. `Esc`
-returns to the menu, `R` restarts, `F1` opens the tuning panel, `Alt+Enter`
-leaves fullscreen. See [README.md](README.md) for the game's rules and layout.
+returns to the menu, `R` restarts, `Alt+Enter` leaves fullscreen. See [README.md](README.md) for the game's rules and layout.

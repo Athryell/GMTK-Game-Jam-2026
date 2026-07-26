@@ -30,7 +30,6 @@ var _entering_level := false
 func _ready() -> void:
 	Game.status_changed.connect(_on_status_changed)
 	Game.flow_changed.connect(_on_flow_changed)
-	Tuning.changed.connect(_apply_world_light)
 	_apply_world_light()
 	Game.start_level(Game.level_index)
 	# The menu hands over on a hard cut; come out of the dark like any other level.
@@ -49,6 +48,11 @@ func _process(delta: float) -> void:
 		_transition.clear()
 		_load_current_level()
 		return
+
+	# Counted here rather than in `Game`, which outlives the level: the menu is not
+	# on the clock. A level waiting for you to move still is.
+	if Game.status == Game.Status.PLAY:
+		Game.run_time += delta
 
 	if _advance_timer > 0.0:
 		_advance_timer -= delta

@@ -1,4 +1,4 @@
-## HUD: the sand gauge, the level name, and the victory screen.
+## HUD: the sand gauge, the level name, the run clock, and the victory screen.
 extends Control
 
 ## Centre of the sand gauge, in screen px. Editable on `Root` in `hud.tscn`.
@@ -10,14 +10,15 @@ extends Control
 
 ## The bar along the bottom. A level that has taken the jump away must not go on
 ## advertising it.
-const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
-const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
+const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu"
+const HINT_NO_JUMP := "← → move    R restart    ESC menu"
 
 ## The bloom around the gauge while a feather's jump is in hand.
 const CHARGED_GLOW_RADIUS := 46.0
 const CHARGED_GLOW_ALPHA := 0.45
 
 @onready var _level_label: Label = $LevelLabel
+@onready var _time_label: Label = $TimeLabel
 @onready var _overlay: Label = $Overlay
 @onready var _hint: Label = $Hint
 
@@ -37,6 +38,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_glow.visible = Game.feathered
+	_time_label.text = Game.format_time(Game.run_time)
 	queue_redraw()
 
 
@@ -76,4 +78,5 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""
 		Game.Status.VICTORY:
-			_overlay.text = "YOU MADE IT!\n\nPress R to play again    ESC for the menu"
+			_overlay.text = "YOU MADE IT!\n\nYour time: %s\n\nPress R to play again    ESC for the menu" \
+				% Game.format_time(Game.run_time)

@@ -31,6 +31,10 @@ var level_scenes: Array[PackedScene] = []
 var level_names: Array[String] = []
 var level_index := 0
 
+## Seconds played on the current run. Advanced by `main.gd` rather than here, so
+## that the menu is not on the clock.
+var run_time := 0.0
+
 ## Progression gate; everything is unlocked for now.
 var unlock_all := true
 ## Highest level index reached; tracked even while `unlock_all` is on.
@@ -119,7 +123,7 @@ func set_gravity(sign: float) -> void:
 func _ready() -> void:
 	level_scenes = _discover_levels()
 	for scene in level_scenes:
-		level_names.append(Level.title_from_path(scene.resource_path))
+		level_names.append(_read_level_name(scene))
 	if level_scenes.is_empty():
 		push_error("No levels found in %s" % LEVELS_DIR)
 
@@ -204,12 +208,38 @@ static func level_before(a: String, b: String) -> bool:
 	return a < b
 
 
+## Reads `level_name` from a scene without instantiating it; falls back to the
+## filename.
+func _read_level_name(scene: PackedScene) -> String:
+	var state := scene.get_state()
+	if state.get_node_count() > 0:
+		for i in state.get_node_property_count(0):
+			if state.get_node_property_name(0, i) == "level_name":
+				return str(state.get_node_property_value(0, i))
+	# "level_04_the_spring.tscn" -> "The Spring"
+	var stem := scene.resource_path.get_file().get_basename()
+	var words := stem.split("_", false)
+	var out := ""
+	for w in words:
+		if w.is_valid_int() or w == "level":
+			continue
+		out += (" " if out != "" else "") + w.capitalize()
+	return out if out != "" else stem
+
+
 ## Is this level playable from the menu?
 func is_unlocked(index: int) -> bool:
 	return unlock_all or index <= levels_reached
 
 
 # ----- Level lifecycle -------------------------------------------------------
+
+## Every way into a level from outside a run comes through here, so picking one
+## from the menu is timed like any other attempt.
+func start_run(index: int) -> void:
+	run_time = 0.0
+	start_level(index)
+
 
 ## `keep_deaths` tells a retry from a fresh arrival: only `restart` passes it.
 func start_level(index: int, keep_deaths := false) -> void:
@@ -238,7 +268,7 @@ func next_level() -> void:
 
 func restart() -> void:
 	if status == Status.VICTORY:
-		start_level(0)
+		start_run(0)
 	else:
 		start_level(level_index, true)
 
@@ -280,6 +310,15 @@ func aim(travel_dir: float) -> void:
 		return
 	next_plane = wanted
 	next_plane_changed.emit(next_plane)
+
+
+# ----- The clock -------------------------------------------------------------
+
+## A duration as `M:SS.CS`. Truncated rather than rounded, so the last frame of a
+## run never reads more than the victory screen does.
+static func format_time(seconds: float) -> String:
+	var cs := int(floorf(maxf(seconds, 0.0) * 100.0))
+	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
 
 
 # ----- The hourglass ---------------------------------------------------------
