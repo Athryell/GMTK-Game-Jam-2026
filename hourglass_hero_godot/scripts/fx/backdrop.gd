@@ -9,14 +9,28 @@ const BG_ROOT := "res://art/bg"
 ## How many levels share one background before the next takes over.
 const LEVELS_PER_BACKGROUND := 4
 
-## The painted layers are exported at 576×324 and drawn one art px to one world
-## px, like every other texture in the game — that single rule is what keeps a
-## pixel the same size whether it lands on a brick, the glass or the skyline.
+## The painted layers are exported at 576×324, and this is how many world px one
+## of their art px covers. The backdrop is the ONE place in the game that is not
+## 1.0 — everything you can touch is, and that is what keeps a pixel the same
+## size across a brick, the glass and the clock.
 ##
-## Nothing else may read this: it is here so the rule has a name, not so the
-## backdrop can be sized independently. At 1.0 the art is narrower than the
-## 960 px view, so `BackdropLayer` tiles it sideways to cover the level.
-const ART_SCALE := 1.0
+## At 1.0 the art stood 324 px tall under a 540 px view: a strip of city along
+## the bottom with bare sky over it, and the layers repeating every 576 px, well
+## inside one screen. Doubled it stands 648 and the city closes over the player,
+## with the tile run at 1152 — wider than the view, so the repeat no longer shows
+## twice at once.
+##
+## It must stay a WHOLE number. The art has no higher-resolution master to
+## enlarge from (`origbig.png` is a nearest ×4 of `orig.png`, the same 11 colours
+## and no more detail), so growing it can only mean spending more world px per
+## art px — and at anything fractional the doubled texels straddle world pixels
+## and the 1-px trusses in the art tear as the parallax slides. Whole means the
+## backdrop's pixel is an exact multiple of the game's rather than a stranger to
+## it, which is the closest this art can get to the rule while being any bigger.
+##
+## Nothing outside `BackdropLayer` may read this: it is here so the exception has
+## a name and a reason, not so the backdrop can be sized freely.
+const ART_SCALE := 2.0
 
 ## How far below the ground line the art is planted, in px. A little overlap
 ## reads better than a butt joint, and it covers the bare sky the camera's
