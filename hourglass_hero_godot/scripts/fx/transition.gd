@@ -3,8 +3,8 @@
 class_name Transition
 extends CanvasLayer
 
-## [constant Outline.INK], not pure black: the level goes out into the same dark
-## every shape in it is drawn against.
+## Not pure black: the level goes out into the same dark its own shapes are
+## drawn against.
 const COLOUR := Outline.INK
 
 
@@ -17,7 +17,7 @@ func _ready() -> void:
 	_veil.color = Color(COLOUR, 0.0)
 
 
-## Closes over `duration`, then holds until something opens it again.
+## Holds shut once closed, until something opens it again.
 func close(duration: float) -> void:
 	_fade_to(1.0, duration)
 
@@ -26,8 +26,7 @@ func open(duration: float) -> void:
 	_fade_to(0.0, duration)
 
 
-## Lifts the curtain at once — for a retry, where waiting to see the level again
-## is punishment rather than polish.
+## For a retry, where waiting to see the level again is punishment, not polish.
 func clear() -> void:
 	_fade_to(0.0, 0.0)
 

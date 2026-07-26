@@ -17,8 +17,8 @@ var _level: Level
 var _player: Player
 ## Countdown to the next level / retry. Zero while playing.
 var _advance_timer := 0.0
-## Set when the exit was reached, so the load that follows opens the curtain.
-## A retry never closed it, and must not fade in on nothing.
+## Whether the load that follows should open the curtain. A retry never closed
+## it, and must not fade in on nothing.
 var _entering_level := false
 
 
@@ -88,7 +88,7 @@ func _load_current_level() -> void:
 	Audio.play_music("return_8_bit")
 	Game.announce_level(_level.level_name)
 
-	# Announced first: the level's name is already on the HUD as it comes into view.
+	# After the announce, so the level's name is on the HUD as it comes into view.
 	if _entering_level:
 		_entering_level = false
 		_transition.open(Tuning.cfg.level_fade)
@@ -142,8 +142,7 @@ func _on_status_changed(status: Game.Status) -> void:
 		Game.Status.LEVEL_CLEAR:
 			_advance_timer = Tuning.cfg.level_clear_delay
 			_entering_level = true
-			# Closes well inside the delay, so the swap lands on a covered screen
-			# and the level that is leaving gets a beat of black after it.
+			# Never longer than the delay, or the swap happens in plain sight.
 			_transition.close(minf(Tuning.cfg.level_fade, Tuning.cfg.level_clear_delay))
 		Game.Status.DEAD:
 			_advance_timer = Tuning.cfg.death_delay
