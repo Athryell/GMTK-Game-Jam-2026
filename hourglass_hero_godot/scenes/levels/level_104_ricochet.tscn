@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="Script" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="4_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_spring"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="7_monster"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+world_size = Vector2(3050, 800)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(70, 597)
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Sea" type="StaticBody2D" parent="Entities"]
+collision_mask = 0
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Sea"]
+polygon = PackedVector2Array(0, 760, 3050, 760, 3050, 880, 0, 880)
+
+[node name="SeaTeeth" parent="Entities" instance=ExtResource("6_spikes")]
+position = Vector2(0, 736)
+size = Vector2(3050, 24)
+
+[node name="Start" type="StaticBody2D" parent="Entities"]
+collision_mask = 0
+script = ExtResource("3_terrain")
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Start"]
+polygon = PackedVector2Array(0, 620, 340, 620, 340, 700, 0, 700)
+
+[node name="Spring1" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(280, 606)
+size = Vector2(56, 14)
+
+[node name="PadA" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(540, 620)
+size = Vector2(150, 20)
+
+[node name="Spring2" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(560, 606)
+size = Vector2(56, 14)
+
+[node name="Rest1" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(820, 620)
+size = Vector2(340, 20)
+
+[node name="Monster1" parent="Entities" instance=ExtResource("7_monster")]
+position = Vector2(960, 586)
+size = Vector2(30, 34)
+move_distance = 120.0
+move_speed = 130.0
+
+[node name="Spring3" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(1100, 606)
+size = Vector2(56, 14)
+
+[node name="PadB" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(1380, 620)
+size = Vector2(150, 20)
+
+[node name="Spring4" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(1400, 606)
+size = Vector2(56, 14)
+
+[node name="Rest2" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(1660, 620)
+size = Vector2(340, 20)
+
+[node name="Monster2" parent="Entities" instance=ExtResource("7_monster")]
+position = Vector2(1800, 586)
+size = Vector2(30, 34)
+move_distance = 120.0
+move_speed = 150.0
+
+[node name="Spring5" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(1940, 606)
+size = Vector2(56, 14)
+
+[node name="PadC" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(2220, 620)
+size = Vector2(150, 20)
+
+[node name="Spring6" parent="Entities" instance=ExtResource("5_spring")]
+position = Vector2(2240, 606)
+size = Vector2(56, 14)
+
+[node name="Landing" parent="Entities" instance=ExtResource("4_platform")]
+position = Vector2(2500, 620)
+size = Vector2(440, 20)
+
+[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+position = Vector2(2650, 556)
