@@ -1,16 +1,16 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
 [ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="7_feather"]
 
 [node name="Level" type="Node2D"]
 script = ExtResource("1_level")
 level_name = "The Last Grain"
 world_size = Vector2(960, 540)
 sand_start_override = 1200.0
-double_jump = true
 
 [node name="Spawn" type="Marker2D" parent="."]
 position = Vector2(40, 479)
@@ -33,6 +33,10 @@ position = Vector2(400, 470)
 size = Vector2(200, 18)
 plane = 4
 kind = 0
+
+[node name="Feather" parent="Entities" instance=ExtResource("7_feather")]
+position = Vector2(140, 470)
+plane = 4
 
 [node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
 position = Vector2(830, 440)
