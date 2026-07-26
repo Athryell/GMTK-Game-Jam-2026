@@ -59,6 +59,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	# Frozen rather than merely hidden, so the patrol resumes where it stopped
+	# instead of somewhere across the room.
+	if not _active:
+		return
 	# Before the patrol guard: a monster told to hold still is still a clock.
 	_hand = fmod(_hand + delta * TAU / HAND_PERIOD, TAU)
 	queue_redraw()
