@@ -2,9 +2,8 @@
 ## The dashed line that says which plane a solid belongs to, and how much that
 ## matters this instant.
 ##
-## `@tool` because `Platform` and `Terrain` are: the editor refuses to instantiate
-## a non-tool script, so without it every `PlaneMarker.new()` comes back null and
-## every solid's `_draw` ends in an error.
+## `@tool` because the editor refuses to instantiate a non-tool script: without
+## it, `PlaneMarker.new()` in `Platform` and `Terrain` comes back null.
 ##
 ## The strength cuts, it does not fade: the stone changes on the frame the flip
 ## lands, and a line easing after it reads as lagging its own slab.
