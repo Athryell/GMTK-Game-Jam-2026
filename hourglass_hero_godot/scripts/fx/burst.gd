@@ -22,13 +22,6 @@ const SPIN := 7.0
 ## Grains spilled by a glass with no painting of its own, at completely full.
 const GRAINS_FULL := 46
 
-## What fraction of the sand's own pixels are thrown when the painted glass
-## breaks. The pile is a solid block of them and every one would be several
-## hundred rects a frame, so it is sampled — but sampled thinly enough and the
-## sand stops leaving the glass and starts puffing out of it. A third reads as the
-## pile coming apart while it is still recognisably the pile.
-const SPILL_KEEP := 0.34
-
 ## How hard the sand is thrown out of the break, in px/s: outwards from the throat
 ## first, then lifted, so it leaves the glass rather than dropping through it. Well
 ## under the wedges' own numbers — sand is what the glass was carrying, and it has
@@ -186,7 +179,7 @@ func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 		# the half turn afterwards, so it lands on the grains and the wedges alike.
 		var pile := HourglassShape.pile(HourglassSprite.bulb(size, i), Vector2.DOWN,
 			clampf(fills[i], 0.0, 1.0) * capacity)
-		for cell in _sample(pile, rng):
+		for cell in _sample(pile):
 			var from := cell * facing
 			var away := from.normalized() if from.length() > 0.01 else Vector2.UP
 			_bits.append(from)
@@ -194,10 +187,12 @@ func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 				+ Vector2(0.0, -rng.randf_range(SPILL_LIFT.x, SPILL_LIFT.y)))
 
 
-## Some of the cell centres inside `poly`, on the [constant SPILL_GRAIN] grid —
-## the pile taken apart at the size the grains will be drawn at, thinned by
-## [constant SPILL_KEEP].
-func _sample(poly: PackedVector2Array, rng: RandomNumberGenerator) -> Array[Vector2]:
+## Every cell centre inside `poly`, on the [constant SPILL_GRAIN] grid: the pile
+## taken apart at the size its grains will be drawn at, and all of it. A third of
+## the cells was cheaper and it showed — a glass that had been visibly full poured
+## out a handful, and the sand the player had been counting all level looked spent
+## at the one moment they were being told they had run out of it.
+func _sample(poly: PackedVector2Array) -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	if poly.size() < 3:
 		return out
@@ -209,7 +204,7 @@ func _sample(poly: PackedVector2Array, rng: RandomNumberGenerator) -> Array[Vect
 		var col := floori(box.position.x / SPILL_GRAIN)
 		while col <= floori(box.end.x / SPILL_GRAIN):
 			var centre := Vector2((col + 0.5) * SPILL_GRAIN, (row + 0.5) * SPILL_GRAIN)
-			if rng.randf() < SPILL_KEEP and Geometry2D.is_point_in_polygon(centre, poly):
+			if Geometry2D.is_point_in_polygon(centre, poly):
 				out.append(centre)
 			col += 1
 		row += 1
