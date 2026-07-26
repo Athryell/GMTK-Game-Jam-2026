@@ -154,6 +154,11 @@ func _resize(wanted: Vector2) -> void:
 
 # ----- Shape -----------------------------------------------------------------
 
+## The child the ground's points live on. `addons/level_tools` resizes it.
+func shape() -> CollisionPolygon2D:
+	return _first_polygon()
+
+
 func _first_polygon() -> CollisionPolygon2D:
 	for child in get_children():
 		if child is CollisionPolygon2D:

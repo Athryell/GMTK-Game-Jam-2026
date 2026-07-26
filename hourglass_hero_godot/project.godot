@@ -34,6 +34,10 @@ window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
 window/stretch/scale_mode="integer"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/level_tools/plugin.cfg")
+
 [input]
 
 move_left={
@@ -87,7 +91,3 @@ toggle_fullscreen={
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.047, 0.102, 0.169, 1)
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/level_tools/plugin.cfg")

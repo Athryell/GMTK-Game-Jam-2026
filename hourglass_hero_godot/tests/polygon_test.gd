@@ -98,6 +98,12 @@ func _resizing() -> void:
 		is_equal_approx((doubled[1].y - doubled[0].y) / (doubled[1].x - doubled[0].x),
 			(ramp[1].y - ramp[0].y) / (ramp[1].x - ramp[0].x)))
 
+	# Dragging the LEFT side of that same slab: the right side must not budge.
+	var pulled := Polygons.fit(slab, Rect2(Vector2(180.0, 100.0), Vector2(60.0, 60.0)))
+	_check("pulling one side leaves the opposite one where it was",
+		is_equal_approx(Polygons.bounds(pulled).end.x, 240.0),
+		"it ends at %.2f" % Polygons.bounds(pulled).end.x)
+
 	# The one shape with no height to scale from: a flat line stays flat rather
 	# than blowing up on a division by zero.
 	var flat := PackedVector2Array([
