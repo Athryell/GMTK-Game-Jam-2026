@@ -29,6 +29,28 @@ const LEVEL_STEPS := 16
 ## the neck, where the eye is.
 const WEDGE_FILL := 0.8
 
+## The sand's grain: how far the two speckle tones sit either side of the sand
+## colour, and how many cells in [constant GRAIN_BUCKETS] wear each.
+##
+## Three tones is the whole palette — a body, something catching the light and
+## something in shadow. A fourth reads as noise at one world px a grain rather
+## than as sand, and the tones are deliberately close: they are texture, and the
+## moment they carry real contrast the eye starts reading them as sand MOVING,
+## which is the surface's job and not theirs.
+const GRAIN_LIGHT := 0.22
+const GRAIN_DARK := 0.18
+const GRAIN_BUCKETS := 16
+const GRAIN_LIT_CELLS := 3
+## Cumulative, not a second count: buckets 3 to 5 are the shaded ones, so a
+## little under a quarter of the pile is speckled at all.
+const GRAIN_SHADE_CELLS := 6
+
+## What [method _tone] answers with. `TONE_BODY` draws nothing of its own — the
+## row's base rect is already that colour underneath.
+const TONE_BODY := -1
+const TONE_LIT := 0
+const TONE_SHADE := 1
+
 
 ## How far a chamber reaches from the neck, and how wide it is at the far end,
 ## both in px, for a glass of `size`. NOTE the axes swap: `.x` is a reach ALONG
@@ -127,7 +149,7 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 	for i in count:
 		var poly := chamber(size, count, i)
 		if fills[i] > 0.001:
-			fill(canvas, pile(poly, down, fills[i] * capacity, invert), sand)
+			fill_grains(canvas, pile(poly, down, fills[i] * capacity, invert), sand)
 
 	_trickle(canvas, size, count, fills, sand, down, line_width, invert)
 
@@ -183,8 +205,8 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 				continue
 			# One thread per (draining chamber -> target) pair.
 			var seg := trickle_segment(size, count, i, j, down, invert)
-			canvas.draw_line(seg[0], seg[1],
-				Color(sand, sand.a * pouring), line_width * 0.8, true)
+			fill_grains(canvas, thread_quad(seg[0], seg[1], line_width * 0.8),
+				Color(sand, sand.a * pouring))
 
 
 ## The thread of sand in flight from chamber `index` into chamber `target`, as
@@ -318,11 +340,102 @@ static func _area(poly: PackedVector2Array) -> float:
 ## A filled polygon with a smooth edge. `draw_colored_polygon` has no AA flag and
 ## MSAA does not reach it under Compatibility, so the edge is restroked. Public:
 ## used by anything in the game that draws a diagonal.
+##
+## Not what the sand uses any more — see [method fill_grains]. Still the right
+## answer for a shape that is not pixel art, like a spike.
 static func fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) -> void:
 	if poly.size() < 3:
 		return
 	canvas.draw_colored_polygon(poly, colour)
 	canvas.draw_polyline(_closed(poly), colour, 1.0, true)
+
+
+## The same polygon, laid down on the pixel grid instead of filled smoothly.
+##
+## Nothing about the sand's MOVEMENT changes here. `poly` is whatever [method
+## pile] produced — the surfaces still sit square to gravity, still find their
+## level by area, still climb through a turn. All that changes is how the result
+## is put on screen: a cell is sand when its CENTRE lies inside `poly`, so the
+## surface comes out stepped in whole pixels the size of the painted ones, and
+## slides down in whole pixels as the bulb drains.
+##
+## `cell` is a world px, which is an art px everywhere in this game. Left as a
+## number rather than read off anything, because a glass drawn at some other
+## scale still wants grains the size of the brick's pixels, not of its own.
+static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Color,
+		cell := 1.0) -> void:
+	if poly.size() < 3 or cell <= 0.0:
+		return
+	var top := INF
+	var bottom := -INF
+	for v in poly:
+		top = minf(top, v.y)
+		bottom = maxf(bottom, v.y)
+	var lit := colour.lightened(GRAIN_LIGHT)
+	var shade := colour.darkened(GRAIN_DARK)
+	var n := poly.size()
+	for row in range(floori(top / cell), floori(bottom / cell) + 1):
+		var y := (row + 0.5) * cell
+		# Where the row's centre line crosses the outline. The pile is convex in
+		# practice, so the extreme crossings bound the run — taking the min and max
+		# rather than pairing crossings up leaves a concave one filled solid, which
+		# is the failure that is worth having: a stripe of bare glass across the
+		# sand would read as a bug, a slightly over-full row does not.
+		var left := INF
+		var right := -INF
+		for i in n:
+			var a := poly[i]
+			var b := poly[(i + 1) % n]
+			if (a.y <= y) == (b.y <= y):
+				continue
+			left = minf(left, a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y))
+			right = maxf(right, a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y))
+		if left > right:
+			continue
+		var first := ceili(left / cell - 0.5)
+		var last := floori(right / cell - 0.5)
+		if last < first:
+			continue
+		canvas.draw_rect(Rect2(first * cell, row * cell,
+			(last - first + 1) * cell, cell), colour)
+		# Then the speckle over it, merged into runs: neighbouring cells wearing one
+		# tone go down as a single rect. At this density that is most of them, and
+		# it is the difference between a few rects a row and one per grain.
+		var start := first
+		var tone := _tone(first, row)
+		for i in range(first + 1, last + 2):
+			var next := _tone(i, row) if i <= last else TONE_BODY
+			if next == tone:
+				continue
+			if tone != TONE_BODY:
+				canvas.draw_rect(Rect2(start * cell, row * cell, (i - start) * cell, cell),
+					lit if tone == TONE_LIT else shade)
+			start = i
+			tone = next
+
+
+## A segment as a rectangle, so a thread of falling sand can go through [method
+## fill_grains] and land on the same grid as the piles it runs between. Drawn as
+## a line it stayed smooth while everything around it went blocky, which showed.
+static func thread_quad(a: Vector2, b: Vector2, width: float) -> PackedVector2Array:
+	var across := (b - a).orthogonal().normalized() * (width * 0.5)
+	return PackedVector2Array([a - across, b - across, b + across, a + across])
+
+
+## Which tone a grain wears.
+##
+## Hashed from the cell's place on the GRID, not from the sand sitting in it.
+## That pins the speckle to the glass rather than to the pile, so a draining bulb
+## uncovers a texture that was already there instead of one that boils as it
+## goes. Every bit of movement the eye picks up then comes from the surface —
+## which is the only thing that is actually moving.
+static func _tone(i: int, row: int) -> int:
+	var h := (i * 73856093) ^ (row * 19349663)
+	h = (h ^ (h >> 13)) * 1274126177
+	var bucket: int = absi(h ^ (h >> 16)) % GRAIN_BUCKETS
+	if bucket < GRAIN_LIT_CELLS:
+		return TONE_LIT
+	return TONE_SHADE if bucket < GRAIN_SHADE_CELLS else TONE_BODY
 
 
 static func _outline(canvas: CanvasItem, poly: PackedVector2Array, width: float) -> void:
