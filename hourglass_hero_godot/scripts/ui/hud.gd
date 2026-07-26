@@ -13,20 +13,30 @@ extends Control
 const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
 const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
 
+## The bloom around the gauge while a feather's jump is in hand.
+const CHARGED_GLOW_RADIUS := 46.0
+const CHARGED_GLOW_ALPHA := 0.45
+
 @onready var _level_label: Label = $LevelLabel
 @onready var _overlay: Label = $Overlay
 @onready var _hint: Label = $Hint
+
+var _glow: Glow
 
 
 func _ready() -> void:
 	# Per-node rather than a project default; see `terrain.gd`.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_glow = Glow.halo(Palette.SAND_CHARGED, CHARGED_GLOW_RADIUS, CHARGED_GLOW_ALPHA)
+	_glow.position = gauge_centre
+	add_child(_glow)
 	Game.level_loaded.connect(_on_level_loaded)
 	Game.status_changed.connect(_on_status_changed)
 	_on_status_changed(Game.status)
 
 
 func _process(_delta: float) -> void:
+	_glow.visible = Game.feathered
 	queue_redraw()
 
 
