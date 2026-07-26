@@ -396,8 +396,6 @@ func _draw() -> void:
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
-				# Nothing under the painting and nothing round it: a piece wears the art's
-				# own texels and no more, so the wedge it was cut as never shows.
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
