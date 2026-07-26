@@ -115,6 +115,11 @@ func _draw() -> void:
 	# collision point is whatever it last happened to hold.
 	if not Engine.is_editor_hint():
 		_draw_beam(muzzle, tint)
+	# Both outlines before either fill, so each shape covers the other's line
+	# where they overlap: ink at the joint would seam a cannon that is one piece.
+	Outline.polygon(self,
+		HourglassShape.thread_quad(Vector2.ZERO, muzzle, BARREL_WIDTH), tint.a)
+	Outline.circle(self, Vector2.ZERO, BODY_RADIUS, tint.a)
 	draw_line(Vector2.ZERO, muzzle, tint.darkened(0.25), BARREL_WIDTH)
 	draw_circle(Vector2.ZERO, BODY_RADIUS, tint.darkened(0.5))
 	# The eye swells and lights up with the charge, so the cannon warns you even

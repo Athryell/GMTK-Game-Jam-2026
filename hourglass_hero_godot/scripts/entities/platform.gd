@@ -79,6 +79,8 @@ func _physics_process(delta: float) -> void:
 func _draw() -> void:
 	var colour := _colour()
 	_draw_halo(colour.a)
+	# After the halo, so the line reads against the glow rather than under it.
+	Outline.rect(self, Rect2(Vector2.ZERO, size), colour.a)
 	draw_texture_rect(Bricks.TEXTURE, Rect2(Vector2.ZERO, size), true, colour)
 	if size.y >= 6.0:
 		draw_texture_rect(Bricks.TEXTURE,
