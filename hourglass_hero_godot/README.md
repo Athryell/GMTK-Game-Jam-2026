@@ -80,7 +80,7 @@ Adding a tunable is one line; its slider appears automatically under its
 |---|---|---|
 | **`Terrain`** (node) | The ground, as a polygon: floor, ledge, wall and **slope** in one node. | `plane` |
 | `platform.tscn` | A rectangle that MOVES, or a refuel pad (`kind = FLIP_PAD`). Static ground belongs in a `Terrain`. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
-| `spring.tscn` | Throws you the way it points — no flip, no plane change. Turn it sideways and swap `size` too (e.g. 14 x 56) for a wall pad. | `size`, `plane`, `facing`, `power` (0 = tuned default) |
+| `spring.tscn` | Throws you the way it is turned — no flip, no plane change. Rotate the node and the launch follows it, at any angle. | `size`, `plane`, `rotation`, `power` (0 = tuned default) |
 | `monster.tscn` | Patrols an axis, kills on contact, in its own plane only. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
 | `spikes.tscn` | A monster that does not walk. | `size`, `plane`, `facing` |
 | `cannon.tscn` | Tracks you while it charges, then fires along the line it held. Blocked by solids, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
