@@ -74,7 +74,7 @@ static func draw(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
 	var capacity := BULB_AREA * (size.x / TRIM.size.x) * (size.y / TRIM.size.y)
 	for i in 2:
 		if fills[i] > 0.001:
-			HourglassShape.fill(canvas,
+			HourglassShape.fill_grains(canvas,
 				HourglassShape.pile(bulb(size, i), down, fills[i] * capacity, invert), sand)
 
 	# The neck the art paints sits within a pixel of the one the drawn glass
@@ -92,7 +92,8 @@ static func draw(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
 	# land in, and the glass is only over for a moment.
 	if not turning and (fills[0] > 0.001 or invert >= 0.5):
 		var seg := HourglassShape.trickle_segment(size, 2, 0, 1, down, invert)
-		canvas.draw_line(seg[0], seg[1], sand, maxf(size.x * 0.055, 1.0), true)
+		HourglassShape.fill_grains(canvas, HourglassShape.thread_quad(
+			seg[0], seg[1], maxf(size.x * 0.055, 1.0)), sand)
 
 	canvas.draw_texture_rect_region(TEXTURE,
 		Rect2(-size * 0.5, size), TRIM)
