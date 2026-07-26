@@ -7,7 +7,7 @@ enum Kind {
 	RING, ## Flip: a ring in the plane just landed in.
 	DUST, ## Landing chips.
 	SHARDS, ## Death: glass fragments, for a glass with no painting of its own.
-	PIECES, ## Death: the player's sprite, broken along the pixel grid.
+	PIECES, ## Death: the same fragments, wearing the painted glass's own texels.
 	SAND, ## Death: spilled sand.
 	SWEAT, ## Low on sand: a single bead.
 }
@@ -22,10 +22,11 @@ const SPIN := 7.0
 ## Grains spilled by a completely full hourglass.
 const GRAINS_FULL := 46
 
-## How big a piece of the player's sprite is, in art px a side. The art is 32×64,
-## so 8 cuts it into a 4×8 grid — big enough that a piece still reads as a bit of
-## the glass rather than as confetti, small enough that a dozen or more fly.
-const PIECE_CELL := 8
+## How strongly the fresh cut down the side of a piece is drawn, against the fade
+## the piece is already at. The art paints the glass's own outline; this is the
+## edge that was not there a frame ago, and it is what keeps a wedge reading as
+## broken glass rather than as a torn-off scrap.
+const PIECE_EDGE := 0.5
 
 ## One world px, and one art px: the grid the whole game's pixels sit on. Every
 ## death effect is snapped to it, so a flying piece or grain crosses the screen a
@@ -47,12 +48,9 @@ var _velocities: Array[Vector2] = []
 var _pieces: Array[PackedVector2Array] = []
 var _angles: Array[float] = []
 var _spins: Array[float] = []
-## PIECES only: the region of the art each piece carries, and the size it is
-## drawn at.
-var _regions: Array[Rect2] = []
-var _piece_sizes: Array[Vector2] = []
-## PIECES only: whether the art is drawn a half turn round, because the glass was.
-var _turned := false
+## PIECES only: where on the art each corner of each fragment came from, in the
+## texture's own pixels — the wedge cut out of the painting rather than filled in.
+var _uvs: Array[PackedVector2Array] = []
 
 
 ## The plane swap.
@@ -71,10 +69,10 @@ static func dust(parent: Node, at: Vector2, tint: Color, force: float) -> void:
 ## centre. `life` must not exceed the death-screen pause — the level, and every
 ## effect in it, is freed when that pause ends.
 ##
-## Two chambers is the painted glass, and it breaks into pieces of its own art:
-## the sprite cut along the pixel grid, each piece keeping the texels that were on
-## screen the frame before. Any other count is a rosette the game draws itself,
-## with no painting to break, so that one still shatters into traced wedges.
+## Every count breaks into the same traced wedges. Two chambers is the painted
+## glass, so those wedges are cut OUT of the painting — each carries the texels
+## that stood on it a frame ago — instead of being filled with flat glass. Any
+## other count is a rosette the game draws itself, with no painting to cut from.
 ## `turned` is whether the glass was standing on its head when it died, which is
 ## the one attitude the pieces can honour exactly — see [method _break_sprite].
 static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life: float,
@@ -149,11 +147,16 @@ func _segments(outline: PackedVector2Array) -> Array[Array]:
 ## to that segment, and throws it outwards. Polygons are stored relative to
 ## their own centroid, which is what moves — spinning about a shared origin
 ## would make fragments orbit instead of tumble.
-func _split(outline: PackedVector2Array) -> void:
+##
+## `facing` of -1 breaks the glass upside down: the outline goes through a half
+## turn first, so every wedge is thrown from where it was lying rather than from
+## where it would have been the right way up. The lift is added after, in screen
+## terms, because the fragments fall down the screen either way.
+func _split(outline: PackedVector2Array, facing := 1.0) -> void:
 	var rng := RandomNumberGenerator.new()
 	for edge in _segments(outline):
-		var a: Vector2 = edge[0]
-		var b: Vector2 = edge[1]
+		var a: Vector2 = edge[0] * facing
+		var b: Vector2 = edge[1] * facing
 		var centre := (a + b) / 3.0
 		# Throat wedges sit almost on the origin and have no outward direction;
 		# send those out along the edge's own midpoint.
@@ -170,41 +173,45 @@ func _split(outline: PackedVector2Array) -> void:
 		_spins.append(SPIN * rng.randf_range(0.4, 1.0) * (1.0 if rng.randf() < 0.5 else -1.0))
 
 
-## Cuts the player's sprite into pieces of [constant PIECE_CELL] art px and throws
-## each one from where it stood on the glass.
+## The wedges of [method _split], cut out of the painted glass rather than filled
+## with it: each keeps the texels that stood where it did a frame ago.
 ##
-## Nothing is turned by any angle but a half circle. A texture turned off the axis
-## has to resample, and the art comes back with its pixels smeared into sizes no
-## other pixel on screen has — which is the one thing this effect exists to avoid.
-## A half turn is exact, which is why `turned` gets one and the tilt of a glass
-## caught mid-flip gets nothing. The tumble the wedges get from spinning, the
-## pieces get from their spread instead: each is thrown along the line from the
-## throat out through its own centre, so the caps go up, the bulbs go wide, and
-## the pieces at the throat get the hardest kick.
+## Two things the flat wedges do have to go. The spin, because a texture turned
+## off the axis has to resample, and the art comes back with its pixels smeared
+## into sizes no other pixel on screen has — which is the one thing this effect
+## exists to avoid. And the sub-pixel start, because a wedge that begins a third
+## of a pixel off the grid samples the art a third of a pixel off it for the whole
+## flight. Snapped here and snapped again every frame, the two stay a whole number
+## of pixels apart, so the texels land square however far the piece has flown.
+##
+## What is left is a pure slide, which is exact — and the tumble the wedges got
+## from spinning, these get from their spread: each is thrown along the line from
+## the throat out through its own centre, so the caps go up and the bulbs go wide.
+##
+## `turned` is the half turn the art was standing at: the glass is broken up in
+## that attitude, so the wedges fly the way the picture was lying, and each one
+## then reaches BACK through the turn to ask the art what was painted on it.
 func _break_sprite(size: Vector2, turned: bool) -> void:
-	_turned = turned
-	var rng := RandomNumberGenerator.new()
-	for region in HourglassSprite.chunks(PIECE_CELL):
-		var piece_size := HourglassSprite.chunk_size(size, region)
-		var corner := HourglassSprite.chunk_offset(size, region)
-		if turned:
-			# The half turn, applied to where the piece starts. The art it carries is
-			# turned with it at draw time.
-			corner = -corner - piece_size
-		var centre := corner + piece_size * 0.5
-		var away := centre.normalized() if centre.length() > 0.01 else Vector2.UP
+	var facing := -1.0 if turned else 1.0
+	_split(HourglassShape.shell(size, 2), facing)
+	for i in _pieces.size():
+		_spins[i] = 0.0
+		_bits[i] = _bits[i].snapped(Vector2(PIXEL, PIXEL))
+		var uv := PackedVector2Array()
+		for point in _pieces[i]:
+			uv.append(_texel((_bits[i] + point) * facing, size))
+		_uvs.append(uv)
 
-		_regions.append(region)
-		_piece_sizes.append(piece_size)
-		# Held as the piece's top-left, which is what gets drawn and what gets
-		# snapped: snapping a centre would move whole pixels by half of one.
-		_bits.append(corner)
-		# Lifted as well as thrown outwards, for the same reason the wedges are: a
-		# purely radial kick fires the lower half straight into the floor. The
-		# wedges' own numbers — this is the same break, thrown the same way, and only
-		# what each bit is made of has changed.
-		_velocities.append((away * rng.randf_range(90.0, 190.0))
-			+ Vector2(0.0, rng.randf_range(-260.0, -120.0)))
+
+## Where a point in the glass's own frame sits on the art, in texture px. The
+## sprite is drawn one art px to one world px, so this is a shift and nothing
+## else — no scale to round off, and no texel landing between two pixels.
+func _texel(local: Vector2, size: Vector2) -> Vector2:
+	var art := HourglassSprite.TRIM.position \
+		+ (local + size * 0.5) / size * HourglassSprite.TRIM.size
+	# Over the whole sheet, not the trim: polygon UVs are read 0 to 1 across the
+	# texture, where every other call in the game names a rect in texture px.
+	return art / HourglassSprite.TEXTURE.get_size()
 
 
 func _scatter(count: int, speed: float, from_angle: float, to_angle: float) -> void:
@@ -255,24 +262,22 @@ func _draw() -> void:
 			for p in _bits:
 				HourglassShape.draw_grain(self, p, Color(colour, fade * 0.95), PIXEL)
 		Kind.PIECES:
-			# The wedges' own fade, on the art instead of on a fill: uniform alpha
-			# over a piece leaves every texel where it was, so it costs the pixels
-			# nothing and it keeps the break reading the way it always did.
-			var glass := Color(1.0, 1.0, 1.0, clampf(fade * PIECE_SOLID, 0.0, 1.0))
-			for i in _regions.size():
+			# The wedges' own fade, applied to the art instead of to a fill: one alpha
+			# over a whole piece leaves every texel where it was, so it costs the pixels
+			# nothing and the break still thins out on the curve it always did.
+			var strength := clampf(fade * PIECE_SOLID, 0.0, 1.0)
+			var glass := Color(1.0, 1.0, 1.0, strength)
+			var cut := Color(colour, strength * PIECE_EDGE)
+			for i in _pieces.size():
 				var at: Vector2 = _bits[i].snapped(Vector2(PIXEL, PIXEL))
-				if _turned:
-					# A half turn as a scale of -1 on both axes: exact, so every texel
-					# still lands on one whole pixel. `draw_set_transform` with an angle
-					# would be the same picture through a resample.
-					draw_set_transform(at + _piece_sizes[i], 0.0, Vector2(-1.0, -1.0))
-					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i], glass)
-				else:
-					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(at, _piece_sizes[i]), _regions[i], glass)
-			if _turned:
-				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				var piece := PackedVector2Array()
+				for point in _pieces[i]:
+					piece.append(at + point)
+				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
+				piece.append(piece[0])
+				# Not antialiased, unlike the flat wedges: a soft line would leave half-lit
+				# pixels down every cut, at a size no other pixel in the game comes in.
+				draw_polyline(piece, cut, 1.0)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
 			var solid := clampf(fade * 2.2, 0.0, 1.0)

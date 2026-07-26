@@ -60,11 +60,6 @@ const BULBS: Array[Array] = [
 ## calls full stops looking it.
 const BULB_AREA := 467.0
 
-## [method chunks] by cell size. Static, so the walk over the image happens once
-## per run rather than once per death.
-static var _chunk_cache := {}
-
-
 ## Sand first, then the glass over it. `fills` is how full each bulb is, 0 to 1,
 ## upper first; `down` is gravity in the glass's own frame and `invert` how far
 ## the flow has turned over, both exactly as [method HourglassShape.draw_glass]
@@ -101,61 +96,6 @@ static func draw(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
 
 	canvas.draw_texture_rect_region(TEXTURE,
 		Rect2(-size * 0.5, size), TRIM)
-
-
-## The art cut into a grid of `cell`-px squares, as regions in the texture's own
-## pixel coordinates, with the empty ones dropped.
-##
-## What the death shatter breaks the player into: pieces of the SPRITE, carrying
-## the art's own pixels, rather than wedges of a traced outline. Cells the art
-## leaves fully transparent are skipped so nothing invisible is thrown — the glass
-## is a narrow shape on a 32-wide canvas and its corners hold nothing.
-##
-## Read off the image once and kept: `get_image` is not something to do on the
-## frame the player dies.
-static func chunks(cell: int) -> Array[Rect2]:
-	if cell <= 0:
-		return []
-	if _chunk_cache.has(cell):
-		return _chunk_cache[cell]
-
-	var image := TEXTURE.get_image()
-	var out: Array[Rect2] = []
-	var x := int(TRIM.position.x)
-	while x < int(TRIM.end.x):
-		var y := int(TRIM.position.y)
-		while y < int(TRIM.end.y):
-			var w: int = mini(cell, int(TRIM.end.x) - x)
-			var h: int = mini(cell, int(TRIM.end.y) - y)
-			if _has_ink(image, x, y, w, h):
-				out.append(Rect2(x, y, w, h))
-			y += cell
-		x += cell
-	_chunk_cache[cell] = out
-	return out
-
-
-## Where a chunk sits in the glass's own frame — the same frame [method bulb]
-## answers in, centred on the throat — at drawing size `size`.
-static func chunk_offset(size: Vector2, region: Rect2) -> Vector2:
-	return Vector2(
-		(region.position.x - TRIM.position.x) / TRIM.size.x * size.x - size.x * 0.5,
-		(region.position.y - TRIM.position.y) / TRIM.size.y * size.y - size.y * 0.5)
-
-
-## Chunk cell size to the same in world px, so a piece is drawn at the scale the
-## whole glass was and its pixels stay the size of every other pixel on screen.
-static func chunk_size(size: Vector2, region: Rect2) -> Vector2:
-	return Vector2(region.size.x / TRIM.size.x * size.x,
-		region.size.y / TRIM.size.y * size.y)
-
-
-static func _has_ink(image: Image, x: int, y: int, w: int, h: int) -> bool:
-	for i in w:
-		for j in h:
-			if image.get_pixel(x + i, y + j).a > 0.02:
-				return true
-	return false
 
 
 ## Bulb `index` as a polygon in the glass's own frame, scaled to `size` and
