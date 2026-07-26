@@ -181,9 +181,8 @@ func _plant_shape() -> void:
 	shape.polygon = STARTER
 	add_child(shape)
 	shape.owner = root
-	# Grouped, so a click in the viewport grabs the ground and drags it whole
-	# rather than grabbing the polygon under it. The points stay reachable by
-	# picking `Shape` in the Scene dock, and Ctrl+G undoes this.
+	# `_edit_group_` makes the children unselectable in the viewport, so a click
+	# drags the ground whole instead of grabbing the polygon under it. Ctrl+G.
 	if self != root:
 		set_meta(&"_edit_group_", true)
 
