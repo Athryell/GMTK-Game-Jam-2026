@@ -8,7 +8,6 @@
 
 [node name="Level" type="Node2D" unique_id=2128132642]
 script = ExtResource("1_level")
-level_name = "Double or Nothing"
 world_size = Vector2(1400, 540)
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=291825726]

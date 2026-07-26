@@ -7,7 +7,6 @@
 
 [node name="Level" type="Node2D" unique_id=2033491078]
 script = ExtResource("1_level")
-level_name = "Wake-Up"
 clock_starts_on_move = true
 jump_locked_first_life = true
 

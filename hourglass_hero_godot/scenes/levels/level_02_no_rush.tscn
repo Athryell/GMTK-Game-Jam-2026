@@ -7,7 +7,6 @@
 
 [node name="Level" type="Node2D" unique_id=2024215292]
 script = ExtResource("1_4w54p")
-level_name = "No Rush"
 world_size = Vector2(1200, 540)
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=687475050]
