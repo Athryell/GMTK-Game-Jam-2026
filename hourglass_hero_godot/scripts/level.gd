@@ -18,9 +18,6 @@ extends Node2D
 @export_range(2, 4) var chambers := 2
 ## Sand the level starts you with, in ms. At 0 it falls back to `sand_start`.
 @export_range(0.0, 20000.0, 100.0) var sand_start_override := 0.0
-## Grants one extra mid-air jump, for this level only. On a two-chamber glass two
-## turns restore both the starting plane and the exact sand, so it is pure height.
-@export var double_jump := false
 ## Holds the sand until the player first steers, so a level with something to say
 ## can say it before anything is at stake.
 @export var clock_starts_on_move := false

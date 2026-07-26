@@ -74,10 +74,6 @@ var sand_flow := 1.0
 ## direction between two frames reads as a glitch rather than as a cause.
 var flow_blend := 0.0
 
-## Mid-air extra jump. Set by `main.gd` after the level scene exists, since
-## `start_level` runs before it is instantiated.
-var double_jump := false
-
 ## Is the sand allowed to run yet? Held back by `Level.clock_starts_on_move`
 ## until the player first moves.
 var clock_running := true
@@ -232,8 +228,6 @@ func start_level(index: int, keep_deaths := false) -> void:
 	flow_blend = 0.0
 	flip_anim = 0.0
 	pad_flash = 0.0
-	# Cleared so a level granting it cannot leak into the next one.
-	double_jump = false
 	set_plane(Planes.Kind.P0)
 	set_status(Status.PLAY)
 
