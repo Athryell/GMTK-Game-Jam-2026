@@ -99,6 +99,9 @@ extends Resource
 @export_range(0.0, 60.0, 1.0) var camera_shake_strength: float = 16.0
 ## Seconds for a full-strength shake to die away.
 @export_range(0.05, 3.0, 0.05) var camera_shake_decay: float = 0.55
+## Shake amplitude with an all but empty glass, in px. Held for as long as the
+## danger lasts, so it belongs well under `camera_shake_strength`.
+@export_range(0.0, 20.0, 0.5) var camera_danger_shake: float = 3.5
 
 @export_group("Light")
 
@@ -122,3 +125,9 @@ extends Resource
 @export_range(0.05, 2.0, 0.05) var pad_flash_duration: float = 0.4
 ## How fast a spring un-squashes after a bounce. Higher = snappier.
 @export_range(0.5, 12.0, 0.5) var spring_recovery_speed: float = 4.0
+## How far the red danger border reaches in from the screen edge, in px.
+@export_range(0.0, 200.0, 5.0) var danger_edge_depth: float = 72.0
+## The border's alpha at its brightest.
+@export_range(0.0, 1.0, 0.05) var danger_edge_alpha: float = 0.7
+## Beats per second the border breathes at, before the danger quickens it.
+@export_range(0.0, 6.0, 0.1) var danger_edge_pulse: float = 1.6
