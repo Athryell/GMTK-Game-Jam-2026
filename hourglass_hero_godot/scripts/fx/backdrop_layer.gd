@@ -9,6 +9,11 @@ extends Node2D
 var scroll := 0.35
 var texture: Texture2D
 
+## The air in front of this depth: a veil of `fog` at `fog_alpha`, drawn over
+## this layer's own art and so over every layer behind it.
+var fog := Color.WHITE
+var fog_alpha := 0.0
+
 ## Horizontal overdraw beyond the level on every side, in world px, so a layer
 ## scrolling at a different rate than the camera never runs out of itself at
 ## the screen edges.
@@ -90,3 +95,19 @@ func _draw() -> void:
 	var right := ceilf((_world.x + MARGIN) / Backdrop.ART_SCALE)
 	var bottom := _floor_y / Backdrop.ART_SCALE
 	draw_texture_rect(texture, Rect2(left, bottom - size.y, right - left, size.y), true)
+	_draw_fog(left, right, bottom - size.y, bottom)
+
+
+## The veil over this depth, thinning towards the top of the art. A gouraud quad
+## rather than a rect: `draw_rect` is one flat colour, and a flat veil reads as a
+## sheet of tinted glass instead of air.
+func _draw_fog(left: float, right: float, top: float, bottom: float) -> void:
+	if fog_alpha <= 0.0:
+		return
+	var high := Color(fog.r, fog.g, fog.b, fog_alpha * Backdrop.FOG_TOP)
+	var low := Color(fog.r, fog.g, fog.b, fog_alpha)
+	draw_polygon(
+		PackedVector2Array([
+			Vector2(left, top), Vector2(right, top),
+			Vector2(right, bottom), Vector2(left, bottom)]),
+		PackedColorArray([high, high, low, low]))
