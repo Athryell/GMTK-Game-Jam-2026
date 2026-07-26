@@ -59,6 +59,24 @@ const SAND_CHARGED := Color("3fb8ff")
 
 const TEXT_DIM := Color("9aa6c4")
 
+# ----- The interface ---------------------------------------------------------
+
+## The menu's surfaces. No fifth hue family is opened here: the plates are the
+## plane-0 room depths, the accent is plane 0's own cyan and the primary action
+## wears the gold of time, so the menu is lit by the same four hues the world is.
+
+## Plate base and the scrim over the backdrop. Darker than any room depth: a
+## number on a chip has to be read against a painted city, not against sky.
+const UI_INK := Color("0d1420")
+const UI_PLATE := Color("14304a") ## PLANE_ROOMS[0]'s far wall.
+const UI_PLATE_HI := Color("1b3e5c") ## Its near wall — borders and hover.
+const UI_ACCENT := Color("4cc9f0") ## PLANE_SOLIDS[0]: focus, and the level next up.
+const UI_GOLD := DOOR ## The title, the primary action, a level already cleared.
+
+## How much of the backdrop the scrim holds back. Below about 0.4 the city's lit
+## windows come through the dim text and it stops being readable.
+const UI_SCRIM_ALPHA := 0.58
+
 # ----- The room --------------------------------------------------------------
 
 ## Four depths per plane, far to near: sky, floor, far wall, near wall — each a

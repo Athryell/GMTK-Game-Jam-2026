@@ -164,13 +164,13 @@ func _rebuild_layers(index: int) -> void:
 		_sky.texture = null
 		return
 
-	var textures := _load_layer_textures("%s/background %d" % [BG_ROOT, index + 1])
+	var textures := load_layer_textures("%s/background %d" % [BG_ROOT, index + 1])
 	if textures.is_empty():
 		_sky.texture = null
 		return
 
 	_sky.texture = textures[0]
-	var fog := _fog_colour(textures[0])
+	var fog := fog_colour(textures[0])
 	var depth_count := textures.size() - 1
 	for i in range(1, textures.size()):
 		var t := float(i - 1) / float(maxi(depth_count - 1, 1))
@@ -185,8 +185,8 @@ func _rebuild_layers(index: int) -> void:
 
 ## The colour the distance dissolves into, read off this background's own sky so
 ## each one hazes towards its own horizon rather than towards a grey the art
-## never uses.
-func _fog_colour(sky: Texture2D) -> Color:
+## never uses. Static and public: the menu stands in one of these rooms too.
+static func fog_colour(sky: Texture2D) -> Color:
 	var image := sky.get_image()
 	if image == null:
 		return FOG_FALLBACK
@@ -206,7 +206,7 @@ func _fog_colour(sky: Texture2D) -> Color:
 ## The numbered layer files in a background folder (`1.png`, `2.png`, …),
 ## sorted so index 0 is the sky and the rest run far to near. `orig.png` /
 ## `origbig.png` are reference composites, not layers, and are skipped.
-func _load_layer_textures(dir_path: String) -> Array[Texture2D]:
+static func load_layer_textures(dir_path: String) -> Array[Texture2D]:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		push_error("No background art found at %s" % dir_path)
