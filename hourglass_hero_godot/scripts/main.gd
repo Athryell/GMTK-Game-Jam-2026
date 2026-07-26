@@ -5,6 +5,12 @@ extends Node2D
 const PLAYER_SCENE := preload("res://scenes/entities/player.tscn")
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 
+## One track per background, in the order the backgrounds are reached. An empty
+## name here would be deliberate silence rather than a missing entry; every
+## background has its own track now, so there are none.
+const LEVEL_TRACKS: Array[String] = [
+	"return_8_bit", "techno_polka", "game_8_bit", "colors_everywhere"]
+
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
@@ -82,7 +88,16 @@ func _load_current_level() -> void:
 	_backdrop.configure(_level, Game.level_index, _camera.view_bottom())
 	_backdrop.sync(_camera.global_position)
 
-	Audio.play_music("return_8_bit")
+	# The music belongs to the background, so a track lasts exactly as long as the
+	# place it plays in. `play_music` ignores a repeat, so walking from one level
+	# to the next inside a background does not restart it; only crossing into the
+	# next one swaps the track.
+	var track := LEVEL_TRACKS[clampi(Backdrop.group_for_level(Game.level_index),
+		0, LEVEL_TRACKS.size() - 1)]
+	if track.is_empty():
+		Audio.stop_music()
+	else:
+		Audio.play_music(track)
 	Game.announce_level(_level.level_name)
 
 	# After the announce, so the level's name is on the HUD as it comes into view.

@@ -80,8 +80,7 @@ static func marker(plane: Planes.Kind, alpha: float) -> Color:
 ## and skyline change on the same level. Lifted by `BRICK_GAIN` because a
 ## modulate is a MULTIPLY and the tile averages 47% grey.
 static func bricks(level_index: int) -> Color:
-	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
-	var group := level_index / Backdrop.LEVELS_PER_BACKGROUND
+	var group := Backdrop.group_for_level(level_index)
 	var tint := BRICK_TINTS[clampi(group, 0, BRICK_TINTS.size() - 1)]
 	# Rebuilt rather than scaled: `Color * float` takes the alpha with it, and
 	# the alpha is `ghost`'s to set.
