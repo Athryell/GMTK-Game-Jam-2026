@@ -11,7 +11,6 @@
 [ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="9_gravity"]
 [ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="10_feather"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="11_door"]
-[ext_resource type="PackedScene" path="res://scenes/entities/hint_sign.tscn" id="12_hint"]
 
 [node name="Level" type="Node2D" unique_id=139520116]
 script = ExtResource("1_level")
@@ -168,11 +167,6 @@ position = Vector2(1930, 1000)
 
 [node name="Shape" type="CollisionPolygon2D" parent="Entities/ChamberFloor" unique_id=213113592]
 polygon = PackedVector2Array(0, 0, 800, 0, 800, 300, 0, 300)
-
-[node name="ChamberHint" parent="Entities" unique_id=48309031 instance=ExtResource("12_hint")]
-position = Vector2(2050, 920)
-text = "The sand runs backwards in here. Cross the pad full, or it fills you."
-after_deaths = 3
 
 [node name="Chamber" parent="Entities" unique_id=1803202988 instance=ExtResource("8_zone")]
 position = Vector2(1990, 800)
@@ -420,11 +414,6 @@ position = Vector2(4430, 200)
 
 [node name="Shape" type="CollisionPolygon2D" parent="Entities/DoorShelf" unique_id=145153473]
 polygon = PackedVector2Array(0, 0, 190, 0, 190, 20, 0, 20)
-
-[node name="DoorHint" parent="Entities" unique_id=517186548 instance=ExtResource("12_hint")]
-position = Vector2(4380, 250)
-text = "The way out only opens from the back plane. Count your jumps."
-after_deaths = 3
 
 [node name="Door" parent="Entities" unique_id=1112638117 instance=ExtResource("11_door")]
 position = Vector2(4500, 136)

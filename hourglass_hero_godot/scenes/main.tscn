@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://bpnmrqm4rrcdj" path="res://scripts/fx/backdrop.gd" id="4_backdrop"]
 [ext_resource type="Script" uid="uid://bc74v0j7gldje" path="res://scripts/fx/camera_rig.gd" id="6_camera"]
 [ext_resource type="Script" uid="uid://bkc6p6ju874h" path="res://scripts/fx/cast_shadows.gd" id="7_shadow"]
-[ext_resource type="Script" path="res://scripts/fx/transition.gd" id="8_transition"]
+[ext_resource type="Script" uid="uid://cs7x03gkhr3es" path="res://scripts/fx/transition.gd" id="8_transition"]
 
 [node name="Main" type="Node2D" unique_id=1329204133]
 script = ExtResource("1_main")
@@ -25,11 +25,11 @@ script = ExtResource("6_camera")
 
 [node name="HUD" parent="." unique_id=1356686068 instance=ExtResource("2_hud")]
 
-[node name="Transition" type="CanvasLayer" parent="."]
+[node name="Transition" type="CanvasLayer" parent="." unique_id=827229377]
 layer = 3
 script = ExtResource("8_transition")
 
-[node name="Veil" type="ColorRect" parent="Transition"]
+[node name="Veil" type="ColorRect" parent="Transition" unique_id=940727226]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

@@ -1,82 +1,85 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://bbxhbksgetgkk"]
 
-[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_monster"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="6_spikes"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=409017668]
 script = ExtResource("1_level")
 world_size = Vector2(1400, 540)
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=315297356]
 position = Vector2(41, 479)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=443806150]
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+[node name="Door" parent="Entities" unique_id=1387439796 instance=ExtResource("2_door")]
 position = Vector2(1350, 438)
-size = Vector2(34, 64)
 plane = 1
 
-[node name="Platform1" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform1" parent="Entities" unique_id=2098269149 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(0, 502)
 size = Vector2(220, 38)
-plane = 4
-kind = 0
 
-[node name="Platform2" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform2" parent="Entities" unique_id=1059747638 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(1000, 502)
 size = Vector2(400, 38)
 plane = 1
-kind = 0
 
-[node name="Platform3" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform3" parent="Entities" unique_id=1135208768 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(296, 468)
 size = Vector2(92, 16)
 plane = 1
-kind = 0
 
-[node name="Platform4" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform4" parent="Entities" unique_id=2105776111 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(418, 450)
 size = Vector2(92, 16)
 plane = 0
-kind = 0
 move_axis = 1
 move_distance = 94.0
 move_speed = 80.0
 
-[node name="Platform5" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform5" parent="Entities" unique_id=655333006 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(620, 468)
 size = Vector2(92, 16)
 plane = 1
-kind = 0
 
-[node name="Platform6" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Platform6" parent="Entities" unique_id=906504596 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(820, 452)
 size = Vector2(92, 16)
 plane = 0
-kind = 0
 
-[node name="Spikes1" parent="Entities" instance=ExtResource("6_spikes")]
+[node name="Spikes1" parent="Entities" unique_id=1432332272 instance=ExtResource("6_spikes")]
+texture_filter = 1
 position = Vector2(220, 505)
 size = Vector2(780, 35)
-plane = 4
-facing = 0
 
-[node name="Monster1" parent="Entities" instance=ExtResource("4_monster")]
-position = Vector2(470, 414)
+[node name="Monster1" parent="Entities" unique_id=582371600 instance=ExtResource("4_monster")]
+texture_filter = 1
+position = Vector2(482, 415)
+move_axis = 0
+move_distance = 64.0
 size = Vector2(30, 34)
 plane = 0
-move_axis = 1
-move_distance = 90.0
-move_speed = 115.0
 
-[node name="Monster2" parent="Entities" instance=ExtResource("4_monster")]
+[node name="Monster2" parent="Entities" unique_id=1300343788 instance=ExtResource("4_monster")]
+texture_filter = 1
 position = Vector2(880, 340)
+move_axis = 2
+move_speed = 120.0
 size = Vector2(30, 34)
 plane = 0
-move_axis = 2
-move_distance = 90.0
-move_speed = 120.0

@@ -18,10 +18,19 @@ position = Vector2(53, 479)
 position = Vector2(1120, 438)
 
 [node name="Platform1" parent="Entities" unique_id=697397651 instance=ExtResource("3_o4om4")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(0, 502)
 size = Vector2(1159.23, 38)
 
+[node name="Platform2" parent="Entities" unique_id=130973261 instance=ExtResource("3_o4om4")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(361, 365)
+size = Vector2(799, 38)
+
 [node name="Spikes1" parent="Entities" unique_id=1149232076 instance=ExtResource("4_lwkgt")]
+texture_filter = 1
 position = Vector2(360, 403)
 facing = 1
 size = Vector2(800, 24)
