@@ -92,7 +92,6 @@ func _load_current_level() -> void:
 
 ## Applied here, not in `Game.start_level`, which runs before the level exists.
 func _apply_level_rules() -> void:
-	Game.double_jump = _level.double_jump
 	Game.clock_running = not _level.clock_starts_on_move
 	Game.jump_locked_first_life = _level.jump_locked_first_life
 	Game.set_gravity(1.0)

@@ -21,8 +21,11 @@ var _coyote := 0.0
 var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
-## Jumps left in mid-air; above zero only when the level has `double_jump`.
+## Mid-air jumps in hand. A [Feather] puts one here; spending it empties it, and
+## nothing — not landing, not a spring — puts it back.
 var _air_jumps := 0
+## The carried feather, drawn over the glass while the charge is unspent.
+var _feather_mark: Sprite2D
 
 ## The light the glass gives off; its brightness is the remaining sand.
 var _light: PointLight2D
@@ -52,6 +55,17 @@ const FLOOR_SNAP := 8.0
 ## How far the landing thud is detuned each time, either way.
 const LAND_PITCH_JITTER := 0.09
 
+## The carried feather, drawn over the shoulder of the glass: how far out and up
+## from its centre, how big, and how far it sways.
+##
+## Preloaded here rather than read off [Feather], which would close the loop
+## `player -> feather -> plane_area -> player`.
+const FEATHER_TEXTURE: Texture2D = preload("res://art/sprites/feather.png")
+const FEATHER_OFFSET := Vector2(15.0, -26.0)
+const FEATHER_SIZE := 14.0
+const FEATHER_SWAY := 2.5
+const FEATHER_SWAY_RATE := 2.6
+
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
@@ -63,6 +77,7 @@ func _ready() -> void:
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
 		Tuning.cfg.player_light_energy, true)
 	add_child(_light)
+	_build_feather_mark()
 	Game.flipped.connect(_on_flipped)
 	Game.status_changed.connect(_on_status_changed)
 
@@ -80,6 +95,7 @@ func _process(delta: float) -> void:
 	# What still reaches into a shadow. At full strength, nothing.
 	_light.shadow_color = Color(_light.color, 1.0 - cfg.shadow_strength)
 	_sweat(delta, danger)
+	_sway_feather()
 
 
 ## Beads shed as the sand runs out.
@@ -135,6 +151,7 @@ func _physics_process(delta: float) -> void:
 		# Keyed to the press, not `_buffer`: a buffered jump must not be spent in
 		# the air. A second real flip, so it undoes the first: pure height.
 		_air_jumps -= 1
+		_feather_mark.visible = false
 		_jump(steer)
 
 	velocity.y += cfg.gravity * pull * delta
@@ -151,7 +168,6 @@ func _physics_process(delta: float) -> void:
 		if was_airborne and _settled:
 			_land(impact)
 		_jumping = false
-		_air_jumps = 1 if Game.double_jump else 0
 		_settled = true
 
 	if global_position.y < death_top or global_position.y > death_bottom:
@@ -218,10 +234,38 @@ func _on_status_changed(status: Game.Status) -> void:
 
 
 ## Launched by a spring: no flip, no plane change, and no variable-height cut.
+## A spring does not refill the feather — nothing does.
 func bounce(power: float) -> void:
 	velocity.y = -power * pull
 	_jumping = false
 	_coyote = 0.0
 	Audio.sfx("spring")
-	# A launch, not a jump spent: the air jump is handed back.
-	_air_jumps = 1 if Game.double_jump else 0
+
+
+# ----- The feather -----------------------------------------------------------
+
+## Picked one up. Idempotent at one charge: two feathers in a level would still
+## only ever buy a single jump.
+func take_feather() -> void:
+	_air_jumps = 1
+	_feather_mark.visible = true
+
+
+func _build_feather_mark() -> void:
+	_feather_mark = Sprite2D.new()
+	_feather_mark.texture = FEATHER_TEXTURE
+	_feather_mark.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_feather_mark.scale = Vector2.ONE * (FEATHER_SIZE / FEATHER_TEXTURE.get_width())
+	_feather_mark.hide()
+	add_child(_feather_mark)
+
+
+## The carried feather rides beside the glass and turns over with the world, so
+## it stays overhead when gravity does not.
+func _sway_feather() -> void:
+	if not _feather_mark.visible:
+		return
+	var offset := Vector2(FEATHER_OFFSET.x, FEATHER_OFFSET.y * pull)
+	_feather_mark.position = offset + Vector2(0.0,
+		FEATHER_SWAY * sin(_pulse * FEATHER_SWAY_RATE))
+	_feather_mark.rotation = 0.18 * sin(_pulse * FEATHER_SWAY_RATE * 0.7)
