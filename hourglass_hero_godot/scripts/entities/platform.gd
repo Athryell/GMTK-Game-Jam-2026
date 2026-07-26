@@ -37,7 +37,7 @@ var _active := true
 ## True while a jump would land the player in this plane: marked at full
 ## strength, still inert.
 var _next := false
-## The dashed line that says which plane this slab is in, and its own fade.
+## The dashed line that says which plane this slab is in.
 var _marker := PlaneMarker.new()
 
 
@@ -89,7 +89,7 @@ func _draw() -> void:
 
 
 ## The rectangle as a polygon, in this node's own space, wound clockwise on
-## screen — what both the shadow and the plane marker are cut from.
+## screen — what both the shadow and the marker are cut from.
 func _corners() -> PackedVector2Array:
 	return PackedVector2Array([
 		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
