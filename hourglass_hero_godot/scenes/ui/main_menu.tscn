@@ -86,6 +86,12 @@ layout_mode = 2
 [node name="Sound" parent="Layout" unique_id=559645394 instance=ExtResource("2_audio")]
 layout_mode = 2
 
+[node name="Cheat" type="CheckBox" parent="Layout" unique_id=1708571914]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 12
+text = "Cheat mode — unlock every level"
+
 [node name="Hint" type="Label" parent="Layout" unique_id=1708571913]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.604, 0.651, 0.769, 1)
