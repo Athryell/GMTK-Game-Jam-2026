@@ -1,4 +1,4 @@
-# Hourglass Hero — Godot 4
+# Sandbound — Godot 4
 
 A platformer where the player **is** an hourglass. The sand drains continuously;
 at zero, you die. Every jump does three things at once:
