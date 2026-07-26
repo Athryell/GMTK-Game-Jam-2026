@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" path="res://audio/sfx/bounce.wav" id="5_bounce"]
 [ext_resource type="AudioStream" path="res://audio/sfx/gravity_up.wav" id="8_gravity_up"]
 [ext_resource type="AudioStream" path="res://audio/sfx/gravity_down.wav" id="9_gravity_down"]
+[ext_resource type="AudioStream" path="res://audio/sfx/portal.wav" id="10_portal"]
 [ext_resource type="AudioStream" uid="uid://cmmusr2qbbnfh" path="res://audio/music/falling_sand.wav" id="6_sand"]
 [ext_resource type="AudioStream" path="res://audio/music/return_8_bit.mp3" id="7_return"]
 
@@ -49,6 +50,11 @@ stream = ExtResource("9_gravity_down")
 volume_db = -10.0
 bus = &"SFX"
 
+[node name="portal" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("10_portal")
+volume_db = -9.0
+bus = &"SFX"
+
 [node name="Music" type="Node" parent="." unique_id=278794889]
 
 [node name="menu" type="AudioStreamPlayer" parent="Music" unique_id=1812269997]
@@ -65,5 +71,5 @@ bus = &"Music"
 
 [node name="return_8_bit" type="AudioStreamPlayer" parent="Music"]
 stream = ExtResource("7_return")
-volume_db = -10.0
+volume_db = -13.0
 bus = &"Music"

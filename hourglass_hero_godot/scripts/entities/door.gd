@@ -47,6 +47,7 @@ func _process(delta: float) -> void:
 
 func _touched(_player: Player) -> void:
 	if Game.status == Game.Status.PLAY:
+		Audio.sfx("portal")
 		Game.win()
 
 
