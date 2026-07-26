@@ -32,6 +32,12 @@ git worktree add .claude/worktrees/<feature> -b <feature> main
 the git root is the jam repo, not this folder: the Godot project lives at
 `<worktree>/hourglass_hero_godot`.
 
+Then rename this conversation after the feature, so the session list reads as
+the list of features in flight. Use the session-management tool that sets the
+title (`set_session_title`), with a short human title — "Portal polish", not
+`portal-polish`. Rename again if the feature turns into something else, and once
+per feature only: do not retitle on every commit.
+
 ### 2. Build the feature in the worktree
 
 Work only inside `.claude/worktrees/<feature>/hourglass_hero_godot`. Commit as
