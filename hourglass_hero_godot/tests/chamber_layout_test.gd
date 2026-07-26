@@ -23,11 +23,9 @@ func _ready() -> void:
 	_finish()
 
 
-## Where the chambers actually are. Everything below this is invariant under
-## turning the glass the other way — the chambers are symmetric about the
-## vertical at every count the game uses, so the roles and the pour map come out
-## identical for a glass that spins backwards. Only this checks the handedness,
-## and the drawing and the per-jump rotation are both built on it.
+## Where the chambers actually are. Everything below is invariant under turning
+## the glass the other way, so this is the ONLY check on the handedness the
+## drawing and the per-jump rotation are both built on.
 func _frame() -> void:
 	for count in [2, 3, 4]:
 		_check("N=%d: chamber 0 points straight up" % count,
@@ -78,10 +76,9 @@ func _pour_map() -> void:
 		ChamberLayout.targets(2, 1).is_empty() and ChamberLayout.targets(3, 1).is_empty())
 
 
-## The three-chamber lesson: whichever way you turn, you turn INTO a chamber
-## that just caught sand — but only one of them, and the sand in the other is
-## stranded until you come back round. Turning the same way three times collects
-## both halves; alternating between two chambers never touches the third.
+## The three-chamber lesson: whichever way you turn, you turn INTO a chamber that
+## just caught sand — but only one of them, and the other is stranded until you
+## come back round.
 func _trefoil_lesson() -> void:
 	var caught := ChamberLayout.targets(3, 0)
 	_check("N=3: turning either way lands on a chamber that caught sand",
@@ -104,10 +101,8 @@ func _trefoil_lesson() -> void:
 		"visited %s, stranded %s" % [visited.keys(), stranded])
 
 
-## The four-chamber lesson: the sand you drained arrives whole rather than split,
-## but it lands two turns away, behind a chamber that is sealed. So a refill has
-## to be committed to one turn ahead of needing it — and turning back does not
-## just waste a turn, it returns the glass to the arrangement before it.
+## The four-chamber lesson: the sand you drained arrives whole, but two turns
+## away, behind a sealed chamber — so a refill is committed to one turn ahead.
 func _quarters_lesson() -> void:
 	var caught := ChamberLayout.targets(4, 0)
 
@@ -127,10 +122,9 @@ func _quarters_lesson() -> void:
 		caught.size() == 1 and caught[0] == posmod(0 + 2, 4), "it landed in %s" % [caught])
 
 
-## The tumble seen in a mirror: upside down the glass rolls the other way, and
-## the sand drawn mid-turn follows the drawing. One claim, really — the turn ends
-## a whole chamber round and then snaps upright, and that seam is only invisible
-## if the step back through the array cancels the step round the glass.
+## The tumble seen in a mirror: upside down the glass rolls the other way. The
+## turn ends a whole chamber round and then snaps upright, and that seam is only
+## invisible if the step back through the array cancels the step round the glass.
 func _tumble_mirror() -> void:
 	var count := 4
 	var cap: float = Tuning.cfg.sand_max
@@ -169,12 +163,9 @@ func _tumble_mirror() -> void:
 
 
 ## Which side of the glass stands for which plane, at three and four chambers.
-##
-## Two claims. At rest the top chamber is the plane you are IN, and the chamber a
-## jump brings up is the plane it lands you in — that is the whole promise the
-## colours make to the player. And mid-turn the colours ride the same step back
-## through the array as the sand, so a plate can never come adrift from the sand
-## behind it while the glass is spinning.
+## At rest the top chamber is the plane you are IN and the chamber a jump brings
+## up is the plane it lands you in; mid-turn the colours ride the same step back
+## through the array as the sand.
 func _plane_tints() -> void:
 	for count in [3, 4]:
 		Game.chamber_count = count
@@ -235,9 +226,8 @@ func _plane_tints() -> void:
 	Game.plane = Planes.Kind.P0
 
 
-## What the glass is allowed to hold. Same runway before the first turn at every
-## count, and no turn ever puts more than a bulb on the clock — which is what
-## three chambers used to do, peaking a whole bulb and a quarter.
+## What the glass is allowed to hold: the same runway before the first turn at
+## every count, and no turn ever puts more than a bulb on the clock.
 func _sand_budget() -> void:
 	var cap: float = Tuning.cfg.sand_max
 	for count in [2, 3, 4]:

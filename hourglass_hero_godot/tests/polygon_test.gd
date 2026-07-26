@@ -3,14 +3,9 @@
 ##
 ##   godot --headless tests/polygon_test.tscn
 ##
-## Screen space throughout — y grows DOWNWARD — which is the one thing that is
-## easy to get backwards and impossible to see once it is wrong: a floor lit
-## along its underside still looks like a floor in a screenshot.
-##
-## Pure geometry. The sweep that walked every level's ground for unclimbable
-## slopes lived here too and went with the rest of the level tests when the art
-## was rescaled — put it back once the levels are rebuilt, it was catching a
-## real one on `level_17_downside_up`.
+## Screen space throughout — y grows DOWNWARD — which is easy to get backwards
+## and impossible to see once it is wrong: a floor lit along its underside still
+## looks like a floor in a screenshot.
 extends Node
 
 var _failures := 0
@@ -66,8 +61,7 @@ func _normals() -> void:
 
 
 ## The offset that gives a shadow its penumbra. A long thin floor must grow by
-## the same amount on all four sides — pushing every point away from the middle
-## instead would grow it almost entirely along its length.
+## the same amount on all four sides.
 func _growth() -> void:
 	var floor_slab := PackedVector2Array([
 		Vector2(0.0, 0.0), Vector2(960.0, 0.0), Vector2(960.0, 38.0), Vector2(0.0, 38.0)])

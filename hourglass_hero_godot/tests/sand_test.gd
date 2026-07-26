@@ -66,9 +66,8 @@ func _ready() -> void:
 	# The end-of-flip snap from a half turn to upright is invisible only because
 	# the bulbs swap contents at the same moment (`HourglassMotion.chambers`).
 	#
-	# `_polygon_drift` answers `inf` rather than a distance when the two clips
-	# come out with different corner counts. Both are four today; read a failure
-	# of "sand moves inf px" as a corner landing on the cut plane, not as drift.
+	# `_polygon_drift` answers `inf` when the two clips come out with different
+	# corner counts: read "sand moves inf px" as a corner landing on the cut plane.
 	var frac := 0.7
 	var down_end := Vector2.DOWN.rotated(-PI)
 	var last_frame: PackedVector2Array = HourglassShape._clip(upper, down_end,
@@ -116,13 +115,9 @@ func _ready() -> void:
 
 	# --- Two chambers reproduce the shipped flip, exactly ---------------------
 	# `sand_flip_base` is 0, so a turn is `max - sand` and two turns must land on
-	# the number you started from — bit for bit, not roughly.
-	#
-	# This is the single most load-bearing fact in the game. The double jump is
-	# two turns, so it is sand-neutral by arithmetic rather than by tuning: free
-	# while you are full, ruinous while you are empty. Give `sand_flip_base` a
-	# non-zero value and the identity breaks, the air jump silently becomes a
-	# refuel or a leak, and "Double or Nothing" stops teaching what it teaches.
+	# the number you started from — bit for bit. The double jump is two turns, so
+	# it is sand-neutral by arithmetic rather than by tuning; a non-zero
+	# `sand_flip_base` breaks the identity and makes the air jump a refuel or a leak.
 	var worst_drift := 0.0
 	var worst_from := 0.0
 	var worst_flip := 0.0
@@ -186,17 +181,14 @@ func _ready() -> void:
 	Game.drain(500.0)
 	_check("N=4: draining a chamber dry stops there", Game.sand < 0.0001,
 		"top holds %.4f" % Game.sand)
-	# Only the 100 that was up there moved. Written as a gain rather than as a
-	# figure, because what the sealed chambers hold depends on how much the level
-	# put on top — `arm_glass` keeps the glass's total fixed and splits the rest.
+	# Written as a gain rather than a figure: what the sealed chambers hold depends
+	# on how much the level put on top.
 	_check("N=4: and the sand it lost is in the bottom, not gone",
 		absf(Game.chambers[2] - sealed_before - 100.0) < 0.0001,
 		"chambers %s" % [Game.chambers])
 
 	# --- The two-bulb glass is the N-chamber formula at N=2 --------------------
-	# Not "close enough": the twelve shipped levels must not move by a pixel, and
-	# the cheapest way to know that is to hold the new polygons against the ones
-	# written out by hand above.
+	# Not "close enough": the shipped levels must not move by a pixel.
 	var drift_upper := _polygon_drift(HourglassShape.chamber(Vector2(48.0, 72.0), 2, 0), upper)
 	_check("chamber 0 of a two-chamber glass IS the upper bulb", drift_upper < 0.0001,
 		"corners move %.6f px" % drift_upper)
@@ -215,14 +207,11 @@ func _ready() -> void:
 		_check("N=%d: every chamber has the same capacity" % count,
 			spread / areas.max() < 0.001, "areas %s" % [areas])
 
-	# Same capacity at a given count is nearly free — the chambers are one
-	# trapezoid rotated, so it holds whatever `_span` says. This is the check with
-	# something at stake: a chamber has to stay a chamber as the count goes up.
-	# Every chamber is handed the same share of a fixed sand budget and drains at
-	# a fixed rate, so a lobe holding a fifth of the shipped bulb would empty in a
-	# fifth of the time and read as a sliver at any size. A rosette lobe is
-	# necessarily smaller than a half-glass; smaller than half of one is `_span`
-	# being wrong, not a design decision.
+	# A chamber has to stay a chamber as the count goes up: every chamber is handed
+	# the same share of a fixed budget and drains at a fixed rate, so a lobe holding
+	# a fifth of the shipped bulb would empty in a fifth of the time. A rosette lobe
+	# is necessarily smaller than a half-glass; smaller than HALF of one is `_span`
+	# being wrong.
 	var bulb: float = HourglassShape._area(HourglassShape.chamber(Vector2(48.0, 72.0), 2, 0))
 	for count in [3, 4]:
 		var share: float = HourglassShape._area(
@@ -239,18 +228,13 @@ func _ready() -> void:
 		_check("N=%d: every chamber is convex" % count, convex)
 
 	# --- Chambers keep out of each other's way --------------------------------
-	# Chamber `i` owns the wedge `PI / count` either side of its axis and must
-	# stay inside it. Two things ride on that. Overlapping chambers draw their
-	# sand twice over the shared sliver, so the glass reads as darker near the
-	# neck than the sand economy thinks it is; and `shell` threads one ring
-	# through every chamber in turn, which is only a simple polygon while the
-	# chambers are disjoint.
+	# Chamber `i` owns the wedge `PI / count` either side of its axis and must stay
+	# inside it: overlapping chambers draw their sand twice, and `shell` threads one
+	# ring through every chamber, which is only simple while they are disjoint.
 	#
-	# The two ends are held apart by unrelated mechanisms, so they get a check
-	# each, measured against the bound that actually governs them. Rolled into one
-	# they would report the wrong cause: the far corners have no relationship to
-	# `WEDGE_FILL` and merely happen to sit under it, so tightening that constant
-	# — which is free, and something a future reader may well do — would fail a
+	# The two ends are held apart by unrelated mechanisms, so they get a check each.
+	# Rolled into one they would report the wrong cause: the far corners merely
+	# happen to sit under `WEDGE_FILL`, so tightening that constant would fail a
 	# check pointing at the constant instead of at `sin`.
 	for count in [2, 3, 4]:
 		var worst_neck := 0.0
@@ -439,9 +423,7 @@ func _ready() -> void:
 
 	# --- And it turns over with the flow --------------------------------------
 	# Sand in flight sits between the neck and the chamber it is heading FOR, so
-	# reversing the flow has to carry the thread across the neck with it. Left on
-	# the falling side it reads as still pouring downwards while every pile around
-	# it climbs, which is the one thing the reversal must not look like.
+	# reversing the flow has to carry the thread across the neck with it.
 	var falls: PackedVector2Array = HourglassShape.trickle_segment(
 		glass, 2, 0, 1, Vector2.DOWN, 0.0)
 	var climbs: PackedVector2Array = HourglassShape.trickle_segment(
@@ -470,15 +452,10 @@ func _ready() -> void:
 
 
 ## How far the two polygons sit apart as SHAPES — the Hausdorff distance, the
-## worst corner-to-nearest-corner gap looked for in both directions. Compares the
-## shapes rather than the vertex lists: the same quadrilateral written starting
-## from another corner, or wound the other way, is the same quadrilateral, and
-## nothing downstream can tell the difference.
-##
-## Both directions, because one is not a distance. A quadrilateral collapsed onto
-## three corners, one of them written twice, has every corner of its own sitting
-## on a corner of the original — it only shows up when you ask the question the
-## other way round and find the lost corner with nothing near it.
+## worst corner-to-nearest-corner gap looked for in BOTH directions. One
+## direction is not a distance: a quadrilateral collapsed onto three corners has
+## every corner of its own sitting on a corner of the original, and only the
+## other direction finds the lost corner with nothing near it.
 func _polygon_drift(got: PackedVector2Array, wanted: PackedVector2Array) -> float:
 	if got.size() != wanted.size():
 		return INF
@@ -498,10 +475,9 @@ func _one_way_drift(from: PackedVector2Array, to: PackedVector2Array) -> float:
 ## The furthest a corner of `got` sits from the corner facing it in `wanted`,
 ## over whichever rotation of the ring lines the two up best.
 ##
-## Rotation only, never reversal, and that is the point of having it as well as
-## `_polygon_drift`: `shell` walks `chamber`'s corners in a documented order, and
-## a ring that comes back correct but backwards means that order has quietly
-## changed underneath it.
+## Rotation only, never reversal — that is the point of having it as well as
+## `_polygon_drift`: a ring that comes back correct but backwards means `shell`'s
+## documented corner order has changed underneath it.
 func _ring_drift(got: PackedVector2Array, wanted: PackedVector2Array) -> float:
 	var n := got.size()
 	if n == 0 or n != wanted.size():
@@ -533,11 +509,9 @@ func _self_intersects(ring: PackedVector2Array) -> bool:
 
 ## Does the polygon turn the same way at every corner?
 ##
-## The turn is measured as the sine of the angle between the two edges, not as
-## the raw cross product: that is dimensionless, so the same threshold reads the
-## same on the 48 px player and on the HUD gauge, which draws the identical shape
-## at another size. A zero-length edge — two corners written on top of each other
-## — has no direction to turn from and is skipped.
+## Measured as the sine of the angle between the edges, not as the raw cross
+## product: that is dimensionless, so one threshold reads the same on the 48 px
+## player and on the HUD gauge. A zero-length edge is skipped.
 func _is_convex(poly: PackedVector2Array) -> bool:
 	var n := poly.size()
 	var sign_seen := 0.0
