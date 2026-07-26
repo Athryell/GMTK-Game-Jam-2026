@@ -47,8 +47,18 @@ func _make_row(bus: String) -> Control:
 		Audio.set_volume(bus, v)
 		render.call(v))
 
+	# An `HSlider` carries no `focus` stylebox, and a full one covers its own track,
+	# so focus grows the bar and brightens it — see `FocusedSlider` in the theme.
+	slider.focus_entered.connect(_mark_focus.bind(slider, label, true))
+	slider.focus_exited.connect(_mark_focus.bind(slider, label, false))
+
 	_sliders[bus] = {"slider": slider, "render": render}
 	return row
+
+
+static func _mark_focus(slider: HSlider, label: Label, on: bool) -> void:
+	slider.theme_type_variation = &"FocusedSlider" if on else &""
+	label.modulate = Palette.GLASS if on else Palette.TEXT_DIM
 
 
 func _on_volume_changed(bus: String, linear: float) -> void:
