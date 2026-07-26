@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://blxu5jhybn7me"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_66p37"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_jb8o4"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_wj8n1"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="4_bp6hw"]
+[ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_tsnxp"]
+
+[node name="Level" type="Node2D" unique_id=710595343]
+script = ExtResource("1_66p37")
+level_name = "The Fountain"
+world_size = Vector2(1800, 540)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1375000440]
+position = Vector2(53, 479)
+
+[node name="Entities" type="Node2D" parent="." unique_id=182260849]
+
+[node name="Door" parent="Entities" unique_id=63401977 instance=ExtResource("2_jb8o4")]
+position = Vector2(1670, 440)
+size = Vector2(34, 62)
+
+[node name="Platform1" parent="Entities" unique_id=896671949 instance=ExtResource("3_wj8n1")]
+position = Vector2(0, 502)
+size = Vector2(1800, 38)
+
+[node name="Spikes" parent="Entities" unique_id=1121998393 instance=ExtResource("4_bp6hw")]
+position = Vector2(271, 414)
+facing = 1
+size = Vector2(1200, 24)
+
+[node name="ZoneSee" parent="." unique_id=1407512726 instance=ExtResource("5_tsnxp")]
+position = Vector2(1209, 361)
+size = Vector2(200, 160)
