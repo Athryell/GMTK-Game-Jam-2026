@@ -12,9 +12,6 @@ func _ready() -> void:
 	_finish()
 
 
-## The trail is what sells the depth, but the art is planted `ART_DROP` px below
-## the ground and has nothing under that edge: trail any further and a falling
-## player sees bare sky beneath the skyline.
 func _lag() -> void:
 	_check("standing at the datum, the art sits on its anchor",
 		is_equal_approx(BackdropLayer.vertical_lag(0.0), 0.0))

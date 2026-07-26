@@ -133,11 +133,9 @@ func _leashed(point: Vector2) -> Vector2:
 func _on_status_changed(status: Game.Status) -> void:
 	if status == Game.Status.DEAD:
 		add_trauma(0.85)
-		# Let go of the corpse. It keeps falling under gravity and nothing kills it
-		# a second time, so the leash — which trusts its target to be inside the
-		# level — would drag the view thousands of px below the world. There is
-		# nothing to follow anyway: the glass hides itself on the death frame, and
-		# the fragments stay with the level.
+		# A dead glass keeps falling and nothing kills it a second time, so the
+		# leash would drag the view thousands of px below the world. Nothing is
+		# lost: it hides itself on the death frame, and the fragments stay put.
 		target = null
 
 

@@ -63,11 +63,10 @@ func sync(camera_position: Vector2) -> void:
 		_snap(drop - vertical_lag(drop)))
 
 
-## How far the art trails a camera that has moved `drop` px down from the datum,
-## in world px. Trailing it is what sells the depth, but only until the trail
-## eats `ART_DROP` and the bottom edge of the art clears the ground it is planted
-## on: past that the layer tracks the camera outright, so that a long fall down a
-## tall level never opens a strip of bare sky under the skyline.
+## How far the art trails a camera that has dropped `drop` px below the datum.
+## Capped at the margin the art is planted below the ground: trail any further
+## and the bottom edge clears that ground, and a long fall opens a strip of bare
+## sky under the skyline.
 static func vertical_lag(drop: float) -> float:
 	return minf(drop * Backdrop.VERTICAL_SCROLL, Backdrop.ART_DROP)
 
