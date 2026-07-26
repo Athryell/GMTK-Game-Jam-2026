@@ -32,7 +32,7 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	var motion := Glass.motion
-	var colour := Palette.sand(Game.danger())
+	var colour := Palette.sand(Game.danger(), Game.feathered)
 
 	var tilt := motion.sprite_tilt()
 	# Turned left-for-right through the same quarter of a turn as the player's

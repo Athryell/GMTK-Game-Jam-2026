@@ -21,10 +21,6 @@ var _coyote := 0.0
 var _buffer := 0.0
 ## True while rising from a jump; gates the variable-height cut.
 var _jumping := false
-## Mid-air jumps in hand. A [Feather] puts one here; spending it empties it, and
-## nothing — not landing, not a spring — puts it back.
-var _air_jumps := 0
-var _feather_mark: Sprite2D
 
 ## The light the glass gives off; its brightness is the remaining sand.
 var _light: PointLight2D
@@ -54,16 +50,6 @@ const FLOOR_SNAP := 8.0
 ## How far the landing thud is detuned each time, either way.
 const LAND_PITCH_JITTER := 0.09
 
-## Preloaded here rather than read off [Feather], which would close the loop
-## `player -> feather -> plane_area -> player`.
-const FEATHER_TEXTURE: Texture2D = preload("res://art/sprites/feather.png")
-## The carried feather, drawn at the glass's shoulder: offset from its centre,
-## size, and sway, all in px.
-const FEATHER_OFFSET := Vector2(15.0, -26.0)
-const FEATHER_SIZE := 14.0
-const FEATHER_SWAY := 2.5
-const FEATHER_SWAY_RATE := 2.6
-
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
@@ -75,7 +61,6 @@ func _ready() -> void:
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
 		Tuning.cfg.player_light_energy, true)
 	add_child(_light)
-	_build_feather_mark()
 	Game.flipped.connect(_on_flipped)
 	Game.status_changed.connect(_on_status_changed)
 
@@ -86,14 +71,13 @@ func _process(delta: float) -> void:
 	var danger := Game.danger()
 	var fuel: float = clampf(Game.sand / maxf(cfg.sand_max, 1.0), 0.0, 1.0)
 	var throb := 1.0 + 0.14 * sin(_pulse * 13.0) * danger
-	_light.color = Palette.sand(danger)
+	_light.color = Palette.sand(danger, Game.feathered)
 	# The 0.42 floor keeps an empty glass still lighting the way.
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
 	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius)
 	# What still reaches into a shadow. At full strength, nothing.
 	_light.shadow_color = Color(_light.color, 1.0 - cfg.shadow_strength)
 	_sweat(delta, danger)
-	_sway_feather()
 
 
 ## Beads shed as the sand runs out.
@@ -145,11 +129,10 @@ func _physics_process(delta: float) -> void:
 
 	if _buffer > 0.0 and _coyote > 0.0:
 		_jump(steer)
-	elif _air_jumps > 0 and pressed_jump:
+	elif Game.feathered and pressed_jump:
 		# Keyed to the press, not `_buffer`: a buffered jump must not be spent in
 		# the air. A second real flip, so it undoes the first: pure height.
-		_air_jumps -= 1
-		_feather_mark.visible = false
+		Game.feathered = false
 		_jump(steer)
 
 	velocity.y += cfg.gravity * pull * delta
@@ -225,7 +208,7 @@ func _on_status_changed(status: Game.Status) -> void:
 		turned)
 	# The bulb fills as the glass was DRAWING them, not the raw chamber numbers: the
 	# sand that flies out has to be the sand that was on screen, pile for pile.
-	Burst.spill(get_parent(), global_position, Palette.SAND_FULL,
+	Burst.spill(get_parent(), global_position, Palette.glass_sand(Game.feathered),
 		Glass.motion.sprite_fills(), _visual.body_size, life, turned)
 	_visual.hide()
 	Audio.sfx("death")
@@ -244,24 +227,4 @@ func bounce(power: float) -> void:
 
 ## Idempotent at one charge: two feathers in a level still only buy one jump.
 func take_feather() -> void:
-	_air_jumps = 1
-	_feather_mark.visible = true
-
-
-func _build_feather_mark() -> void:
-	_feather_mark = Sprite2D.new()
-	_feather_mark.texture = FEATHER_TEXTURE
-	_feather_mark.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_feather_mark.scale = Vector2.ONE * (FEATHER_SIZE / FEATHER_TEXTURE.get_width())
-	_feather_mark.hide()
-	add_child(_feather_mark)
-
-
-## Turns over with the world, so the feather stays overhead when gravity does not.
-func _sway_feather() -> void:
-	if not _feather_mark.visible:
-		return
-	var offset := Vector2(FEATHER_OFFSET.x, FEATHER_OFFSET.y * pull)
-	_feather_mark.position = offset + Vector2(0.0,
-		FEATHER_SWAY * sin(_pulse * FEATHER_SWAY_RATE))
-	_feather_mark.rotation = 0.18 * sin(_pulse * FEATHER_SWAY_RATE * 0.7)
+	Game.feathered = true
