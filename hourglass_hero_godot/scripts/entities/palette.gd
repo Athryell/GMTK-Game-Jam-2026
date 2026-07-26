@@ -20,8 +20,11 @@ const PLANE_SOLIDS: Array[Color] = [
 	Color("7fe04c"), ## P2 — lime.
 	Color("f0764c"), ## P3 — terracotta.
 ]
-## Strength of the tint `marker` hands out, before the marker's own fade.
-const MARKER_ALPHA := 0.85
+## Strength of the tint `marker` hands out, before the marker's own fade. Under
+## 1 on purpose: the dashes sit on top of whatever is behind the slab, and a
+## line you can see the city through is a line that belongs to the world rather
+## than to the HUD.
+const MARKER_ALPHA := 0.6
 const SPRING := Color("5fe6c0") ## Spring: launches without flipping.
 const FLIP_PAD := Color("ffc971") ## Flip-pad: refuels without changing plane.
 const MONSTER := Color("ff4d6d")
