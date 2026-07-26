@@ -8,7 +8,6 @@
 
 [node name="Level" type="Node2D"]
 script = ExtResource("1_level")
-level_name = "The Last Grain"
 world_size = Vector2(960, 540)
 sand_start_override = 1200.0
 

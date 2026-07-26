@@ -7,7 +7,6 @@
 
 [node name="Level" type="Node2D" unique_id=596249776]
 script = ExtResource("1_i1b6k")
-level_name = "Metronome"
 world_size = Vector2(1400, 540)
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=2089495587]

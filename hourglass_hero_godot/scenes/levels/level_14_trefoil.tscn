@@ -6,7 +6,6 @@
 
 [node name="Level" type="Node2D"]
 script = ExtResource("1_level")
-level_name = "Trefoil"
 world_size = Vector2(960, 540)
 chambers = 3
 
