@@ -59,6 +59,13 @@ const PIECE_EDGE := 0.5
 ## whole pixel at a time instead of sliding smoothly between two of them.
 const PIXEL := 1.0
 
+## How big a spilled grain is, in px a side. Bigger than the one-px cells the sand
+## is drawn with inside the glass, and deliberately: in the bulb a cell is one of
+## thousands packed edge to edge and reads as texture, while in the air it is on
+## its own against the sky, where one px reads as dust rather than as sand. Two is
+## what gets the grain back to the weight the pile had.
+const SPILL_GRAIN := 2.0
+
 ## Held near-opaque and dropped late, exactly as the wedges are: the pieces are
 ## the same break, and glass that thins out slowly reads as smoke.
 const PIECE_SOLID := 2.2
@@ -170,8 +177,8 @@ func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 				+ Vector2(0.0, -rng.randf_range(SPILL_LIFT.x, SPILL_LIFT.y)))
 
 
-## Some of the pixel centres inside `poly`, on the [constant PIXEL] grid — the
-## same cells [method HourglassShape.fill_grains] would have filled, thinned by
+## Some of the cell centres inside `poly`, on the [constant SPILL_GRAIN] grid —
+## the pile taken apart at the size the grains will be drawn at, thinned by
 ## [constant SPILL_KEEP].
 func _sample(poly: PackedVector2Array, rng: RandomNumberGenerator) -> Array[Vector2]:
 	var out: Array[Vector2] = []
@@ -180,11 +187,11 @@ func _sample(poly: PackedVector2Array, rng: RandomNumberGenerator) -> Array[Vect
 	var box := Rect2(poly[0], Vector2.ZERO)
 	for v in poly:
 		box = box.expand(v)
-	var row := floori(box.position.y / PIXEL)
-	while row <= floori(box.end.y / PIXEL):
-		var col := floori(box.position.x / PIXEL)
-		while col <= floori(box.end.x / PIXEL):
-			var centre := Vector2((col + 0.5) * PIXEL, (row + 0.5) * PIXEL)
+	var row := floori(box.position.y / SPILL_GRAIN)
+	while row <= floori(box.end.y / SPILL_GRAIN):
+		var col := floori(box.position.x / SPILL_GRAIN)
+		while col <= floori(box.end.x / SPILL_GRAIN):
+			var centre := Vector2((col + 0.5) * SPILL_GRAIN, (row + 0.5) * SPILL_GRAIN)
 			if rng.randf() < SPILL_KEEP and Geometry2D.is_point_in_polygon(centre, poly):
 				out.append(centre)
 			col += 1
@@ -353,9 +360,9 @@ func _land(space: PhysicsDirectSpaceState2D, i: int, to: Vector2) -> bool:
 		global_position + _bits[i], global_position + to, Layers.SOLID))
 	if hit.is_empty():
 		return false
-	# One px back out along the surface's own normal, so the grain sits ON the
-	# brick rather than in its first row of pixels.
-	_bits[i] = hit.position - global_position + hit.normal * PIXEL
+	# One grain back out along the surface's own normal, so it sits ON the brick
+	# rather than in its first rows of pixels.
+	_bits[i] = hit.position - global_position + hit.normal * SPILL_GRAIN
 	_velocities[i] = Vector2.ZERO
 	_rested[i] = true
 	return true
@@ -378,16 +385,14 @@ func _draw() -> void:
 			for p in _bits:
 				draw_circle(p, 1.4 + 1.4 * fade, Color(colour, fade * 0.9))
 		Kind.SAND:
-			# The same grain, on the same grid, wearing the same speckle as the sand
-			# that was in the glass a frame ago: a spilled pile is the pile that was
-			# in the bulb, coming apart, and it has to be made of the same pixels to
-			# read that way. One cell each, not a 3px blob — a grain in a bulb is one
-			# pixel, so a grain in the air is too.
+			# Square, snapped, and wearing the same speckle as the sand that was in the
+			# glass a frame ago: a spilled pile is the pile that was in the bulb, coming
+			# apart, and it has to be made of the same kind of pixel to read that way.
 			# No fade at all, where every other effect thins out: sand does not go
 			# anywhere once it has landed, and a heap that dissolves on the floor reads
 			# as the spill having been a puff of smoke. It goes when the level does.
 			for p in _bits:
-				HourglassShape.draw_grain(self, p, colour, PIXEL)
+				HourglassShape.draw_grain(self, p, colour, SPILL_GRAIN)
 		Kind.PIECES:
 			# The wedges' own fade, applied to the art instead of to a fill: one alpha
 			# over a whole piece leaves every texel where it was, so it costs the pixels
