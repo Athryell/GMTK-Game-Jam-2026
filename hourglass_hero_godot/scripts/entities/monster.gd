@@ -20,6 +20,10 @@ const ART_WIDTH := 2.0
 ## Seconds for one full sweep, clockwise from twelve.
 const HAND_PERIOD := 0.55
 
+## Fraction of the dial the hitbox keeps, centred. The art is a circle in a square
+## box, so the full rect kills in corners where nothing is drawn.
+const HITBOX_SCALE := 0.6
+
 @export_group("Patrol")
 @export var move_axis: PingPong.Axis = PingPong.Axis.X: set = _set_move_axis
 ## Patrol travel, in px, from the editor-placed position. Also draggable in the
@@ -75,6 +79,16 @@ func _process(delta: float) -> void:
 
 func _touched(_player: Player) -> void:
 	Game.kill()
+
+
+## See [constant HITBOX_SCALE].
+func _apply_size() -> void:
+	queue_redraw()
+	if not is_node_ready():
+		return
+	var rect := _shape.shape as RectangleShape2D
+	rect.size = size * HITBOX_SCALE
+	_shape.position = size / 2.0
 
 
 func _set_move_axis(value: PingPong.Axis) -> void:

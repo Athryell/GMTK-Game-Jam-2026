@@ -20,7 +20,11 @@ const TOOTH_SIZE := 16.0
 ## fraction of the band's depth it used to be: the teeth no longer grow with the
 ## rectangle, so a fraction would march out past them the moment a band was
 ## drawn deeper than 24.
-const LETHAL_DEPTH := 10.0
+const LETHAL_DEPTH := 6.0
+
+## How much the slab pulls back from each end of the run, in px. The outer teeth
+## are triangles, so their outer halves are empty art that used to kill.
+const SIDE_INSET := 4.0
 
 @export var facing: Facing = Facing.UP: set = _set_facing
 
@@ -113,8 +117,9 @@ func _apply_size() -> void:
 	var base: float = _axis()[1]
 	var rect := _shape.shape as RectangleShape2D
 	var inward := -LETHAL_DEPTH / 2.0 if base > 0.0 else LETHAL_DEPTH / 2.0
-	var run := _teeth() * TOOTH_SIZE
-	var centre := _margin() + run / 2.0
+	var full_run := _teeth() * TOOTH_SIZE
+	var run := maxf(full_run - 2.0 * SIDE_INSET, 1.0)
+	var centre := _margin() + full_run / 2.0
 	if along_x:
 		rect.size = Vector2(run, LETHAL_DEPTH)
 		_shape.position = Vector2(centre, base + inward)
