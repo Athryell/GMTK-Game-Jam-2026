@@ -50,16 +50,12 @@ func draw(canvas: CanvasItem, points: PackedVector2Array, plane: Planes.Kind) ->
 ## is on, all the time, `BOTH` included.
 const TAG_GAP := 2.0
 const TAG_FONT_SIZE := 10
-## What each plane is written as on the badge, `Planes.Kind` order.
 const TAG_NAMES: Array[String] = ["0", "1", "2", "3", "BOTH"]
-## A `BOTH` solid has no hue of its own — it takes the plane it is standing in.
+## A `BOTH` solid has no hue of its own — in game it borrows the current plane's.
 const TAG_BOTH := Color("eef2ff")
 const TAG_PADDING := Vector2(3.0, 1.0)
 
 
-## The editor-only badge: the silhouette dashed in the plane's hue, plus its
-## name in a chip above the shape's top-left corner.
-##
 ## `Tuning` is not a `@tool` autoload, so the gap is a constant here rather than
 ## the tunable the running game dashes at.
 static func tag(canvas: CanvasItem, points: PackedVector2Array,
