@@ -1,40 +1,37 @@
-## The terrain's shadows, drawn by hand: each solid is stamped again, pushed away
-## from the lamp. Replaces Godot's 2D shadow map, which bands badly here because
-## the player's lamp sits on the surfaces it lights.
+## The solids' shadows. Every solid gets a [LightOccluder2D] built from the same
+## outline it is drawn from, so the player's lamp does not arrive behind it.
 ##
-## Casters are `Platform` and `Terrain` alike. Each is asked once for its outline
-## in its own space; from then on this follows the node's transform, so a moving
-## platform costs no more than a still one and a ramp throws a ramp-shaped
-## shadow.
+## Subtractive: nothing is painted over the world. What you see in a shadow is
+## the world with the lamp taken out of it, which is why two shadows crossing
+## are no darker than one and a shadow never darkens the thing that cast it.
 ##
-## Must sit BETWEEN the backdrop and the level in `main.tscn` — a solid covering
-## its own stamp is what keeps a shadow off the thing that cast it.
+## Occluders are parented to their caster, so a moving platform drags its shadow
+## along and unloading a level takes every occluder with it.
 class_name CastShadows
 extends Node2D
 
-## Stacked copies per shadow, each pushed further and carrying 1/LAYERS of the
-## darkness: a penumbra without a blur or a shader.
-const LAYERS := 4
+## The light mask an occluder in the player's plane sits on, matching the lamp's
+## `shadow_item_cull_mask`. A solid in the other plane is taken off it.
+const MASK := 1
 
-## How much wider than its caster a shadow is drawn, in px.
-const SPREAD := 2.0
+## How far an occluder is pulled inside its solid, in px. The shadow map darkens
+## everything past the first thing a ray meets, the caster included, so an
+## outline sitting exactly on the drawn surface bands along it. Pulled in, the
+## lit face is the stone's own and the seam is buried under it.
+const INSET := 3.0
 
-var lamp: Node2D
-var _casters: Array[Node2D] = []
-## Per caster, parallel to `_casters`.
-var _outlines: Array[PackedVector2Array] = []
-var _triangles: Array[PackedInt32Array] = []
+var _occluders: Array[LightOccluder2D] = []
+## Per occluder, parallel to `_occluders`.
 var _planes: Array[Planes.Kind] = []
-var _reach := 1.0
 
 
-## Called on every level load. Shapes and planes are measured once — neither
-## changes while a level runs — and only the transform is read per frame, since
-## platforms move.
+func _ready() -> void:
+	Game.plane_changed.connect(_on_plane_changed)
+
+
+## Called on every level load, once the scene exists.
 func configure(level: Level) -> void:
-	_casters.clear()
-	_outlines.clear()
-	_triangles.clear()
+	_occluders.clear()
 	_planes.clear()
 	for node in level.find_children("*", "Platform", true, false):
 		var slab := node as Platform
@@ -42,79 +39,33 @@ func configure(level: Level) -> void:
 	for node in level.find_children("*", "Terrain", true, false):
 		var ground := node as Terrain
 		_add(ground, ground.plane, ground.shadow_outline())
+	_on_plane_changed(Game.plane)
 
 
 func _add(caster: Node2D, plane: Planes.Kind, outline: PackedVector2Array) -> void:
-	var grown := Polygons.grow(outline, SPREAD)
-	if grown.size() < 3:
+	if outline.size() < 3:
 		return
-	_casters.append(caster)
-	_outlines.append(grown)
-	# Indices, not points: a caster only ever moves, and translating a polygon
-	# never re-triangulates it. So this is computed once and re-used every frame.
-	_triangles.append(Geometry2D.triangulate_polygon(grown))
+	var inset := Polygons.grow(outline, -INSET)
+	var shape := OccluderPolygon2D.new()
+	# A slab thinner than twice the inset turns itself inside out; it keeps its
+	# own outline rather than a knot.
+	shape.polygon = inset if Polygons.winding(inset) == Polygons.winding(outline) \
+		else outline
+	# Both faces block: these are closed rings, and the level is walked from
+	# either side of one.
+	shape.cull_mode = OccluderPolygon2D.CULL_DISABLED
+	var occluder := LightOccluder2D.new()
+	occluder.occluder = shape
+	caster.add_child(occluder)
+	_occluders.append(occluder)
 	_planes.append(plane)
 
 
-func _process(_delta: float) -> void:
-	# The lamp is the player's, so its reach is the player light's. Read every
-	# frame rather than cached: it is live on the tuning panel.
-	_reach = maxf(Tuning.cfg.player_light_radius, 1.0)
-	queue_redraw()
-
-
-func _draw() -> void:
-	if lamp == null or not is_instance_valid(lamp):
-		return
-	var cfg := Tuning.cfg
-	var origin := to_local(lamp.global_position)
-	var into_mine := global_transform.affine_inverse()
-
-	for index in _casters.size():
-		var caster := _casters[index]
-		if not is_instance_valid(caster):
+func _on_plane_changed(current: Planes.Kind) -> void:
+	for i in _occluders.size():
+		var occluder := _occluders[i]
+		if not is_instance_valid(occluder):
 			continue
 		# A solid in the other plane is walk-through, so it casts nothing.
-		if not Planes.is_active(_planes[index], Game.plane):
-			continue
-
-		var outline := _outlines[index]
-		var to_here := into_mine * caster.global_transform
-		var points := PackedVector2Array()
-		points.resize(outline.size())
-		var centre := Vector2.ZERO
-		for i in outline.size():
-			points[i] = to_here * outline[i]
-			centre += points[i]
-		centre /= float(points.size())
-
-		var away := centre - origin
-		var distance := away.length()
-		# Past the edge of the light, or the lamp is inside the solid and there
-		# is no "away" to push towards.
-		if distance >= _reach or distance < 0.001:
-			continue
-
-		# Throw and darkness both fall off towards the rim of the light; the
-		# darkness is squared so shadows fade out before they shrink away.
-		var closeness := 1.0 - distance / _reach
-		var throw := away / distance * cfg.shadow_throw * closeness
-		var shade := Color(0.0, 0.0, 0.02, cfg.shadow_strength * closeness * closeness / LAYERS)
-
-		for i in LAYERS:
-			_stamp(points, _triangles[index], throw * float(i + 1) / LAYERS, shade)
-
-
-## One copy of a shadow, pushed by `step`. Triangles rather than one call:
-## `draw_colored_polygon` only fills a convex shape honestly, and ground almost
-## never is one.
-func _stamp(points: PackedVector2Array, triangles: PackedInt32Array,
-		step: Vector2, shade: Color) -> void:
-	var i := 0
-	while i + 2 < triangles.size():
-		draw_colored_polygon(PackedVector2Array([
-			points[triangles[i]] + step,
-			points[triangles[i + 1]] + step,
-			points[triangles[i + 2]] + step,
-		]), shade)
-		i += 3
+		var active := Planes.is_active(_planes[i], current)
+		occluder.occluder_light_mask = MASK if active else 0

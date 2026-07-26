@@ -203,7 +203,7 @@ scripts/
   hourglass_shape.gd      Draws the glass — shared by the player and the HUD gauge
   hourglass_motion.gd     The tumble, the sand's slosh, the trickle's wobble
   planes.gd               FRONT / BACK / BOTH and the "is it active?" rule
-  polygons.gd             Winding, outward normals, offset — ground and its shadow
+  polygons.gd             Winding, outward normals, offset — the drawn ground
   level.gd                Level root: name, bounds, spawn
   main.gd                 Loads levels, spawns the player, drives the camera
   autoload/
@@ -218,9 +218,16 @@ scripts/
     spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
     ping_pong.gd  palette.gd  layers.gd
+  fx/
+    backdrop.gd  backdrop_layer.gd  Parallax city behind the level
+    camera_rig.gd         Follow, lead, slack, shake
+    burst.gd              Dust, sparks, shatter, spill
+    light_kit.gd          Builds the 2D lights from a shared radial falloff
+    entity_light.gd       The glow on doors, springs, pads and hazards
+    cast_shadows.gd       Hands every solid a LightOccluder2D — see below
   ui/
     main_menu.gd          Title screen + level select, built from the level list
-    hud.gd                Sand gauge, level name, plane, end screens
+    hud.gd                Sand gauge, level name, end screens
     tuning_panel.gd       F1 panel, sliders generated from GameConfig
 ```
 
@@ -234,6 +241,23 @@ Two ideas hold it together:
   `Planes.is_active(plane, current)` and either takes itself off the physics
   layer (solids) or stops monitoring (areas), then redraws as a ghost. Whether
   it is a body or an area, the mechanism is the same.
+
+### The light and the shadows
+
+`CanvasModulate` sits the whole world at `world_light`, and every light adds back
+on top of it. The glass carries the only one that casts: `CastShadows` walks the
+level on load and gives each solid a `LightOccluder2D` built from the outline it
+is drawn from, parented to the caster so a moving platform drags its shadow along
+and unloading a level takes every occluder with it. A solid in the other plane is
+walk-through, so `plane_changed` takes it off the light mask and it stops casting.
+
+The result is subtractive: nothing is painted over the world, the lamp simply
+does not arrive behind a wall. Two shadows crossing are no darker than one, and a
+shadow never darkens the thing that cast it. `shadow_strength` is how much of the
+lamp a solid cuts out — at 1 a shadow falls all the way back to `world_light`.
+Occluders are inset a few px inside their solid, because Godot's shadow map
+darkens everything past the first surface a ray meets, the caster included: on
+the outline exactly, a slab bands along its own lit face.
 
 ## Tests
 
@@ -262,9 +286,9 @@ lessons the three- and four-chamber levels are built to teach.
 godot --path hourglass_hero_godot --headless tests/polygon_test.tscn
 ```
 
-The polygon test checks the geometry the drawn ground and its shadow both stand
-on — which way a polygon winds, which of its edges face the sky, and that the
-offset giving a shadow its penumbra grows a long thin slab on all four sides.
+The polygon test checks the geometry the drawn ground stands on — which way a
+polygon winds, which of its edges face the sky, and that the offset an occluder
+is inset by grows a long thin slab on all four sides.
 Then it walks every level's ground and fails on any slope steeper than the 45°
 `move_and_slide` will still call a floor: a ramp one degree past that is not a
 slope, it is a wall you can see over.
