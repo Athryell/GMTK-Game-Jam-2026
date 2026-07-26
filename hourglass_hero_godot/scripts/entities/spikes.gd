@@ -45,7 +45,7 @@ func _touched(_player: Player) -> void:
 
 ## One stamp per tooth, in a frame where `x` runs along the band and `y` from the
 ## sprite's outer edge in towards the base, so the four facings differ only by it.
-func _draw() -> void:
+func _paint() -> void:
 	var along_x: bool = _axis()[0]
 	var span := size.x if along_x else size.y
 	var count := maxi(1, int(round(span / TOOTH_SIZE)))

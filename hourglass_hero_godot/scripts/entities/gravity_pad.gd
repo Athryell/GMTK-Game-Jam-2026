@@ -65,7 +65,7 @@ func _on_gravity_changed(sign: float) -> void:
 	queue_redraw()
 
 
-func _draw() -> void:
+func _paint() -> void:
 	var colour := _shade(Palette.SPRING)
 	if not _armed:
 		colour = colour.darkened(0.45)

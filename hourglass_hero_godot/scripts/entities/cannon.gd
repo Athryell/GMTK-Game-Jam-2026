@@ -117,6 +117,10 @@ func _draw() -> void:
 	# when the line itself is behind a wall.
 	draw_circle(Vector2.ZERO, BODY_RADIUS * (0.45 + MUZZLE_SWELL * _charge * 0.45),
 		tint.darkened(0.2).lerp(Color.WHITE, _charge))
+	if Engine.is_editor_hint():
+		# The body only: tagging the barrel too would move the chip with the aim.
+		PlaneMarker.tag(self, Polygons.rect(
+			Rect2(-Vector2.ONE * BODY_RADIUS, Vector2.ONE * BODY_RADIUS * 2.0)), plane)
 
 
 func _draw_beam(muzzle: Vector2, tint: Color) -> void:

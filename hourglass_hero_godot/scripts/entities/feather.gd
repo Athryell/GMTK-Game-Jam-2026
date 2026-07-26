@@ -52,7 +52,7 @@ func _touched(player: Player) -> void:
 	queue_free()
 
 
-func _draw() -> void:
+func _paint() -> void:
 	var colour := _shade(Color.WHITE)
 	var lift := BOB * sin(_pulse * BOB_RATE)
 	draw_texture_rect(LightKit.falloff(),

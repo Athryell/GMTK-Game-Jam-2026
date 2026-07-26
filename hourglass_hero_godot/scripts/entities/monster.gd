@@ -90,7 +90,7 @@ func _set_move_distance(value: float) -> void:
 ## takes the hitbox's longer side, so it still covers everything that can kill
 ## you. Only reachable by resizing a monster, which breaks the
 ## one-art-px-to-one-world-px rule anyway.
-func _draw() -> void:
+func _paint() -> void:
 	if Engine.is_editor_hint():
 		PatrolPath.draw(self, size, move_axis, move_distance, Palette.MONSTER)
 
