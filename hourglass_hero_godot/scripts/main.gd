@@ -8,8 +8,7 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
-# Draws nothing: it hands every solid a light occluder and keeps them in step
-# with the plane.
+# Draws nothing: it hands every solid a light occluder.
 @onready var _shadows: CastShadows = $CastShadows
 @onready var _world_light: CanvasModulate = $WorldLight
 

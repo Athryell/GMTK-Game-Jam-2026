@@ -83,8 +83,7 @@ func _process(delta: float) -> void:
 	# The 0.42 floor keeps an empty glass still lighting the way.
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
 	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius)
-	# What still reaches into a shadow: the lamp's own colour, faded. At full
-	# strength nothing does, which is the Among Us cut.
+	# What still reaches into a shadow. At full strength, nothing.
 	_light.shadow_color = Color(_light.color, 1.0 - cfg.shadow_strength)
 	_sweat(delta, danger)
 

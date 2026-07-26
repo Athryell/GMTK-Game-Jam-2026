@@ -6,6 +6,9 @@ extends RefCounted
 
 const TEXTURE_SIZE := 256
 const FALLOFF_STOPS := 6
+## How far a shadow's edge is smeared, in px: enough to keep the rim off the
+## pixel grid, not so much that a wall stops reading as a wall.
+const SHADOW_SMOOTH := 2.0
 
 static var _texture: GradientTexture2D
 
@@ -40,10 +43,6 @@ static func falloff() -> GradientTexture2D:
 static func scale_for(radius: float) -> float:
 	return radius * 2.0 / TEXTURE_SIZE
 
-
-## How far a shadow's edge is smeared, in px. Enough to keep the rim off the
-## pixel grid, not so much that a wall stops reading as a wall.
-const SHADOW_SMOOTH := 2.0
 
 ## A light reaching `radius` px, ready to be added as a child. `casts_shadows`
 ## is the player's lamp only: solids stop it, see [CastShadows].
