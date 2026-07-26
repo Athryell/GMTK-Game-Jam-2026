@@ -34,17 +34,6 @@ const SPILL_LIFT := Vector2(10.0, 60.0)
 ## watched leaving the break.
 const SPILL_GRAVITY := 120.0
 
-## How much of a wedge's own glass is left under the painting. The art paints the
-## frame and leaves the cavity clear, so a piece of pure texture is a piece of
-## outline with a hole in it; this is the body it broke off with. At 0.22 the
-## wedges read as scratches against a bright sky.
-const PIECE_BODY := 0.32
-
-## How strongly the fresh cut down the side of a piece is drawn, against the fade
-## the piece is already at: the art paints the glass's own outline, and this is the
-## edge that was not there a frame ago.
-const PIECE_EDGE := 0.5
-
 ## One world px, and one art px. Every death effect is snapped to it, so a flying
 ## piece crosses the screen a whole pixel at a time.
 const PIXEL := 1.0
@@ -402,20 +391,12 @@ func _draw() -> void:
 			# thins out on the curve it always did and the pixels pay nothing.
 			var strength := clampf(fade * PIECE_SOLID, 0.0, 1.0)
 			var glass := Color(1.0, 1.0, 1.0, strength)
-			var cut := Color(colour, strength * PIECE_EDGE)
 			for i in _pieces.size():
 				var at: Vector2 = _bits[i].snapped(Vector2(PIXEL, PIXEL))
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
-				# The wedge's own glass first, then the painting over it: the art is a frame
-				# round a clear cavity, so texture alone leaves most of a piece a hole.
-				draw_colored_polygon(piece, Color(colour, strength * PIECE_BODY))
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
-				piece.append(piece[0])
-				# Not antialiased, unlike the flat wedges: a soft line leaves half-lit pixels
-				# down every cut, at a size no other pixel in the game comes in.
-				draw_polyline(piece, cut, 1.0)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
 			var solid := clampf(fade * 2.2, 0.0, 1.0)
