@@ -13,7 +13,7 @@ var level_name: String: get = _get_level_name
 
 @export_group("Look")
 ## The place this level is in: skyline, brick tint and music, which always
-## change together. Left to the order, it is four levels to a theme.
+## change together. Left to the order, it is five levels to a theme.
 @export_enum("From the level order:-1", "Theme 1:0", "Theme 2:1", "Theme 3:2",
 	"Theme 4:3") var theme := -1: set = _set_theme
 

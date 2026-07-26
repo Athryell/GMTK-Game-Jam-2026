@@ -12,7 +12,6 @@
 [node name="Level" type="Node2D" unique_id=817486791]
 script = ExtResource("1_q4kb3")
 world_size = Vector2(1400, 540)
-theme = 2
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1076523322]
 position = Vector2(80, 376)

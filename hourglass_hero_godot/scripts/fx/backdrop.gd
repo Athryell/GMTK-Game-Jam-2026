@@ -7,7 +7,7 @@ extends Node2D
 
 const BG_ROOT := "res://art/bg"
 ## How many levels share one background before the next takes over.
-const LEVELS_PER_BACKGROUND := 4
+const LEVELS_PER_BACKGROUND := 5
 
 ## How many world px one of the painted layers' art px covers. The backdrop is
 ## the ONE place in the game that is not 1.0: at 1.0 the 576×324 art left bare
