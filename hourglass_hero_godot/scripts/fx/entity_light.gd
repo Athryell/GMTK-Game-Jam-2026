@@ -36,7 +36,6 @@ func _ready() -> void:
 	shadow_enabled = false
 	set_process(pulse_rate > 0.0)
 	Game.plane_changed.connect(_on_plane_changed)
-	Tuning.changed.connect(_refresh)
 	_on_plane_changed(Game.plane)
 
 

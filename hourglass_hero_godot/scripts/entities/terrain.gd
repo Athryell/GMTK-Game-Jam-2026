@@ -45,7 +45,6 @@ func _ready() -> void:
 	_refresh()
 	Game.plane_changed.connect(_on_plane_changed)
 	Game.next_plane_changed.connect(_on_next_plane_changed)
-	Tuning.changed.connect(queue_redraw)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
 

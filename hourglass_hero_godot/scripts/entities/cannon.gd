@@ -106,7 +106,6 @@ func _ready() -> void:
 	_clock = phase * _period()
 	Game.plane_changed.connect(_on_plane_changed)
 	Game.next_plane_changed.connect(_on_next_plane_changed)
-	Tuning.changed.connect(_refresh)
 	EntityLight.attach(self, plane, Vector2.ZERO, Palette.MONSTER, 130.0, 0.5)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)

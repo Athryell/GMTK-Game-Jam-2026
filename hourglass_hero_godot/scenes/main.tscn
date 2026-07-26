@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://d3mhvo0cjknnw" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
-[ext_resource type="PackedScene" path="res://scenes/ui/tuning_panel.tscn" id="3_tuner"]
 [ext_resource type="Script" uid="uid://bpnmrqm4rrcdj" path="res://scripts/fx/backdrop.gd" id="4_backdrop"]
 [ext_resource type="Script" uid="uid://bc74v0j7gldje" path="res://scripts/fx/camera_rig.gd" id="6_camera"]
 [ext_resource type="Script" uid="uid://bkc6p6ju874h" path="res://scripts/fx/cast_shadows.gd" id="7_shadow"]
@@ -25,8 +24,6 @@ script = ExtResource("7_shadow")
 script = ExtResource("6_camera")
 
 [node name="HUD" parent="." unique_id=1356686068 instance=ExtResource("2_hud")]
-
-[node name="TuningPanel" parent="." unique_id=1285630088 instance=ExtResource("3_tuner")]
 
 [node name="Transition" type="CanvasLayer" parent="."]
 layer = 3

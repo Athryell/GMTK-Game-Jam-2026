@@ -24,7 +24,7 @@ godot --path hourglass_hero_godot
 ```
 
 `←`/`→` or `A`/`D` move, `Space`/`W`/`↑` jump, `R` restarts, `Esc` returns to
-the menu, `F1` opens the tuning panel, `Alt+Enter` (or `F11`) leaves fullscreen.
+the menu, `Alt+Enter` (or `F11`) leaves fullscreen.
 
 It launches fullscreen at a 960×540 design resolution — every level coordinate
 is in those units — letterboxed to fit, so a level frames identically on every
@@ -43,13 +43,9 @@ falls back to `levels_reached`.
 ## Tuning
 
 Every gameplay number lives in [`scripts/game_config.gd`](scripts/game_config.gd).
-Edit `resources/game_config.tres` in the Inspector, or press `F1` while playing:
-the panel builds one slider per `@export_range`, changes apply next frame, and
-**Save** writes them back to the `.tres` (editor only — an exported build cannot
-write to `res://`).
+Edit `resources/game_config.tres` in the Inspector.
 
-Adding a tunable is one line; its slider appears automatically under its
-`@export_group`:
+Adding a tunable is one line:
 
 ```gdscript
 @export_range(0.0, 500.0, 5.0) var dash_speed: float = 320.0
@@ -57,7 +53,7 @@ Adding a tunable is one line; its slider appears automatically under its
 
 | Home | For | Example |
 |---|---|---|
-| `game_config.gd` → F1 panel | One value for the whole game | `gravity`, `sand_drain_rate` |
+| `game_config.gd` | One value for the whole game | `gravity`, `sand_drain_rate` |
 | `@export` on an entity | Varies per instance in a level | a platform's `size`, a spring's `power` |
 | `const` in the script | Drawing detail that never usefully varies | chevron length, eye radius |
 
@@ -179,7 +175,7 @@ scripts/
   level.gd                Level root: name, bounds, spawn
   main.gd                 Loads levels, spawns the player, drives the camera
   autoload/
-    tuning.gd    (Tuning) Owns the single GameConfig; reads @export metadata
+    tuning.gd    (Tuning) Owns the single GameConfig read across the game
     game.gd      (Game)   Sand, plane, status, progression + signals
     glass.gd     (Glass)  The one HourglassMotion: player and HUD share it
     audio.gd     (Audio)  Music, sfx and the volume buses
@@ -204,7 +200,6 @@ scripts/
   ui/
     main_menu.gd          Title screen + level select, built from the level list
     hud.gd                Sand gauge, level name, end screens
-    tuning_panel.gd       F1 panel, sliders generated from GameConfig
     audio_settings.gd     One volume slider per bus
 ```
 

@@ -10,8 +10,8 @@ extends Control
 
 ## The bar along the bottom. A level that has taken the jump away must not go on
 ## advertising it.
-const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
-const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
+const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu"
+const HINT_NO_JUMP := "← → move    R restart    ESC menu"
 
 ## The bloom around the gauge while a feather's jump is in hand.
 const CHARGED_GLOW_RADIUS := 46.0

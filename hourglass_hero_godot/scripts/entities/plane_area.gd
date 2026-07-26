@@ -30,8 +30,6 @@ func _ready() -> void:
 		return
 	Game.plane_changed.connect(_on_plane_changed)
 	Game.next_plane_changed.connect(_on_next_plane_changed)
-	# Ghost alpha is read inside `_draw`, so a tuning change needs a new frame.
-	Tuning.changed.connect(queue_redraw)
 	body_entered.connect(_on_body_entered)
 	if light_radius > 0.0:
 		EntityLight.attach(self, plane, size, light_tint, light_radius, light_energy,
