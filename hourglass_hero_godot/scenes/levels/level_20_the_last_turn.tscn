@@ -1,0 +1,431 @@
+[gd_scene format=3 uid="uid://cwg8ijv2job3e"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/terrain.tscn" id="2_terrain"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="4_spring"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="5_spikes"]
+[ext_resource type="PackedScene" path="res://scenes/entities/cannon.tscn" id="6_cannon"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="7_monster"]
+[ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="8_zone"]
+[ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="9_gravity"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="10_feather"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="11_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/hint_sign.tscn" id="12_hint"]
+
+[node name="Level" type="Node2D" unique_id=139520116]
+script = ExtResource("1_level")
+world_size = Vector2(4700, 1300)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1775214663]
+position = Vector2(60, 1140)
+
+[node name="Entities" type="Node2D" parent="." unique_id=975675794]
+
+[node name="Ground" parent="Entities" unique_id=10188235 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 1200)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground" unique_id=1954374642]
+polygon = PackedVector2Array(0, 0, 340, 0, 340, 100, 0, 100)
+
+[node name="Ledge1" parent="Entities" unique_id=431514664 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(420, 1150)
+plane = 1
+
+[node name="Ledge2" parent="Entities" unique_id=690870684 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(600, 1090)
+plane = 0
+
+[node name="Ledge3" parent="Entities" unique_id=714646299 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(760, 1030)
+size = Vector2(140, 18)
+plane = 1
+
+[node name="LaunchSpring" parent="Entities" unique_id=1753600774 instance=ExtResource("4_spring")]
+position = Vector2(780, 1016)
+power = 1300.0
+size = Vector2(56, 14)
+
+[node name="Ledge4" parent="Entities" unique_id=1736179143 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(930, 770)
+size = Vector2(180, 18)
+plane = 1
+
+[node name="PitFloor" parent="Entities" unique_id=835950398 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1110, 1240)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/PitFloor" unique_id=1475665499]
+polygon = PackedVector2Array(0, 0, 820, 0, 820, 60, 0, 60)
+
+[node name="PitSpikes1" parent="Entities" unique_id=1345448041 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(1130, 1216)
+size = Vector2(200, 24)
+
+[node name="PitSpikes2" parent="Entities" unique_id=1151086985 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(1330, 1216)
+size = Vector2(200, 24)
+
+[node name="PitSpikes3" parent="Entities" unique_id=1100320961 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(1530, 1216)
+size = Vector2(200, 24)
+
+[node name="PitSpikes4" parent="Entities" unique_id=1044108991 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(1710, 1216)
+size = Vector2(200, 24)
+
+[node name="Mover1" parent="Entities" unique_id=540774677 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1160, 790)
+size = Vector2(110, 18)
+plane = 0
+move_axis = 2
+move_distance = 90.0
+move_speed = 80.0
+
+[node name="Mover2" parent="Entities" unique_id=1168999143 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1350, 790)
+size = Vector2(110, 18)
+plane = 1
+move_axis = 2
+move_distance = 90.0
+move_speed = 80.0
+move_phase = 0.35
+
+[node name="Mover3" parent="Entities" unique_id=169281770 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1540, 790)
+size = Vector2(110, 18)
+plane = 0
+move_axis = 2
+move_distance = 90.0
+move_speed = 80.0
+move_phase = 0.7
+
+[node name="Pillar1" parent="Entities" unique_id=1941281773 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1395, 1000)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Pillar1" unique_id=561278190]
+polygon = PackedVector2Array(0, 0, 34, 0, 34, 240, 0, 240)
+
+[node name="Pillar2" parent="Entities" unique_id=2044342260 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1585, 1000)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Pillar2" unique_id=1939098040]
+polygon = PackedVector2Array(0, 0, 34, 0, 34, 240, 0, 240)
+
+[node name="CannonFront" parent="Entities" unique_id=644854839 instance=ExtResource("6_cannon")]
+texture_filter = 1
+position = Vector2(1412, 1000)
+plane = 0
+aim_time = 1.2
+lock_time = 0.6
+fire_time = 0.3
+
+[node name="CannonBack" parent="Entities" unique_id=2147374475 instance=ExtResource("6_cannon")]
+texture_filter = 1
+position = Vector2(1602, 1000)
+plane = 1
+aim_time = 1.2
+lock_time = 0.6
+fire_time = 0.3
+phase = 0.5
+
+[node name="Landing" parent="Entities" unique_id=1376422997 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1730, 790)
+size = Vector2(200, 18)
+plane = 1
+
+[node name="ChamberFloor" parent="Entities" unique_id=1673673779 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1930, 1000)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/ChamberFloor" unique_id=213113592]
+polygon = PackedVector2Array(0, 0, 800, 0, 800, 300, 0, 300)
+
+[node name="ChamberHint" parent="Entities" unique_id=48309031 instance=ExtResource("12_hint")]
+position = Vector2(2050, 920)
+text = "The sand runs backwards in here. Cross the pad full, or it fills you."
+after_deaths = 3
+
+[node name="Chamber" parent="Entities" unique_id=1803202988 instance=ExtResource("8_zone")]
+position = Vector2(1990, 800)
+size = Vector2(560, 200)
+
+[node name="ChamberPad" parent="Entities" unique_id=602361409 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2330, 982)
+size = Vector2(110, 18)
+kind = 1
+
+[node name="ChamberMonsterFront" parent="Entities" unique_id=1449605763 instance=ExtResource("7_monster")]
+texture_filter = 1
+position = Vector2(2070, 966)
+move_distance = 260.0
+move_speed = 130.0
+size = Vector2(30, 34)
+plane = 0
+
+[node name="ChamberMonsterBack" parent="Entities" unique_id=958395827 instance=ExtResource("7_monster")]
+texture_filter = 1
+position = Vector2(2320, 966)
+move_distance = 260.0
+move_speed = 130.0
+move_phase = 0.5
+size = Vector2(30, 34)
+plane = 1
+
+[node name="ChamberLedgeA" parent="Entities" unique_id=1137075254 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2550, 920)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="ChamberLedgeB" parent="Entities" unique_id=436662652 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2610, 830)
+plane = 1
+
+[node name="Shelf" parent="Entities" unique_id=2082504430 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2730, 750)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/Shelf" unique_id=1143755751]
+polygon = PackedVector2Array(0, 0, 180, 0, 180, 60, 0, 60)
+
+[node name="PadUp" parent="Entities" unique_id=1088274910 instance=ExtResource("9_gravity")]
+position = Vector2(2810, 734)
+size = Vector2(60, 16)
+
+[node name="CeilingPit" parent="Entities" unique_id=1502903112 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2910, 1240)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/CeilingPit" unique_id=459516112]
+polygon = PackedVector2Array(0, 0, 680, 0, 680, 60, 0, 60)
+
+[node name="CeilingSpikes1" parent="Entities" unique_id=959050787 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(2930, 1216)
+size = Vector2(200, 24)
+
+[node name="CeilingSpikes2" parent="Entities" unique_id=1185677593 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(3130, 1216)
+size = Vector2(200, 24)
+
+[node name="CeilingSpikes3" parent="Entities" unique_id=1086891002 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(3330, 1216)
+size = Vector2(200, 24)
+
+[node name="Ceiling0" parent="Entities" unique_id=1397971331 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2730, 400)
+size = Vector2(180, 20)
+
+[node name="Ceiling1" parent="Entities" unique_id=40380270 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(2910, 400)
+size = Vector2(170, 20)
+plane = 0
+
+[node name="Ceiling2" parent="Entities" unique_id=1278482850 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3080, 400)
+size = Vector2(170, 20)
+plane = 1
+
+[node name="Ceiling3" parent="Entities" unique_id=2132991260 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3250, 400)
+size = Vector2(170, 20)
+plane = 0
+
+[node name="Ceiling4" parent="Entities" unique_id=826938071 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3420, 400)
+size = Vector2(170, 20)
+plane = 1
+
+[node name="Ceiling5" parent="Entities" unique_id=428792800 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3590, 400)
+size = Vector2(180, 20)
+
+[node name="PadDown" parent="Entities" unique_id=203455671 instance=ExtResource("9_gravity")]
+position = Vector2(3630, 420)
+pulls_up = false
+size = Vector2(60, 16)
+
+[node name="WellFloor" parent="Entities" unique_id=1008829161 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3590, 1100)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/WellFloor" unique_id=1482083839]
+polygon = PackedVector2Array(0, 0, 1110, 0, 1110, 200, 0, 200)
+
+[node name="WellWall" parent="Entities" unique_id=715872272 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3590, 300)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/WellWall" unique_id=653239202]
+polygon = PackedVector2Array(0, 0, 40, 0, 42, 100, 2, 100)
+
+[node name="WellEdge" parent="Entities" unique_id=1489438173 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4660, 200)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/WellEdge" unique_id=855465971]
+polygon = PackedVector2Array(0, 0, 40, 0, 40, 900, 0, 900)
+
+[node name="CannonWell" parent="Entities" unique_id=1429315429 instance=ExtResource("6_cannon")]
+texture_filter = 1
+position = Vector2(3610, 300)
+plane = 1
+aim_time = 1.3
+lock_time = 0.6
+fire_time = 0.3
+
+[node name="WellSpikes1" parent="Entities" unique_id=1151515428 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(3920, 1076)
+size = Vector2(110, 24)
+
+[node name="WellSpikes2" parent="Entities" unique_id=1693224000 instance=ExtResource("5_spikes")]
+texture_filter = 1
+position = Vector2(4200, 1076)
+size = Vector2(110, 24)
+
+[node name="Feather" parent="Entities" unique_id=980106707 instance=ExtResource("10_feather")]
+texture_filter = 1
+position = Vector2(4480, 1072)
+size = Vector2(28, 28)
+
+[node name="WellSpring" parent="Entities" unique_id=718194979 instance=ExtResource("4_spring")]
+position = Vector2(4560, 1086)
+power = 1450.0
+size = Vector2(56, 14)
+
+[node name="Spring" parent="Entities" unique_id=1129583360 instance=ExtResource("4_spring")]
+position = Vector2(4600, 688)
+size = Vector2(56, 14)
+
+[node name="Well1" parent="Entities" unique_id=579373171 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3680, 1010)
+size = Vector2(110, 18)
+
+[node name="Well2" parent="Entities" unique_id=2108354834 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3840, 920)
+size = Vector2(110, 18)
+plane = 1
+
+[node name="Well3" parent="Entities" unique_id=2080121188 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4000, 830)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="Well4" parent="Entities" unique_id=2031429517 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4160, 740)
+size = Vector2(110, 18)
+plane = 1
+
+[node name="Well5" parent="Entities" unique_id=649631952 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4320, 650)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="Well6" parent="Entities" unique_id=1703313481 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4160, 560)
+size = Vector2(110, 18)
+plane = 1
+
+[node name="Well7" parent="Entities" unique_id=797097478 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4000, 470)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="Well8" parent="Entities" unique_id=1115969125 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4160, 380)
+size = Vector2(110, 18)
+plane = 1
+
+[node name="Well9" parent="Entities" unique_id=1594434647 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4340, 290)
+size = Vector2(110, 18)
+plane = 0
+
+[node name="DoorShelf" parent="Entities" unique_id=1749157500 instance=ExtResource("2_terrain")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(4430, 200)
+
+[node name="Shape" type="CollisionPolygon2D" parent="Entities/DoorShelf" unique_id=145153473]
+polygon = PackedVector2Array(0, 0, 190, 0, 190, 20, 0, 20)
+
+[node name="DoorHint" parent="Entities" unique_id=517186548 instance=ExtResource("12_hint")]
+position = Vector2(4380, 250)
+text = "The way out only opens from the back plane. Count your jumps."
+after_deaths = 3
+
+[node name="Door" parent="Entities" unique_id=1112638117 instance=ExtResource("11_door")]
+position = Vector2(4500, 136)
+plane = 1
