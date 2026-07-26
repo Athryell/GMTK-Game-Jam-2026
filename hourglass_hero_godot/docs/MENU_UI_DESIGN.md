@@ -119,7 +119,7 @@ Margins: 40 left/right, 40 top, 24 bottom. Columns: left `x 40..420`
 | y | Element | Spec |
 |---|---|---|
 | 44–80 | Wordmark `SANDBOUND` | 32 px bold, tracking +3, `#ffd166`, 1 px `#0d0a14` outline + `(2,2)` shadow |
-| 84–92 | Tagline `EVERY JUMP TURNS THE GLASS` | 8 px, `#9aa6c4`, tracking +1 |
+| 84–92 | Tagline `EVERY JUMP TURNS THE HOURGLASS` | 8 px, `#9aa6c4`, tracking +1 |
 | 106 | Rule, 200 wide, centred | 1 px `#4cc9f0` @ 25% |
 | 132–252 | **Live hourglass**, 64×120 at (230, 192) | `HourglassSprite.draw` — the painted `hourglass.png`, sand behind its transparent cavity. Menu-local `HourglassMotion` |
 | 264–304 | `PLAY` | 240×40, primary |
