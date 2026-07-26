@@ -10,13 +10,15 @@
 class_name InversionZone
 extends PlaneArea
 
-## Large, faint and outlined: the zone must read as a place, not as a thing to
-## collect, and the gold family is otherwise spent on small bright solids.
-const FIELD_ALPHA := 0.10
-const EDGE_ALPHA := 0.5
+## Large and outlined: the zone must read as a place, not as a thing to collect.
+## Heavier than it looks: at 0.10 the wash vanished into the bright skies whatever
+## its hue.
+const FIELD_ALPHA := 0.2
+const EDGE_ALPHA := 0.8
 ## Multiplier while the zone actually holds the player. The sand takes half a
 ## second to turn round, so the zone has to say so on the frame you cross it.
-const HELD_BOOST := 2.6
+## Past about 2 the held field is solid enough to swallow the player.
+const HELD_BOOST := 1.8
 ## Rising motes: the only part that says "upward" while you stand still.
 const MOTE_COLUMNS := 5
 const MOTE_SPEED := 110.0 ## px per second
@@ -53,7 +55,9 @@ func contains_player() -> bool:
 
 
 func _paint() -> void:
-	var tint := _shade(Palette.FLIP_PAD)
+	# Only the field follows the theme: the light is gold everywhere, since a glow
+	# is not what the sky washes out.
+	var tint := _shade(Palette.inversion(Level.group_of(self)))
 	var boost := HELD_BOOST if contains_player() else 1.0
 	var edge := Color(tint, minf(tint.a * EDGE_ALPHA * boost, 1.0))
 	var bounds := Rect2(Vector2.ZERO, size)

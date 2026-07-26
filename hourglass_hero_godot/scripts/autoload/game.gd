@@ -9,6 +9,11 @@ const INVERSION_GROUP := "inversion_zones"
 ## The player puts itself here, so nothing has to be cleared when the level goes.
 const PLAYER_GROUP := "player"
 
+## `Audio`'s settings file, another section. Spelt out rather than read off
+## `Audio`: that autoload is registered after this one.
+const SETTINGS_PATH := "user://settings.cfg"
+const PROGRESS_SECTION := "progress"
+
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
 
 ## The player's plane changed; entities (de)activate off this.
@@ -35,9 +40,9 @@ var level_index := 0
 ## that the menu is not on the clock.
 var run_time := 0.0
 
-## Progression gate; everything is unlocked for now.
-var unlock_all := true
-## Highest level index reached; tracked even while `unlock_all` is on.
+## Dev switch from the menu: opens every level without touching what was earned.
+var cheat_mode := false
+## Highest level index unlocked. Saved between runs.
 var levels_reached := 0
 
 ## How much sand sits in each chamber, indexed by SLOT — by fixed position on
@@ -126,6 +131,7 @@ func _ready() -> void:
 		level_names.append(_read_level_name(scene))
 	if level_scenes.is_empty():
 		push_error("No levels found in %s" % LEVELS_DIR)
+	_load_progress()
 
 
 func _process(delta: float) -> void:
@@ -229,7 +235,48 @@ func _read_level_name(scene: PackedScene) -> String:
 
 ## Is this level playable from the menu?
 func is_unlocked(index: int) -> bool:
-	return unlock_all or index <= levels_reached
+	return cheat_mode or index <= levels_reached
+
+
+func resume_index() -> int:
+	return clampi(levels_reached, 0, maxi(level_scenes.size() - 1, 0))
+
+
+func set_cheat_mode(on: bool) -> void:
+	if cheat_mode == on:
+		return
+	cheat_mode = on
+	_save_progress()
+
+
+## Only ever opens the level right after the furthest one earned, so a level
+## reached in cheat mode cannot bank the ones it skipped.
+func unlock(index: int) -> void:
+	if index <= levels_reached or index > levels_reached + 1:
+		return
+	levels_reached = index
+	_save_progress()
+
+
+# ----- Saved progress --------------------------------------------------------
+
+func _load_progress() -> void:
+	var file := ConfigFile.new()
+	if file.load(SETTINGS_PATH) != OK:
+		return
+	levels_reached = clampi(
+		int(file.get_value(PROGRESS_SECTION, "levels_reached", 0)),
+		0, maxi(level_scenes.size() - 1, 0))
+	cheat_mode = bool(file.get_value(PROGRESS_SECTION, "cheat_mode", false))
+
+
+func _save_progress() -> void:
+	var file := ConfigFile.new()
+	# Load first so the audio section is preserved.
+	file.load(SETTINGS_PATH)
+	file.set_value(PROGRESS_SECTION, "levels_reached", levels_reached)
+	file.set_value(PROGRESS_SECTION, "cheat_mode", cheat_mode)
+	file.save(SETTINGS_PATH)
 
 
 # ----- Level lifecycle -------------------------------------------------------
@@ -246,7 +293,7 @@ func start_level(index: int, keep_deaths := false) -> void:
 	if not keep_deaths or index != level_index:
 		level_deaths = 0
 	level_index = clampi(index, 0, level_scenes.size() - 1)
-	levels_reached = maxi(levels_reached, level_index)
+	unlock(level_index)
 	# Two chambers until the level says otherwise; `main.gd` re-arms the glass once
 	# the scene exists and can be asked.
 	arm_glass(2, Tuning.cfg.sand_start)
@@ -429,7 +476,11 @@ func jump_flip(travel_dir: float) -> void:
 ## A flip-pad: refuels with no jump and no plane change. Only reads right at two
 ## chambers, where the pad just swaps the two bulbs; no wider level places one.
 func pad_flip() -> void:
+	# Must agree with the turn below, or the glass is drawn tumbling one way while
+	# its chambers move the other.
+	flip_dir = 1.0
 	rotate_glass(1)
+	flip_anim = Tuning.cfg.flip_duration
 	pad_flash = Tuning.cfg.pad_flash_duration
 	flipped.emit(true)
 
