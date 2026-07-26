@@ -57,7 +57,9 @@ func _mirrored() -> bool:
 
 func _draw() -> void:
 	var motion := Glass.motion
-	var sand_colour := Palette.sand(Game.danger())
+	# Gold whatever is left of it: the warning is the screen edge, the HUD gauge
+	# and the shake, and the glass you are looking at stays readable.
+	var sand_colour := Palette.SAND_FULL
 	var down := motion.sprite_down()
 	# Mirroring the node mirrors the glass's own frame with it, so world-down has
 	# to be carried across too or the sand sloshes against the way you are moving.

@@ -225,7 +225,7 @@ func _on_status_changed(status: Game.Status) -> void:
 		turned)
 	# The bulb fills as the glass was DRAWING them, not the raw chamber numbers: the
 	# sand that flies out has to be the sand that was on screen, pile for pile.
-	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
+	Burst.spill(get_parent(), global_position, Palette.SAND_FULL,
 		Glass.motion.sprite_fills(), _visual.body_size, life, turned)
 	_visual.hide()
 	Audio.sfx("death")
