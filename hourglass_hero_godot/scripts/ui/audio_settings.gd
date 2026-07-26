@@ -47,9 +47,8 @@ func _make_row(bus: String) -> Control:
 		Audio.set_volume(bus, v)
 		render.call(v))
 
-	# Keyboard focus has to show before it is used, and an `HSlider` carries no
-	# `focus` stylebox of its own: the track takes a bordered variation instead, and
-	# the bus name brightens with it.
+	# An `HSlider` carries no `focus` stylebox, and a full one covers its own track,
+	# so focus grows the bar and brightens it — see `FocusedSlider` in the theme.
 	slider.focus_entered.connect(_mark_focus.bind(slider, label, true))
 	slider.focus_exited.connect(_mark_focus.bind(slider, label, false))
 

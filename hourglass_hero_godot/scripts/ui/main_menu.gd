@@ -10,10 +10,9 @@ const GAME_SCENE := "res://scenes/main.tscn"
 ## number to change if the game ever outgrows the space.
 const COLUMNS := 9
 
-## What the card calls each `LevelChip.State`, in the enum's own order.
+## Indexed by `LevelChip.State`, so the order is the enum's.
 const STATE_WORDS: Array[String] = ["LOCKED", "OPEN", "NEXT UP", "CLEARED"]
 
-## How long the curtain takes to close on the way into a level.
 const EXIT_FADE := 0.22
 
 @onready var _grid: GridContainer = $Right/Levels
@@ -57,8 +56,8 @@ func _build_chips() -> void:
 		_chips.append(chip)
 
 
-## Recolours every chip and the two lines that count them. Called again whenever
-## cheat mode is toggled, which opens and closes locks with the menu still up.
+## Called again whenever cheat mode is toggled, which opens and closes locks with
+## the menu still up.
 func _apply_states() -> void:
 	var open := 0
 	for chip in _chips:
@@ -73,8 +72,8 @@ func _apply_states() -> void:
 	_show(_carded_index())
 
 
-## Fills the card under the grid. Driven by focus AND by hover, so the keyboard and
-## the mouse always agree about which level is being described.
+## Driven by focus AND by hover, so the keyboard and the mouse never disagree about
+## which level is being described.
 func _show(index: int) -> void:
 	if index < 0 or index >= _chips.size():
 		return

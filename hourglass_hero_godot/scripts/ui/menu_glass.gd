@@ -13,11 +13,10 @@ extends Control
 ## rule `Backdrop.ART_SCALE` carries for the city.
 const SCALE := 2
 
-## Seconds spent draining, then the half turn that puts the full bulb back on top.
 const DRAIN_TIME := 5.0
 const TURN_TIME := 0.45
 
-## The idle rock: how far the glass rises and falls, in px, and how often.
+## The idle rock, in px and Hz.
 const BOB := 2.0
 const BOB_RATE := 0.25
 
@@ -43,10 +42,8 @@ func _draw() -> void:
 	var cycle := DRAIN_TIME + TURN_TIME
 	var t := fmod(_time, cycle)
 	var turning := t >= DRAIN_TIME
-	# Through the drain the top bulb empties into the bottom one. Through the turn
-	# the sand stays put and the glass rotates a half turn, which carries the full
-	# bulb to the top — so the tilt snapping back to 0 at the end of the cycle is
-	# the same picture as the tilt at PI, and the loop has no seam.
+	# The half turn carries the full bulb to the top, so the tilt snapping back to 0
+	# at the end of the cycle is the same picture as the tilt at PI: no seam.
 	var top := 0.0 if turning else 1.0 - t / DRAIN_TIME
 	var tilt := PI * (t - DRAIN_TIME) / TURN_TIME if turning else 0.0
 
@@ -60,9 +57,8 @@ func _draw() -> void:
 	var glass_size := HourglassSprite.TRIM.size * SCALE
 	var centre := size * 0.5 + Vector2(0.0, BOB * sin(_time * TAU * BOB_RATE))
 	draw_set_transform(centre, tilt, Vector2(facing, 1.0))
-	# In a level the cavity shows the world through it, which is the point there. On
-	# the title screen it would show the city, and a bulb full of rooftops reads as
-	# blue liquid — so the empty part of the glass is given an inside first.
+	# The cavity is transparent so a level shows through it. Here that would be
+	# rooftops, which read as blue liquid, so the glass is given an inside first.
 	for i in 2:
 		HourglassShape.fill(self, HourglassSprite.bulb(glass_size, i),
 			Color(Palette.UI_INK, CAVITY_ALPHA))

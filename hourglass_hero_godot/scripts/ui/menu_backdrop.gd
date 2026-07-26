@@ -9,8 +9,7 @@ extends Control
 ## one sky the gold of time survives against, and the title is that gold.
 const THEME := 3
 
-## How far the pan carries the city either side of centre, in px, and how long one
-## round trip takes. Slow enough to read as drifting air rather than as travel.
+## Slow enough to read as drifting air rather than as travel.
 const PAN := 120.0
 const PAN_PERIOD := 40.0
 
@@ -55,8 +54,8 @@ func _process(delta: float) -> void:
 		layer.sync(Vector2(pan, 0.0))
 
 
-## The painted sky, stretched to the frame behind every parallax depth. Left on
-## linear filtering, as `Backdrop` leaves it: the sky is a gradient, not pixel art.
+## Left on linear filtering, as `Backdrop` leaves it: the sky is a gradient, not
+## pixel art.
 func _build_sky(texture: Texture2D, frame: Vector2) -> void:
 	var sky := TextureRect.new()
 	sky.texture = texture
@@ -67,8 +66,7 @@ func _build_sky(texture: Texture2D, frame: Vector2) -> void:
 	add_child(sky)
 
 
-## The veil that holds the city back so the menu can be read over it. Added last,
-## so it covers every depth: the room is only ever as bright as the text allows.
+## Added last, so it veils every depth: the room is only as bright as the text allows.
 func _build_scrim(frame: Vector2) -> void:
 	var scrim := ColorRect.new()
 	scrim.color = Color(Palette.UI_INK, Palette.UI_SCRIM_ALPHA)

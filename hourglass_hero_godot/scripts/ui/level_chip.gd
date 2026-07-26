@@ -28,8 +28,8 @@ static func create(level_index: int) -> LevelChip:
 	return chip
 
 
-## Cheat mode opens and closes locks while the menu is up, so the state has to be
-## settable after the grid is built and not just at creation.
+## Settable after the grid is built, not just at creation: cheat mode opens and
+## closes locks with the menu still up.
 func apply(level_state: State) -> void:
 	state = level_state
 	disabled = state == State.LOCKED
@@ -42,8 +42,8 @@ func apply(level_state: State) -> void:
 			theme_type_variation = &"LevelChip"
 
 
-## What a level's rank makes it. `reached` is `Game.levels_reached`, the furthest
-## level earned; `unlocked` is `Game.is_unlocked`, which cheat mode overrides.
+## `reached` is `Game.levels_reached`; `unlocked` is `Game.is_unlocked`, which cheat
+## mode overrides.
 static func state_for(level_index: int, reached: int, unlocked: bool) -> State:
 	if level_index < reached:
 		return State.CLEARED
