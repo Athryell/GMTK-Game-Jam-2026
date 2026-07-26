@@ -74,6 +74,8 @@ func _draw() -> void:
 		return
 	draw_set_transform_matrix(_shape.transform)
 	var body := _colour()
+	# The collision polygon itself, so the line lands on the edge you stand on.
+	Outline.polygon(self, _points, body.a)
 	var i := 0
 	while i + 2 < _triangles.size():
 		Bricks.polygon(self, PackedVector2Array([

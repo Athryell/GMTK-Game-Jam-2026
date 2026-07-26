@@ -54,8 +54,13 @@ func _draw() -> void:
 	var plate := maxf(4.0, size.y * PLATE)
 	var top := (size.y - foot - plate) * TRAVEL * _compress
 
-	draw_rect(Rect2(Vector2(0.0, size.y - foot), Vector2(size.x, foot)),
-		colour.darkened(0.55))
+	# The two slabs only. The posts are already the darkest thing here, and a
+	# line round each would read as two more springs behind the spring.
+	var foot_box := Rect2(Vector2(0.0, size.y - foot), Vector2(size.x, foot))
+	Outline.rect(self, foot_box, colour.a)
+	Outline.rect(self, Rect2(Vector2(0.0, top), Vector2(size.x, plate)), colour.a)
+
+	draw_rect(foot_box, colour.darkened(0.55))
 	var post := maxf(3.0, size.x * POST)
 	var inset := size.x * POST_INSET
 	for x in [inset, size.x - inset - post]:

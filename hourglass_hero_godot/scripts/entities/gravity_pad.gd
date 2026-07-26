@@ -76,8 +76,11 @@ func _draw() -> void:
 	colour = colour.lerp(Color.WHITE, _flash * 0.8)
 
 	var foot := maxf(3.0, size.y * FOOT)
-	draw_rect(Rect2(Vector2(0.0, minf(_from_foot(0.0), _from_foot(foot))),
-		Vector2(size.x, foot)), colour.darkened(0.5))
+	# The slab only; the chevrons above it are painted on the air.
+	var foot_box := Rect2(Vector2(0.0, minf(_from_foot(0.0), _from_foot(foot))),
+		Vector2(size.x, foot))
+	Outline.rect(self, foot_box, colour.a)
+	draw_rect(foot_box, colour.darkened(0.5))
 
 	var inset := size.x * CHEVRON_INSET
 	var slot := (size.y - foot) / float(CHEVRONS)

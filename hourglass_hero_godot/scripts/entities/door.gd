@@ -36,6 +36,8 @@ func _draw() -> void:
 	var glow := 6.0 + 3.0 * sin(_pulse * PULSE_RATE)
 	draw_rect(Rect2(Vector2(-glow, -glow), size + Vector2(glow, glow) * 2.0),
 		Color(Palette.DOOR, 0.18 * colour.a))
+	# The frame only; the panel inside it is a recess, not a silhouette.
+	Outline.rect(self, Rect2(Vector2.ZERO, size), colour.a)
 	draw_rect(Rect2(Vector2.ZERO, size), colour)
 	draw_rect(Rect2(Vector2(4.0, 4.0), size - Vector2(8.0, 8.0)), colour.darkened(0.55))
 	draw_circle(Vector2(size.x * 0.75, size.y * 0.55), 3.0, colour)
