@@ -73,12 +73,14 @@ func _load_current_level() -> void:
 	_player.death_top = -Tuning.cfg.fall_death_margin
 	_player.death_bottom = _level.world_size.y + Tuning.cfg.fall_death_margin
 
-	_backdrop.configure(_level, Game.level_index)
 	_shadows.configure(_level)
 
 	_camera.target = _player
 	_camera.frame(_level.world_size)
 	_camera.snap()
+	# After the snap: where the backdrop plants its art depends on how much of the
+	# level the opening frame shows.
+	_backdrop.configure(_level, Game.level_index, _camera.view_bottom())
 	_backdrop.sync(_camera.global_position)
 
 	Audio.play_music("return_8_bit")

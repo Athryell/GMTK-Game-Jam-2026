@@ -59,14 +59,25 @@ func _ready() -> void:
 
 ## Fits the room to a level, swapping in a new background's art the moment
 ## `level_index` crosses into the next group of `LEVELS_PER_BACKGROUND`.
-func configure(level: Level, level_index: int) -> void:
+## `view_bottom` is the lowest world y the camera shows on the opening frame,
+## once it has snapped to the spawn.
+func configure(level: Level, level_index: int, view_bottom: float) -> void:
 	var index := _background_index_for_level(level_index)
 	if index != _background_index:
 		_background_index = index
 		_rebuild_layers(index)
-	var floor_y := _terrain_bottom(level) + ART_DROP
+	var floor_y := anchor(_terrain_bottom(level), view_bottom)
 	for layer in _layers:
 		layer.configure(level.world_size, floor_y)
+
+
+## Where the art's bottom edge belongs, in world space. On the ground — except in
+## a level that opens far above its own floor, a well entered from the top, where
+## the ground is hundreds of px below the view and the whole descent would play
+## against bare sky. There the skyline stands on the bottom of the opening frame
+## instead, and the vertical parallax carries it down with the camera from there.
+static func anchor(ground_bottom: float, view_bottom: float) -> float:
+	return minf(ground_bottom, view_bottom) + ART_DROP
 
 
 ## Held still while the level is not being played: dying drops the camera to the
@@ -79,8 +90,8 @@ func sync(camera_position: Vector2) -> void:
 		layer.sync(camera_position)
 
 
-## The lowest point of the level's ground, in world space — where the art's
-## bottom edge belongs. Falls back to `world_size.y` for a level with no
+## The lowest point of the level's ground, in world space. Falls back to
+## `world_size.y` for a level with no
 ## `Terrain` (built entirely of floating `Platform`s), which has no single
 ## ground to align to.
 func _terrain_bottom(level: Level) -> float:

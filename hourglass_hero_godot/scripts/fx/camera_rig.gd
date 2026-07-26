@@ -47,6 +47,12 @@ func snap() -> void:
 	reset_smoothing()
 
 
+## The lowest world y currently on screen. What the backdrop plants its art
+## against when the level's own ground is out of sight below.
+func view_bottom() -> float:
+	return global_position.y + _visible_size().y / 2.0
+
+
 ## Must stay on the physics clock: the player moves in `move_and_slide()`, and
 ## following on the render clock makes them judder against a still world. The
 ## camera is below the level in `main.tscn`, so the player has already moved by
