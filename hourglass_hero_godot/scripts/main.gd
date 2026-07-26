@@ -50,8 +50,8 @@ func _process(delta: float) -> void:
 		_load_current_level()
 		return
 
-	# The run's clock. Counted from here, where a level is up, so the menu and the
-	# victory screen are off it; a level waiting for you to move still is not.
+	# Counted here rather than in `Game`, which outlives the level: the menu is not
+	# on the clock. A level waiting for you to move still is.
 	if Game.status == Game.Status.PLAY:
 		Game.run_time += delta
 

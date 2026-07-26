@@ -32,8 +32,7 @@ var level_names: Array[String] = []
 var level_index := 0
 
 ## Seconds played on the current run. Advanced by `main.gd` rather than here, so
-## the menu and the victory screen are not on the clock; only `start_run` puts it
-## back to zero.
+## that the menu is not on the clock.
 var run_time := 0.0
 
 ## Progression gate; everything is unlocked for now.
@@ -216,8 +215,8 @@ func is_unlocked(index: int) -> bool:
 
 # ----- Level lifecycle -------------------------------------------------------
 
-## Starts the clock over and drops into `index`. The only way into a level from
-## outside a run, so picking a level from the menu times that attempt too.
+## Every way into a level from outside a run comes through here, so picking one
+## from the menu is timed like any other attempt.
 func start_run(index: int) -> void:
 	run_time = 0.0
 	start_level(index)
@@ -296,9 +295,8 @@ func aim(travel_dir: float) -> void:
 
 # ----- The clock -------------------------------------------------------------
 
-## A duration as `M:SS.CS`. Truncated rather than rounded, so what a run reads on
-## the last frame is never more than what it reads on the victory screen, and
-## minutes are not capped: a long run shows 12:04.37 rather than 0:724.37.
+## A duration as `M:SS.CS`. Truncated rather than rounded, so the last frame of a
+## run never reads more than the victory screen does.
 static func format_time(seconds: float) -> String:
 	var cs := int(floorf(maxf(seconds, 0.0) * 100.0))
 	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
