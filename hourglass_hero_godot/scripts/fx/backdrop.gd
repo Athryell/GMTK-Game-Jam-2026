@@ -59,8 +59,7 @@ func _ready() -> void:
 
 ## Fits the room to a level, swapping in a new background's art the moment
 ## `level_index` crosses into the next group of `LEVELS_PER_BACKGROUND`.
-## `view_bottom` is the lowest world y the camera shows on the opening frame,
-## once it has snapped to the spawn.
+## `view_bottom` is the lowest world y the opening frame shows.
 func configure(level: Level, level_index: int, view_bottom: float) -> void:
 	var index := _background_index_for_level(level_index)
 	if index != _background_index:
@@ -71,11 +70,11 @@ func configure(level: Level, level_index: int, view_bottom: float) -> void:
 		layer.configure(level.world_size, floor_y)
 
 
-## Where the art's bottom edge belongs, in world space. On the ground — except in
-## a level that opens far above its own floor, a well entered from the top, where
-## the ground is hundreds of px below the view and the whole descent would play
-## against bare sky. There the skyline stands on the bottom of the opening frame
-## instead, and the vertical parallax carries it down with the camera from there.
+## Where the art's bottom edge belongs, in world space. On the ground, unless the
+## level opens far above its own floor — a well entered from the top — where the
+## ground is hundreds of px below the view and anchoring to it plays the whole
+## descent against bare sky. The skyline stands on the bottom of the opening
+## frame instead, and the vertical parallax carries it down from there.
 static func anchor(ground_bottom: float, view_bottom: float) -> float:
 	return minf(ground_bottom, view_bottom) + ART_DROP
 
@@ -91,9 +90,8 @@ func sync(camera_position: Vector2) -> void:
 
 
 ## The lowest point of the level's ground, in world space. Falls back to
-## `world_size.y` for a level with no
-## `Terrain` (built entirely of floating `Platform`s), which has no single
-## ground to align to.
+## `world_size.y` for a level with no `Terrain` (built entirely of floating
+## `Platform`s), which has no single ground to align to.
 func _terrain_bottom(level: Level) -> float:
 	var grounds := level.find_children("*", "Terrain", true, false)
 	if grounds.is_empty():

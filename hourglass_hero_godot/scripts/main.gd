@@ -78,8 +78,7 @@ func _load_current_level() -> void:
 	_camera.target = _player
 	_camera.frame(_level.world_size)
 	_camera.snap()
-	# After the snap: where the backdrop plants its art depends on how much of the
-	# level the opening frame shows.
+	# After the snap: where the art is planted depends on what the camera frames.
 	_backdrop.configure(_level, Game.level_index, _camera.view_bottom())
 	_backdrop.sync(_camera.global_position)
 

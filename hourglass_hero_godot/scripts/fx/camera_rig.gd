@@ -47,8 +47,7 @@ func snap() -> void:
 	reset_smoothing()
 
 
-## The lowest world y currently on screen. What the backdrop plants its art
-## against when the level's own ground is out of sight below.
+## The lowest world y currently on screen.
 func view_bottom() -> float:
 	return global_position.y + _visible_size().y / 2.0
 
