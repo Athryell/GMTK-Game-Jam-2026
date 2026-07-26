@@ -25,7 +25,7 @@ position = Vector2(0, 502)
 size = Vector2(1800, 38)
 
 [node name="Spikes" parent="Entities" unique_id=1121998393 instance=ExtResource("4_u6skv")]
-position = Vector2(276, 433)
+position = Vector2(276, 417)
 facing = 1
 size = Vector2(1200, 24)
 
