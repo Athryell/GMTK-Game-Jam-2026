@@ -2,9 +2,7 @@
 ## throws.
 ##
 ## Screen space throughout: y grows DOWNWARD, so "up" is negative y and a
-## clockwise-looking polygon has a positive signed area. Everything here is
-## derived from that one sentence, so a level author may wind a polygon either
-## way and never find out there was a choice.
+## clockwise-looking polygon has a positive signed area.
 class_name Polygons
 extends RefCounted
 
@@ -30,26 +28,16 @@ static func edge_normal(a: Vector2, b: Vector2, wind: float) -> Vector2:
 
 
 ## Does the edge from `a` to `b` face the sky? True for floors and for ramps
-## gentle enough to stand on, false for walls and ceilings.
-##
-## The threshold is what keeps a vertical face out: its normal is horizontal,
-## and a hair of rounding either side of that must not decide whether the wall
-## is wearing a lit lip.
+## gentle enough to stand on, false for walls and ceilings. The threshold keeps a
+## vertical face out, whose normal is horizontal to within rounding.
 static func faces_up(a: Vector2, b: Vector2, wind: float) -> bool:
 	return edge_normal(a, b, wind).y < -0.2
 
 
-## The same polygon pushed `amount` px outwards along its own normals.
-##
-## A corner belongs to two edges, so it leaves along the sum of their normals.
-## That is what makes this a real offset rather than a scale about the middle:
-## a floor 960 wide and 38 tall grows by `amount` on all four sides, instead of
-## almost entirely along its length.
-##
-## The sum alone is not far enough. A right-angled corner has to travel
-## `amount * sqrt(2)` for BOTH its edges to end up `amount` out, and the sharper
-## the corner the further it goes — the miter length, `amount / cos(half the
-## corner)`, which falls out of the sum's own length.
+## The same polygon pushed `amount` px outwards along its own normals. A corner
+## belongs to two edges, so it leaves along the sum of theirs — and travels
+## further than `amount`, by the miter length `amount / cos(half the corner)`,
+## which falls out of that sum's own length.
 static func grow(points: PackedVector2Array, amount: float) -> PackedVector2Array:
 	var count := points.size()
 	if count < 3:

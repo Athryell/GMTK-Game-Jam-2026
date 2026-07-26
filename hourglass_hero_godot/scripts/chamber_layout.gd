@@ -1,19 +1,13 @@
 ## What a glass with N chambers is, before anything is drawn or any sand moves.
 ##
-## Every rule the multi-chamber glass has is a consequence of one sentence:
-## chamber `i` points at angle `i * TAU / N`, measured clockwise from straight
-## up. Which chambers drain, which receive, which are sealed shut, and who pours
-## into whom all fall out of that — there is no table anywhere to keep in sync
-## with the picture, which is the only reason four chambers cost about as much
-## as two.
+## Every rule the multi-chamber glass has follows from one sentence: chamber `i`
+## points at angle `i * TAU / N`, clockwise from straight up. Which chambers
+## drain, which receive, which are sealed, and who pours into whom all fall out
+## of that, so there is no table to keep in sync with the picture.
 ##
-## Two chambers is not a special case here. It is this formula at N=2, and it
-## lands on exactly the hourglass that shipped.
-##
-## Meaningful for two to four chambers. Above four a glass has more than one
-## chamber draining at a time and the sand economy stops being defined; below
-## two there is nowhere for the sand to fall. Nothing here enforces that — the
-## cap lives on `Level.chambers`, where a designer can see it.
+## Meaningful for two to four chambers: above four more than one chamber drains
+## at a time and the sand economy stops being defined. The cap lives on
+## `Level.chambers`, where a designer can see it.
 class_name ChamberLayout
 extends RefCounted
 
@@ -24,15 +18,10 @@ enum Role {
 	LEVEL, ## Points along the horizon. Sealed: it neither drains nor receives.
 }
 
-## The slack in every comparison here, and it does two jobs: how far off the
-## horizon a chamber has to point before it counts as draining, and how close
-## two falls have to be before they count as tied.
-##
-## Both are only ever tripped by floating-point noise. The axes are exact
-## multiples of a turn, so the smallest real `y` is `sin(PI / N)` and the
-## smallest real gap between two candidate falls is `TAU / N` — both stay orders
-## of magnitude above this until N is in the thousands. Retune it and you retune
-## both, which is why they share a name rather than drifting apart.
+## The slack in every comparison here: how far off the horizon a chamber has to
+## point before it counts as draining, and how close two falls have to be before
+## they count as tied. Only ever tripped by floating-point noise — the smallest
+## real values are `sin(PI / N)` and `TAU / N`.
 const HORIZON := 0.001
 
 
@@ -60,11 +49,8 @@ static func lowers(count: int) -> Array[int]:
 
 
 ## Where chamber `index` sends its sand: the receiving chambers nearest to
-## straight down as it sees it. A tie splits the fall evenly, and that tie is the
-## whole of the three-chamber glass — there is no chamber opposite the top one,
-## so the sand goes half into each of the two below.
-##
-## Empty for a chamber that does not drain.
+## straight down as it sees it, empty for a chamber that does not drain. A tie
+## splits the fall evenly, which is the whole of the three-chamber glass.
 static func targets(count: int, index: int) -> Array[int]:
 	if role(count, index) != Role.UPPER:
 		return []
