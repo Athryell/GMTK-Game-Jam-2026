@@ -249,6 +249,19 @@ Everything below was changed while implementing, because the screen said so.
 9. `Backdrop._load_layer_textures` and `_fog_colour` became public and static as
    `Backdrop.load_layer_textures` / `Backdrop.fog_colour`, so the menu builds its
    room from the same loader the levels do instead of a copy.
+10. **Every `border_width` has to be spelled out.** `StyleBoxFlat` defaults its
+    border widths to 0, so a stylebox carrying only a `border_color` draws no
+    border at all — which silently cost the gold edge on `PLAY` and on every
+    cleared chip, and all the plate borders, until it was caught. The four widths
+    are now written on every stylebox that names a border colour.
+11. **The focused slider is a size and a brightness, not a border.** Godot draws
+    the `slider` stylebox only as tall as its own minimum size and then paints
+    `grabber_area` across the whole filled span, so a full slider covers its own
+    track and no border on it can ever show. `FocusedSlider` grows the bar (3 → 5
+    px of content margin) and brightens the fill instead, and `audio_settings.gd`
+    brightens the bus name with it. `HSlider` has no `focus` stylebox to hook —
+    only `slider`, `grabber_area` and `grabber_area_highlight` — so this is a
+    variation swapped on `focus_entered`, not a theme state.
 
 ## 5. Decisions this leaves open
 

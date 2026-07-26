@@ -47,8 +47,19 @@ func _make_row(bus: String) -> Control:
 		Audio.set_volume(bus, v)
 		render.call(v))
 
+	# Keyboard focus has to show before it is used, and an `HSlider` carries no
+	# `focus` stylebox of its own: the track takes a bordered variation instead, and
+	# the bus name brightens with it.
+	slider.focus_entered.connect(_mark_focus.bind(slider, label, true))
+	slider.focus_exited.connect(_mark_focus.bind(slider, label, false))
+
 	_sliders[bus] = {"slider": slider, "render": render}
 	return row
+
+
+static func _mark_focus(slider: HSlider, label: Label, on: bool) -> void:
+	slider.theme_type_variation = &"FocusedSlider" if on else &""
+	label.modulate = Palette.GLASS if on else Palette.TEXT_DIM
 
 
 func _on_volume_changed(bus: String, linear: float) -> void:
