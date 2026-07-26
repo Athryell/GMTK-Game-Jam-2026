@@ -9,8 +9,10 @@
 class_name PlaneMarker
 extends RefCounted
 
-## Full strength: the plane the next jump lands in.
-const OFFERED := 1.0
+## The plane the next jump lands in. The strongest the line ever gets, and still
+## short of full: the stone under it is a ghost, and a line drawn harder than the
+## thing it is drawn around stops being that thing's edge.
+const OFFERED := 0.65
 ## Resting strength on a plane you are already standing in. Low enough to read as
 ## trim on stone you have been given, high enough that the slab still says which
 ## world it came from.
