@@ -48,6 +48,10 @@ extends Resource
 @export_range(0.0, 600.0, 10.0) var fall_death_margin: float = 60.0
 ## Default spring impulse, in px/s (each spring can override it).
 @export_range(0.0, 3000.0, 10.0) var spring_power: float = 1400.0
+## How fast a sideways spring launch bleeds off, in px/s². Steering adds on top
+## of the launch rather than replacing it, so this alone decides how far a
+## horizontal pad throws you.
+@export_range(100.0, 4000.0, 50.0) var spring_launch_decay: float = 1400.0
 ## Opacity of entities in the opposite plane (the "ghosts"). `world_light`
 ## multiplies it, so low values vanish.
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.22
