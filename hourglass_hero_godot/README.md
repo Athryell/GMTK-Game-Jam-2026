@@ -110,11 +110,14 @@ would bury the dozen sliders that actually change how the game plays.
 | `hint_sign.tscn` | A line of text standing in the world, where the lesson is. `after_deaths` holds it back until the level has killed you that many times; `hide_after_deaths` takes it away again, so only one sentence is ever up. | `text`, `after_deaths`, `hide_after_deaths` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
-turns into a faint, non-solid ghost. Solids in the one plane a jump would land
-you in stay just as faint and get a dashed marker outside their silhouette
-instead (`next_outline_gap`), so what you cannot stand on never looks any more
-solid than it is; hazards and zones still lift towards solid (`ghost_next_lift`)
-because there is nothing to stand on to mislead you about. Past
+turns into a faint, non-solid ghost. A plane-bound *solid* is never lifted back
+towards looking solid, because looking solid is the one thing that would lie
+about it: it carries a dashed line outside its silhouette instead, in its plane's
+hue — at its strongest in the plane the next jump lands in, dropped to a quiet
+trim in the one you are standing in (`PlaneMarker`, `next_outline_gap`). It cuts
+between the two on the frame the flip lands, like the stone it is drawn around.
+Hazards and zones do still lift (`ghost_next_lift`): there is nothing to stand on
+there for a brighter fill to mislead you about. Past
 two chambers there are several ghost planes and only one of them is where you are
 going, so leaning left or right lights up the world you are choosing before you
 commit to it. Moving entities travel `move_distance` px
@@ -227,6 +230,7 @@ scripts/
     burst.gd              Dust, sparks, shatter, spill
     light_kit.gd          Builds the 2D lights from a shared radial falloff
     entity_light.gd       The glow on doors, springs, pads and hazards
+    plane_marker.gd       The dashed line saying which plane a solid is in
     cast_shadows.gd       Hands every solid a LightOccluder2D — see below
   ui/
     main_menu.gd          Title screen + level select, built from the level list
