@@ -91,5 +91,5 @@ bus = &"Music"
 
 [node name="colors_everywhere" type="AudioStreamPlayer" parent="Music"]
 stream = ExtResource("14_colors")
-volume_db = -13.0
+volume_db = -10.0
 bus = &"Music"
