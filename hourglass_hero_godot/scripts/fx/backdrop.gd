@@ -43,14 +43,14 @@ const ART_DROP := 28.0
 ## reads, and the room behind the level is meant to be a horizon rather than a
 ## wall a few metres back.
 const FAR_SCROLL := 0.05
-const NEAR_SCROLL := 0.38
+const NEAR_SCROLL := 0.26
 
 ## How much air each layer puts in front of everything behind it, as the alpha of
 ## a fog-coloured veil drawn over its own art. The veils stack: the farthest
 ## layer is seen through all of them and the nearest only through its own, which
 ## is what separates two silhouettes painted from the same eleven colours.
 const FOG_FAR := 0.48
-const FOG_NEAR := 0.16
+const FOG_NEAR := 0.30
 
 ## Fraction of a layer's fog left at the top of the art. Haze piles up along the
 ## ground, so a distant roofline still cuts the sky while the streets under it
