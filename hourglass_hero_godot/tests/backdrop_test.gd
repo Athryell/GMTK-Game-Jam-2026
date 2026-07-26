@@ -1,5 +1,5 @@
-## Backdrop test: how far the painted layers trail a camera that moves down,
-## with nothing rendered and no game running.
+## Backdrop test: where the painted layers are planted, and how far they trail a
+## camera that moves down, with nothing rendered and no game running.
 ##
 ##   godot --headless tests/backdrop_test.tscn
 extends Node
@@ -8,8 +8,20 @@ var _failures := 0
 
 
 func _ready() -> void:
+	_anchor()
 	_lag()
 	_finish()
+
+
+func _anchor() -> void:
+	_check("a level whose ground is in frame plants the art on that ground",
+		is_equal_approx(Backdrop.anchor(540.0, 600.0), 540.0 + Backdrop.ART_DROP))
+
+	_check("a well entered from the top plants it on the bottom of the frame",
+		is_equal_approx(Backdrop.anchor(1620.0, 540.0), 540.0 + Backdrop.ART_DROP))
+
+	_check("the same well entered from the bottom is back on its ground",
+		is_equal_approx(Backdrop.anchor(1620.0, 1680.0), 1620.0 + Backdrop.ART_DROP))
 
 
 func _lag() -> void:
