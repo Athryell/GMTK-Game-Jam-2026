@@ -9,7 +9,7 @@ extends Node2D
 ## one art px to one world px. Anything else gives the player pixels a different
 ## size from the brick and skyline ones, and on a non-square ratio it stretches
 ## them out of square as well.
-@export var body_size := Vector2(32.0, 64.0)
+@export var body_size := Vector2(32.0, 60.0)
 
 ## Tremble amplitude at full danger, in px. Keep it to a few px.
 const TREMBLE := 2.2

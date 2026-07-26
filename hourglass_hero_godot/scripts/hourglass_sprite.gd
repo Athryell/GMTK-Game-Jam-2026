@@ -15,10 +15,11 @@ extends RefCounted
 const TEXTURE: Texture2D = preload("res://art/sprites/hourglass.png")
 
 ## The part of the canvas the glass actually occupies, and what gets mapped onto
-## the caller's `size`. The art is trimmed to its own bounds, so this is the whole
-## 32×64 canvas — but keep it going through here rather than reading the texture
-## size: the moment a margin comes back, this is the one line that has to change.
-const TRIM := Rect2(0.0, 0.0, 32.0, 64.0)
+## the caller's `size`. The glass is 32×60 within a 64-tall canvas, sitting on its
+## floor: four blank rows across the top. This is exactly the margin the note
+## below the constant was kept for — everything downstream reads the trim rather
+## than the texture, so shrinking the art is this one line plus a retrace.
+const TRIM := Rect2(0.0, 4.0, 32.0, 60.0)
 
 ## The inside of each bulb, in the art's own pixel coordinates, upper first.
 ##
@@ -39,15 +40,15 @@ const TRIM := Rect2(0.0, 0.0, 32.0, 64.0)
 ## above the right number rather than a guess.
 const BULBS: Array[Array] = [
 	[
-		Vector2(4.0, 7.0), Vector2(28.0, 7.0), Vector2(28.0, 12.0),
-		Vector2(27.0, 19.0), Vector2(25.0, 25.0), Vector2(22.0, 28.0),
-		Vector2(17.0, 31.0), Vector2(15.0, 31.0), Vector2(10.0, 28.0),
-		Vector2(7.0, 25.0), Vector2(5.0, 19.0), Vector2(4.0, 12.0),
+		Vector2(4.0, 11.0), Vector2(28.0, 11.0), Vector2(28.0, 16.0),
+		Vector2(27.0, 21.0), Vector2(25.0, 27.0), Vector2(22.0, 30.0),
+		Vector2(17.0, 33.0), Vector2(15.0, 33.0), Vector2(10.0, 30.0),
+		Vector2(7.0, 27.0), Vector2(5.0, 21.0), Vector2(4.0, 16.0),
 	],
 	[
-		Vector2(4.0, 52.0), Vector2(5.0, 45.0), Vector2(7.0, 39.0),
-		Vector2(10.0, 36.0), Vector2(15.0, 33.0), Vector2(17.0, 33.0),
-		Vector2(22.0, 36.0), Vector2(25.0, 39.0), Vector2(27.0, 45.0),
+		Vector2(4.0, 52.0), Vector2(5.0, 47.0), Vector2(7.0, 41.0),
+		Vector2(10.0, 38.0), Vector2(15.0, 35.0), Vector2(17.0, 35.0),
+		Vector2(22.0, 38.0), Vector2(25.0, 41.0), Vector2(27.0, 47.0),
 		Vector2(28.0, 52.0), Vector2(28.0, 57.0), Vector2(4.0, 57.0),
 	],
 ]
@@ -58,7 +59,7 @@ const BULBS: Array[Array] = [
 ## area scales with the drawing, so the caller's `size` is all that is missing.
 ## Must be remeasured if [constant BULBS] is ever retraced, or a chamber the game
 ## calls full stops looking it.
-const BULB_AREA := 467.0
+const BULB_AREA := 421.0
 
 
 ## Sand first, then the glass over it. `fills` is how full each bulb is, 0 to 1,
