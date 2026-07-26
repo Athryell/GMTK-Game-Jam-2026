@@ -33,15 +33,19 @@ const SPILL_KEEP := 0.34
 ## first, then lifted, so it leaves the glass rather than dropping through it. Well
 ## under the wedges' own numbers — sand is what the glass was carrying, and it has
 ## to be seen falling out of the pieces rather than racing them off screen.
-const SPILL_OUT := Vector2(50.0, 175.0)
-const SPILL_LIFT := Vector2(90.0, 280.0)
+##
+## Both turned DOWN from an arc that peaked around 75 px up: the sand spent the
+## whole death in the air, left the top of the screen, and never reached the floor
+## it was supposed to land on. Sized against the death's own length instead — apex
+## by a fifth of a second, down within half of one, so the heap is on the bricks
+## for most of the pause rather than arriving as the level is freed.
+const SPILL_OUT := Vector2(40.0, 130.0)
+const SPILL_LIFT := Vector2(60.0, 190.0)
 
-## What the sand falls at, against [constant GRAVITY] for everything else. The
-## glass is thrown clear and forgotten; the sand has to be followed from the break
-## to the floor, and at full weight — most deaths happening a body length above the
-## ground — that is over before the eye has found it. Light enough to watch, heavy
-## enough that it still reads as falling rather than drifting.
-const SPILL_GRAVITY := 520.0
+## What the sand falls at, against [constant GRAVITY] for everything else. Still
+## the lighter of the two, so the arc out of the break can be followed, but only
+## just: at half weight the grains hung, and sand that hangs reads as ash.
+const SPILL_GRAVITY := 820.0
 
 ## How much of a wedge's own glass is left under the painting. The art paints the
 ## frame and leaves the cavity clear, so a piece of pure texture is a piece of
