@@ -39,8 +39,18 @@ func _draw() -> void:
 	var lit := _shade(Palette.MONSTER.lightened(BEVEL_LIGHT))
 	var dark := _shade(Palette.MONSTER.darkened(BEVEL_DARK))
 	for tooth in _teeth():
+		# The whole tooth, not each half: the seam is a fold in one solid.
+		Outline.polygon(self, _whole(tooth), lit.a)
 		HourglassShape.fill(self, tooth[0], lit)
 		HourglassShape.fill(self, tooth[1], dark)
+
+
+## A tooth's silhouette, read off the halves so a change to `_teeth` cannot leave
+## this drawing the old one.
+static func _whole(tooth: Array) -> PackedVector2Array:
+	var lit_half: PackedVector2Array = tooth[0]
+	var dark_half: PackedVector2Array = tooth[1]
+	return PackedVector2Array([lit_half[0], dark_half[1], lit_half[2]])
 
 
 ## `[teeth_run_along_x, base_edge, far_edge]` on the pointing axis. `far_edge`

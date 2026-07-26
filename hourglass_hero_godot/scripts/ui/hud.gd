@@ -6,7 +6,7 @@ extends Control
 ## Drawn size of the gauge hourglass. [constant HourglassSprite.TRIM]'s size, so
 ## the HUD glass is drawn one art px to one px of the 960×540 design canvas —
 ## which at `camera_zoom` 1.0 is the same size a pixel comes out in the world.
-@export var gauge_size := Vector2(32.0, 64.0)
+@export var gauge_size := Vector2(32.0, 60.0)
 
 ## The bar along the bottom. A level that has taken the jump away must not go on
 ## advertising it.
@@ -19,8 +19,7 @@ const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
 
 
 func _ready() -> void:
-	# The gauge is the same painted glass the player wears; see `terrain.gd` for
-	# why this is per-node rather than a project default.
+	# Per-node rather than a project default; see `terrain.gd`.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	Game.level_loaded.connect(_on_level_loaded)
 	Game.status_changed.connect(_on_status_changed)
@@ -32,11 +31,9 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	# Same `Glass.motion` as the player sprite, drawn at another size.
 	var motion := Glass.motion
 	var colour := Palette.sand(Game.danger())
 
-	# The painted two-bulb glass at every chamber count, as the player wears it.
 	var tilt := motion.sprite_tilt()
 	# Turned left-for-right through the same quarter of a turn as the player's
 	# glass, to keep the light down its left side; see `hourglass_visual.gd`.

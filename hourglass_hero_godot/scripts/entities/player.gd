@@ -12,9 +12,9 @@ var death_top := -10000.0
 var death_bottom := 10000.0
 
 ## Screen-y of "down" for this glass: +1 normally, -1 while the world is over.
-## A field rather than a live read of `Game`, for the same reason the death band
-## is: a level is freed a frame after the next one is armed, and a player still
-## winding down must keep judging by the world it was born in.
+## A field rather than a live read of `Game`: a level is freed a frame after the
+## next one is armed, and a player still winding down must keep judging by the
+## world it was born in.
 var pull := 1.0
 
 var _coyote := 0.0
@@ -44,30 +44,24 @@ var _rng := RandomNumberGenerator.new()
 var _settled := false
 
 
-## How far below its feet the glass reaches for the ground, in px. Only slopes
-## need it: run down a ramp without a snap and you leave the floor at every
-## crest, which costs a frame of contact — and with it the coyote window, the
-## landing dust, and the right to jump. Kept well under the shortest step in any
-## level, so it never glues you to a ledge you meant to walk off.
+## How far below its feet the glass reaches for the ground, in px. Without it a
+## ramp crest costs a frame of contact, and with it the coyote window. Kept well
+## under the shortest step in any level.
 const FLOOR_SNAP := 8.0
 
-## How far the landing thud is detuned each time, either way. Small on purpose:
-## enough that a run of hops stops sounding like one sample on repeat, not so
-## much that the glass sounds like a different object each time it touches down.
+## How far the landing thud is detuned each time, either way.
 const LAND_PITCH_JITTER := 0.09
 
 
 func _ready() -> void:
 	collision_layer = Layers.PLAYER
 	collision_mask = Layers.SOLID
-	# Godot's own 45° stays: past that a face is a wall, which is what the
-	# vertical sides of every ledge in the game rely on being.
 	floor_snap_length = FLOOR_SNAP
 	_face_gravity(Game.gravity_sign)
 	Game.gravity_changed.connect(_face_gravity)
 	add_to_group(Game.PLAYER_GROUP)
 	_light = LightKit.point(Palette.SAND_FULL, Tuning.cfg.player_light_radius,
-		Tuning.cfg.player_light_energy)
+		Tuning.cfg.player_light_energy, true)
 	add_child(_light)
 	Game.flipped.connect(_on_flipped)
 	Game.status_changed.connect(_on_status_changed)
@@ -83,6 +77,8 @@ func _process(delta: float) -> void:
 	# The 0.42 floor keeps an empty glass still lighting the way.
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb
 	_light.texture_scale = LightKit.scale_for(cfg.player_light_radius)
+	# What still reaches into a shadow. At full strength, nothing.
+	_light.shadow_color = Color(_light.color, 1.0 - cfg.shadow_strength)
 	_sweat(delta, danger)
 
 
@@ -107,8 +103,8 @@ func _sweat(delta: float, danger: float) -> void:
 func _physics_process(delta: float) -> void:
 	var cfg := Tuning.cfg
 
-	# Sand slosh (sprite + HUD). Sampled here so it is the speed *after* last
-	# frame's `move_and_slide` — zero against a wall.
+	# Sampled here so it is the speed *after* last frame's `move_and_slide` — zero
+	# against a wall.
 	Glass.travel = velocity.x
 
 	# Every vertical line below reads the DOWNWARD component, `velocity.y * pull`,
@@ -123,8 +119,6 @@ func _physics_process(delta: float) -> void:
 	var steer := Input.get_axis("move_left", "move_right")
 	velocity.x = steer * cfg.move_speed
 	Game.aim(steer)
-	# The clock is the player's to start; a level that holds it runs frozen
-	# until this line.
 	if not is_zero_approx(steer):
 		Game.start_clock()
 
@@ -174,11 +168,9 @@ func _face_gravity(sign: float) -> void:
 ## The signature move: height, a turn of the glass, and a plane change, all off
 ## one press.
 ##
-## The turn follows the input HELD right now rather than `velocity.x`. They agree
-## in open ground, and they disagree in exactly the place it matters: pinned
+## The turn follows the input HELD right now rather than `velocity.x`: pinned
 ## against a wall your velocity is zero, and reading it would take the choice of
-## chamber away from you at the moment you most want it. `steer` is the value the
-## ghost world was drawn from, so it lands where it said it would.
+## chamber away from you at the moment you most want it.
 func _jump(steer: float) -> void:
 	_buffer = 0.0
 	_coyote = 0.0

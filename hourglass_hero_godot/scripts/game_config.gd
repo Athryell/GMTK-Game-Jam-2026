@@ -54,8 +54,15 @@ extends Resource
 ## How far the plane a jump would land in is lifted out of `ghost_alpha` towards
 ## solid. 0 hides which way you are going; 1 makes it look walkable.
 @export_range(0.0, 1.0, 0.01) var ghost_next_lift: float = 0.45
+## How far a solid's dashed "the next jump brings this in" marker sits outside
+## its silhouette, in px, past the outline itself. 0 puts it against the ink.
+@export_range(0.0, 12.0, 1.0) var next_outline_gap: float = 2.0
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
+## How long the curtain takes to close on the exit, and to open on the level
+## that follows, in s. Held under `level_clear_delay`, which is the cover the
+## swap happens behind.
+@export_range(0.0, 2.0, 0.05) var level_fade: float = 0.45
 ## How long the death screen stays up before the level restarts itself, in s.
 ##
 ## Doubles as the lifetime of everything the death throws — see [method
@@ -71,11 +78,9 @@ extends Resource
 ## moves in and the level scrolls. `CameraRig` must divide the viewport by this
 ## zoom rather than trust `get_viewport_rect()`.
 ##
-## Held at 1.0, and this is the one tuning value that is not free to taste. Every
-## texture is drawn one art px to one world px, so world-to-screen IS the size of
-## a pixel: at 1.0 the 960×540 canvas scales to a 1920×1080 window by exactly 2,
-## and every art pixel lands on a 2×2 block. Any other zoom makes that fractional
-## and the whole point of the uniform scale is lost — pixels come out uneven, and
+## Not free to taste: every texture is drawn one art px to one world px, so at
+## 1.0 the 960×540 canvas scales to a 1920×1080 window by exactly 2 and every art
+## pixel lands on a 2×2 block. Any other zoom makes that fractional, and
 ## `TEXTURE_FILTER_NEAREST` shows it rather than blurring over it.
 @export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.0
 ## Camera follow smoothing. 0 = locked to the player.
@@ -107,11 +112,9 @@ extends Resource
 @export_range(0.0, 4.0, 0.05) var player_light_energy: float = 0.6
 ## Brightness of the lights on doors, springs, pads and hazards.
 @export_range(0.0, 4.0, 0.05) var entity_light_energy: float = 1.1
-## How far a platform's shadow is thrown at the player's feet, in px. Shrinks to
-## nothing at the edge of the light.
-@export_range(0.0, 90.0, 1.0) var shadow_throw: float = 26.0
-## How dark a shadow gets at its strongest.
-@export_range(0.0, 1.0, 0.01) var shadow_strength: float = 0.55
+## How much of the lamp a solid cuts out. 1 is a true shadow: behind a wall the
+## light simply is not there, and only `world_light` is left.
+@export_range(0.0, 1.0, 0.01) var shadow_strength: float = 1.0
 
 @export_group("Feedback")
 

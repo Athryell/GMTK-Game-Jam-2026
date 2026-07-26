@@ -9,33 +9,43 @@ const BG_ROOT := "res://art/bg"
 ## How many levels share one background before the next takes over.
 const LEVELS_PER_BACKGROUND := 4
 
-## The painted layers are exported at 576×324 and drawn one art px to one world
-## px, like every other texture in the game — that single rule is what keeps a
-## pixel the same size whether it lands on a brick, the glass or the skyline.
+## How many world px one of the painted layers' art px covers. The backdrop is
+## the ONE place in the game that is not 1.0: at 1.0 the 576×324 art left bare
+## sky above a strip of city and repeated twice within one screen.
 ##
-## Nothing else may read this: it is here so the rule has a name, not so the
-## backdrop can be sized independently. At 1.0 the art is narrower than the
-## 960 px view, so `BackdropLayer` tiles it sideways to cover the level.
-const ART_SCALE := 1.0
+## It must stay a WHOLE number — at anything fractional the doubled texels
+## straddle world pixels and the 1-px trusses tear as the parallax slides.
+## Nothing outside `BackdropLayer` may read it.
+const ART_SCALE := 2.0
 
-## How far below the ground line the art is planted, in px. A little overlap
-## reads better than a butt joint, and it covers the bare sky the camera's
-## `fall_death_margin` overscan would otherwise show under the floor.
+## How far below the ground line the art is planted, in px. Covers the bare sky
+## the camera's `fall_death_margin` overscan would otherwise show under the
+## floor.
 const ART_DROP := 28.0
 
 ## Parallax speed of the nearest layer; the farthest sits at the opposite end,
-## with any layers between graded evenly across the range.
-const FAR_SCROLL := 0.12
-const NEAR_SCROLL := 0.55
+## with any layers between graded evenly across the range. The whole range sits
+## far under the world's own speed: the slower a layer answers the camera, the
+## further off it reads.
+const FAR_SCROLL := 0.05
+const NEAR_SCROLL := 0.26
 
-## How fast the art tracks the camera VERTICALLY, as a fraction of the world's
-## own speed — kept under even the slowest horizontal rate on purpose, so
-## climbing a level only stirs the skyline where walking along one sweeps it.
-##
-## One rate for every depth, not a graded range like the horizontal one. Depth
-## already reads from the sideways motion, and giving each layer its own
-## vertical rate would slide them apart and tear the skyline open at the
-## rooflines where they overlap.
+## Alpha of the fog-coloured veil each layer draws over its own art. The veils
+## stack — the farthest layer is seen through all of them, the nearest only
+## through its own — which is what separates silhouettes painted from the same
+## eleven colours.
+const FOG_FAR := 0.48
+const FOG_NEAR := 0.30
+
+## Fraction of a layer's fog left at the top of the art: haze piles up along the
+## ground, so a distant roofline still cuts the sky.
+const FOG_TOP := 0.45
+
+const FOG_FALLBACK := Color(0.62, 0.66, 0.76)
+
+## How fast the art tracks the camera VERTICALLY. One rate for every depth, not
+## a graded range like the horizontal one: separate rates slide the layers apart
+## and tear the skyline open at the rooflines where they overlap.
 const VERTICAL_SCROLL := 0.10
 
 var _sky: TextureRect
@@ -59,11 +69,9 @@ func configure(level: Level, level_index: int) -> void:
 		layer.configure(level.world_size, floor_y)
 
 
-## Held still while the level is not being played. Dying drops the camera with
-## the falling player, all the way to the bottom of the level, and letting the
-## parallax answer that drags the whole skyline down through a moment the player
-## has no control over. The reload re-latches the datum, so nothing has to be
-## restored when play resumes.
+## Held still while the level is not being played: dying drops the camera to the
+## bottom of the level, and letting the parallax answer drags the whole skyline
+## down. The reload re-latches the datum.
 func sync(camera_position: Vector2) -> void:
 	if Game.status != Game.Status.PLAY:
 		return
@@ -87,9 +95,8 @@ func _terrain_bottom(level: Level) -> float:
 	return bottom
 
 
-## Full-viewport, in its own layer below everything: keeps the sky pinned to
-## the screen (never scrolling with the world) and out of reach of the
-## `CanvasModulate` that darkens the playfield.
+## Full-viewport, in its own layer below everything: keeps the sky pinned to the
+## screen and out of reach of the `CanvasModulate` that darkens the playfield.
 func _build_sky() -> void:
 	_sky = TextureRect.new()
 	_sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -138,14 +145,37 @@ func _rebuild_layers(index: int) -> void:
 		return
 
 	_sky.texture = textures[0]
+	var fog := _fog_colour(textures[0])
 	var depth_count := textures.size() - 1
 	for i in range(1, textures.size()):
 		var t := float(i - 1) / float(maxi(depth_count - 1, 1))
 		var layer := BackdropLayer.new()
 		layer.texture = textures[i]
 		layer.scroll = lerpf(FAR_SCROLL, NEAR_SCROLL, t)
+		layer.fog = fog
+		layer.fog_alpha = lerpf(FOG_FAR, FOG_NEAR, t)
 		add_child(layer)
 		_layers.append(layer)
+
+
+## The colour the distance dissolves into, read off this background's own sky so
+## each one hazes towards its own horizon rather than towards a grey the art
+## never uses.
+func _fog_colour(sky: Texture2D) -> Color:
+	var image := sky.get_image()
+	if image == null:
+		return FOG_FALLBACK
+	if image.is_compressed():
+		image.decompress()
+	var width := image.get_width()
+	var height := image.get_height()
+	if width <= 0 or height <= 0:
+		return FOG_FALLBACK
+	# The bottom row only: the band the skyline actually stands against.
+	var total := Color(0.0, 0.0, 0.0)
+	for x in width:
+		total += image.get_pixel(x, height - 1)
+	return Color(total.r / width, total.g / width, total.b / width)
 
 
 ## The numbered layer files in a background folder (`1.png`, `2.png`, …),

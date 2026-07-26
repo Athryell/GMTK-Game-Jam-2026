@@ -1,35 +1,27 @@
 @tool
 ## A laser cannon, in three beats: it tracks the player, it LOCKS, it fires.
 ##
-## The lock is the whole mechanic and the whole fairness. For `lock_time` the
-## line stops following you and charges in place — thickening, brightening,
-## with the muzzle swelling — and where it is pointing at the end of that is
-## where the shot goes. So the warning is not "a cannon is here", it is "the
-## beam will be exactly THERE, and you have this long to not be": the answer is
-## a jump, which in this game is also a refuel.
+## For `lock_time` the line stops following you and charges in place, and where
+## it points at the end of that is where the shot goes — so the warning is "the
+## beam will be exactly THERE" rather than "a cannon is here".
 ##
-## The shot itself travels at `BEAM_SPEED` rather than existing all at once, so
-## the further away you are the longer you have. It kills only where it has
-## actually reached.
-##
-## The beam stops at the first thing it meets, player or wall alike, which is
-## why a block you can stand behind is real cover.
+## The shot travels at `BEAM_SPEED` rather than existing all at once, and kills
+## only where it has reached. It stops at the first thing it meets, player or
+## wall alike, so a block you can stand behind is real cover.
 class_name Cannon
 extends Node2D
 
 ## How far the beam reaches before it gives up, in px. Longer than any level is
 ## wide, so the beam only ever ends on something.
 const RANGE := 2000.0
-## How fast the shot travels down the line it was given, in px/s. Fast enough to
-## read as a laser, slow enough that a cannon across the room is a warning and
-## not a verdict.
+## How fast the shot travels down the line it was given, in px/s.
 const BEAM_SPEED := 1500.0
 
 const BODY_RADIUS := 13.0
 const BARREL_LENGTH := 20.0
 const BARREL_WIDTH := 9.0
 ## The line is thin and see-through while it tracks, and grows to the full shot
-## across the lock. One property changing, twice as fast as you can ignore it.
+## across the lock.
 const AIM_WIDTH := 2.0
 const AIM_ALPHA := 0.28
 const FIRE_WIDTH := 8.0
@@ -48,8 +40,7 @@ const MUZZLE_SWELL := 0.9
 ## Seconds the beam stays lethal once it has arrived.
 @export_range(0.05, 2.0, 0.05) var fire_time := 0.35
 ## Where in the cycle this cannon starts, 0 to 1. Two cannons of equal period
-## fire in lockstep unless this differs — the same job `move_phase` does for a
-## mover.
+## fire in lockstep unless this differs.
 @export_range(0.0, 1.0, 0.05) var phase := 0.0
 
 @onready var _ray: RayCast2D = $Ray
@@ -115,6 +106,11 @@ func _draw() -> void:
 	# collision point is whatever it last happened to hold.
 	if not Engine.is_editor_hint():
 		_draw_beam(muzzle, tint)
+	# Both outlines before either fill, so each shape covers the other's line
+	# where they overlap: ink at the joint would seam a cannon that is one piece.
+	Outline.polygon(self,
+		HourglassShape.thread_quad(Vector2.ZERO, muzzle, BARREL_WIDTH), tint.a)
+	Outline.circle(self, Vector2.ZERO, BODY_RADIUS, tint.a)
 	draw_line(Vector2.ZERO, muzzle, tint.darkened(0.25), BARREL_WIDTH)
 	draw_circle(Vector2.ZERO, BODY_RADIUS, tint.darkened(0.5))
 	# The eye swells and lights up with the charge, so the cannon warns you even

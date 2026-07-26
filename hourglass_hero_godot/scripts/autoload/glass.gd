@@ -1,6 +1,5 @@
-## Autoload `Glass` — the hourglass's shared motion state (`Game` owns the
-## rules, this owns the presentation). One instance drives both the player
-## sprite and the HUD gauge so they cannot drift apart.
+## Autoload `Glass` — the hourglass's motion state (`Game` owns the rules). One
+## instance drives both the player sprite and the HUD gauge, so they cannot drift.
 extends Node
 
 ## Tumble/slosh/trickle state. Read it, do not drive it.
@@ -22,7 +21,6 @@ func _process(delta: float) -> void:
 
 
 func _on_level_loaded(_index: int, _level_name: String) -> void:
-	# Fresh glass per level: no sway or speed carried over from the last run.
 	motion = HourglassMotion.new()
 	travel = 0.0
 	_last_travel = 0.0

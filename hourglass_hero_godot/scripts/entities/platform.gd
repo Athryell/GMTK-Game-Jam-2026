@@ -13,9 +13,6 @@ enum Kind {
 ## Height of the flip-pad's trigger strip, sitting on the pad's top face.
 const PAD_DETECT_HEIGHT := 8.0
 
-## How far a plane-bound slab's glow reaches past its edge, in px.
-const PLANE_HALO_MARGIN := 24.0
-
 @export var size := Vector2(120.0, 18.0): set = _set_size
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 @export var kind: Kind = Kind.NORMAL: set = _set_kind
@@ -37,8 +34,8 @@ const PLANE_HALO_MARGIN := 24.0
 var _origin := Vector2.ZERO
 var _elapsed := 0.0
 var _active := true
-## True while a jump would land the player in this plane: brighter, still inert.
 var _next := false
+var _marker := PlaneMarker.new()
 
 
 func _ready() -> void:
@@ -46,8 +43,7 @@ func _ready() -> void:
 	# The brick tile is 64 px and the shortest platform in the game is wider than
 	# that; without repeat the whole slab is one stretched course.
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	# See `terrain.gd`: nearest on the brick, linear left alone everywhere the
-	# game draws a gradient.
+	# See `terrain.gd`.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_apply_size()
 	_apply_kind()
@@ -78,40 +74,35 @@ func _physics_process(delta: float) -> void:
 ## the same course as the brick underneath it rather than half a row out.
 func _draw() -> void:
 	var colour := _colour()
-	_draw_halo(colour.a)
+	Outline.rect(self, Rect2(Vector2.ZERO, size), colour.a)
 	draw_texture_rect(Bricks.TEXTURE, Rect2(Vector2.ZERO, size), true, colour)
 	if size.y >= 6.0:
 		draw_texture_rect(Bricks.TEXTURE,
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
+	_marker.draw(self, _corners(), plane)
 
 
-## Painted under the brick, not lit: there is nothing behind a platform but the
-## parallax sky for a `PointLight2D` to land on, so a real light only tinted the
-## slab itself.
-func _draw_halo(alpha: float) -> void:
-	if kind == Kind.FLIP_PAD or plane == Planes.Kind.BOTH:
-		return
-	draw_texture_rect(LightKit.falloff(),
-		Rect2(Vector2.ZERO, size).grow(PLANE_HALO_MARGIN), false,
-		Palette.halo(plane, alpha))
-
-
-## The outline this casts a shadow from, in this node's own space: its four
-## corners. `Terrain` answers the same question with as many points as its
-## ground has, and `CastShadows` cannot tell them apart.
-func shadow_outline() -> PackedVector2Array:
+## The rectangle as a polygon, wound clockwise on screen.
+func _corners() -> PackedVector2Array:
 	return PackedVector2Array([
 		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
 
 
+## The outline this casts a shadow from. `Terrain` answers the same question with
+## as many points as its ground has, and `CastShadows` cannot tell them apart.
+func shadow_outline() -> PackedVector2Array:
+	return _corners()
+
+
 ## The pad keeps its gold: it is the one platform whose colour says what it does
-## rather than where it is. Everything else is masonry, tinted by the level.
+## rather than where it is.
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
-	# A ghost lives in the other plane: visible, but not solid.
-	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
+	# `next` is deliberately not passed on: a slab says where the jump lands with
+	# its dashes, not by pretending to be more solid than it is.
+	return Palette.ghost(base, _active or Engine.is_editor_hint())
 
 
 # ----- Plane -----------------------------------------------------------------
@@ -121,12 +112,18 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	# An inactive solid sits on no layer: the player passes through it.
 	collision_layer = Layers.SOLID if _active else 0
 	_pad_detector.monitoring = _active and kind == Kind.FLIP_PAD
+	_aim_marker()
 	queue_redraw()
 
 
 func _on_next_plane_changed(next: Planes.Kind) -> void:
 	_next = plane == next
+	_aim_marker()
 	queue_redraw()
+
+
+func _aim_marker() -> void:
+	_marker.aim(plane != Planes.Kind.BOTH, _active, _next)
 
 
 func _on_pad_body_entered(body: Node2D) -> void:
