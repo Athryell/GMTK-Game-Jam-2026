@@ -13,17 +13,7 @@ enum Kind {
 ## Height of the flip-pad's trigger strip, sitting on the pad's top face.
 const PAD_DETECT_HEIGHT := 8.0
 
-## The halo a solid that belongs to a plane wears, so what the next jump takes
-## away is readable while it is still under your feet. The stone keeps the level's
-## own tint; the AIR around it carries the plane's colour. A glow means this slab
-## is on loan; bare stone with no glow means it stays.
-##
-## Drawn rather than lit. A `PointLight2D` needs a surface to land on, and there
-## is nothing behind a platform but the parallax sky, so a real light only tinted
-## the slab itself — cyan on warm brick, which read as mud. This is painted under
-## the brick instead, so it shows against anything.
-const PLANE_HALO_ALPHA := 0.85
-## How far the glow reaches past the slab's edge, in px.
+## How far a plane-bound slab's glow reaches past its edge, in px.
 const PLANE_HALO_MARGIN := 24.0
 
 @export var size := Vector2(120.0, 18.0): set = _set_size
@@ -93,15 +83,15 @@ func _draw() -> void:
 			true, colour.lightened(Bricks.LIP_LIFT))
 
 
-## `strength` is the body's own alpha, so a ghost's halo fades with it: which
-## plane a slab belongs to stays legible from the other side of the flip.
-func _draw_halo(strength: float) -> void:
+## Painted under the brick, not lit: there is nothing behind a platform but the
+## parallax sky for a `PointLight2D` to land on, so a real light only tinted the
+## slab itself.
+func _draw_halo(alpha: float) -> void:
 	if kind == Kind.FLIP_PAD or plane == Planes.Kind.BOTH:
 		return
-	var tint := Palette.solid(plane, plane)
-	tint.a = PLANE_HALO_ALPHA * strength
 	draw_texture_rect(LightKit.falloff(),
-		Rect2(Vector2.ZERO, size).grow(PLANE_HALO_MARGIN), false, tint)
+		Rect2(Vector2.ZERO, size).grow(PLANE_HALO_MARGIN), false,
+		Palette.halo(plane, alpha))
 
 
 ## The outline this casts a shadow from, in this node's own space: its four
