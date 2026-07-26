@@ -6,9 +6,10 @@ const PLAYER_SCENE := preload("res://scenes/entities/player.tscn")
 const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 
 ## One track per background, in the order the backgrounds are reached. An empty
-## name is deliberate silence, not a missing entry: the last background has no
-## music written for it yet.
-const LEVEL_TRACKS: Array[String] = ["return_8_bit", "techno_polka", "game_8_bit", ""]
+## name here would be deliberate silence rather than a missing entry; every
+## background has its own track now, so there are none.
+const LEVEL_TRACKS: Array[String] = [
+	"return_8_bit", "techno_polka", "game_8_bit", "colors_everywhere"]
 
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D

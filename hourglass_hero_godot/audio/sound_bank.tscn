@@ -13,6 +13,7 @@
 [ext_resource type="AudioStream" path="res://audio/music/menu.mp3" id="11_menu"]
 [ext_resource type="AudioStream" path="res://audio/music/techno_polka.mp3" id="12_polka"]
 [ext_resource type="AudioStream" path="res://audio/music/game_8_bit.mp3" id="13_game8"]
+[ext_resource type="AudioStream" path="res://audio/music/colors_everywhere.mp3" id="14_colors"]
 
 [node name="SoundBank" type="Node" unique_id=1992489972]
 
@@ -85,5 +86,10 @@ bus = &"Music"
 
 [node name="game_8_bit" type="AudioStreamPlayer" parent="Music"]
 stream = ExtResource("13_game8")
+volume_db = -13.0
+bus = &"Music"
+
+[node name="colors_everywhere" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("14_colors")
 volume_db = -13.0
 bus = &"Music"
