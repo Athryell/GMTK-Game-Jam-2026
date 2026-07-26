@@ -1,0 +1,107 @@
+[gd_scene format=3 uid="uid://ykptgnhtkdkm"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_eqeyr"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_wtabk"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_ijhpo"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="4_eqeyr"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="5_wtabk"]
+
+[node name="Level" type="Node2D" unique_id=195482827]
+script = ExtResource("1_eqeyr")
+level_name = "Fly"
+world_size = Vector2(1400, 600)
+metadata/_edit_vertical_guides_ = [381.0]
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1441826477]
+position = Vector2(50, 450)
+
+[node name="Entities" type="Node2D" parent="." unique_id=2138021771]
+
+[node name="Door" parent="Entities" unique_id=1860747257 instance=ExtResource("2_wtabk")]
+position = Vector2(1148, 376.99988)
+rotation = 1.5764656
+size = Vector2(34, 62)
+
+[node name="Platform1" parent="Entities" unique_id=1205676973 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3, 496)
+size = Vector2(166, 37)
+
+[node name="Platform2" parent="Entities" unique_id=130973261 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(114, 479)
+size = Vector2(55, 16)
+
+[node name="Platform3" parent="Entities" unique_id=646251043 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(202, 181)
+size = Vector2(24, 296)
+plane = 1
+
+[node name="Platform5" parent="Entities" unique_id=1776101386 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(308, 184)
+size = Vector2(24, 296)
+plane = 0
+
+[node name="Platform6" parent="Entities" unique_id=1725790642 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(764, 91)
+size = Vector2(24, 389)
+plane = 0
+
+[node name="Platform7" parent="Entities" unique_id=1454302736 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(886, 90)
+size = Vector2(24, 389)
+plane = 1
+
+[node name="Platform8" parent="Entities" unique_id=743800008 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1008, 91)
+size = Vector2(24, 389)
+plane = 0
+
+[node name="Platform4" parent="Entities" unique_id=612066513 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(513, 358)
+size = Vector2(167, 37)
+
+[node name="Platform9" parent="Entities" unique_id=456402806 instance=ExtResource("3_ijhpo")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1063, 419)
+size = Vector2(105, 25)
+
+[node name="Spikes" parent="Entities" unique_id=1344607060 instance=ExtResource("4_eqeyr")]
+texture_filter = 1
+position = Vector2(170, 483)
+size = Vector2(1200, 50)
+
+[node name="Feather" parent="Entities" unique_id=2109228787 instance=ExtResource("5_wtabk")]
+texture_filter = 1
+position = Vector2(129, 447)
+size = Vector2(24, 24)
+
+[node name="Feather2" parent="Entities" unique_id=681321463 instance=ExtResource("5_wtabk")]
+texture_filter = 1
+position = Vector2(384, 365)
+size = Vector2(24, 24)
+
+[node name="Feather3" parent="Entities" unique_id=1727998883 instance=ExtResource("5_wtabk")]
+texture_filter = 1
+position = Vector2(655, 327)
+size = Vector2(24, 24)
+
+[node name="Feather4" parent="Entities" unique_id=953530438 instance=ExtResource("5_wtabk")]
+texture_filter = 1
+position = Vector2(945, 334)
+size = Vector2(24, 24)

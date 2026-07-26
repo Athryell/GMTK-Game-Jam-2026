@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_7mng4"]
 [ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_malo8"]
 [ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="4_yqovl"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_7mng4"]
 
 [node name="Level" type="Node2D" unique_id=195482827]
 position = Vector2(0, -8)
@@ -37,8 +38,8 @@ plane = 1
 [node name="Platform3" parent="Entities" unique_id=298821651 instance=ExtResource("3_malo8")]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(170, 1272)
-size = Vector2(150, 16)
+position = Vector2(136, 1272)
+size = Vector2(169, 16)
 plane = 0
 
 [node name="Platform4" parent="Entities" unique_id=1012931643 instance=ExtResource("3_malo8")]
@@ -121,3 +122,7 @@ move_distance = 300.0
 move_speed = 250.0
 size = Vector2(30, 34)
 plane = 1
+
+[node name="Spring" parent="Entities" unique_id=995365836 instance=ExtResource("5_7mng4")]
+position = Vector2(136, 1253)
+size = Vector2(56, 14)

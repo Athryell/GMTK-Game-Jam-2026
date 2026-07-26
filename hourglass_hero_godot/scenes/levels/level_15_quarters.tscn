@@ -1,75 +1,78 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://d2quiq04grru6"]
 
-[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
-[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_platform"]
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_platform"]
 [ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="4_spikes"]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" unique_id=15183185]
 script = ExtResource("1_level")
 level_name = "Quarters"
-world_size = Vector2(960, 540)
 chambers = 4
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawn" type="Marker2D" parent="." unique_id=602471582]
 position = Vector2(48, 455)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=743912282]
 
-[node name="Ground" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Ground" parent="Entities" unique_id=2038557744 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(0, 478)
 size = Vector2(170, 62)
-plane = 4
-kind = 0
 
-[node name="Rise1" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Rise1" parent="Entities" unique_id=417406670 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(216, 434)
 size = Vector2(110, 18)
 plane = 1
-kind = 0
 
-[node name="Rise2" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Rise2" parent="Entities" unique_id=1082530819 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(372, 390)
 size = Vector2(110, 18)
 plane = 2
-kind = 0
 
-[node name="Rise3" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Rise3" parent="Entities" unique_id=1287756883 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(528, 346)
 size = Vector2(110, 18)
 plane = 3
-kind = 0
 
-[node name="Rise4" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Rise4" parent="Entities" unique_id=1794532473 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(684, 302)
 size = Vector2(110, 18)
 plane = 0
-kind = 0
 
-[node name="Ledge" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Ledge" parent="Entities" unique_id=1619637830 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(830, 268)
 size = Vector2(130, 18)
-plane = 4
-kind = 0
 
-[node name="Trap1" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Trap1" parent="Entities" unique_id=1948735569 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(300, 320)
 size = Vector2(96, 18)
 plane = 3
-kind = 0
 
-[node name="Trap2" parent="Entities" instance=ExtResource("3_platform")]
+[node name="Trap2" parent="Entities" unique_id=418720323 instance=ExtResource("3_platform")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(470, 244)
 size = Vector2(96, 18)
 plane = 0
-kind = 0
 
-[node name="Spikes" parent="Entities" instance=ExtResource("4_spikes")]
+[node name="Spikes" parent="Entities" unique_id=1585049159 instance=ExtResource("4_spikes")]
+texture_filter = 1
 position = Vector2(660, 484)
 size = Vector2(230, 20)
-plane = 4
 
-[node name="Door" parent="Entities" instance=ExtResource("2_door")]
+[node name="Door" parent="Entities" unique_id=2069236013 instance=ExtResource("2_door")]
 position = Vector2(900, 204)
-size = Vector2(34, 64)
-plane = 4

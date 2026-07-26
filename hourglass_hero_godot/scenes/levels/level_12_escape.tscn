@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://c4wlwndq03wdk"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_snog6"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="2_545ci"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="3_oging"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="4_w3dan"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="5_h5vvm"]
+
+[node name="Level" type="Node2D" unique_id=1241937741]
+script = ExtResource("1_snog6")
+level_name = "Escape"
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1690143449]
+position = Vector2(40, 479)
+
+[node name="Entities" type="Node2D" parent="." unique_id=382846145]
+
+[node name="Platform1" parent="Entities" unique_id=329168255 instance=ExtResource("2_545ci")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 502)
+size = Vector2(954, 38)
+
+[node name="Monster" parent="." unique_id=1501346764 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(125, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster2" parent="." unique_id=504242591 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(168, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster3" parent="." unique_id=891980955 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(211, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster4" parent="." unique_id=1965215989 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(300, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster5" parent="." unique_id=1602145394 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(343, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster6" parent="." unique_id=1908126604 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(386, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 0
+
+[node name="Monster10" parent="." unique_id=2007077246 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(690, 422)
+move_axis = 2
+move_distance = 40.0
+move_speed = 100.0
+plane = 0
+
+[node name="Monster11" parent="." unique_id=479526998 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(775, 422)
+move_axis = 2
+move_distance = 40.0
+move_speed = 300.0
+plane = 0
+
+[node name="Monster12" parent="." unique_id=1265222877 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(732, 422)
+move_axis = 2
+move_distance = 40.0
+move_speed = 200.0
+plane = 0
+
+[node name="Monster7" parent="." unique_id=1045713498 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(430, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 1
+
+[node name="Monster8" parent="." unique_id=1101693549 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(473, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 1
+
+[node name="Monster9" parent="." unique_id=693047163 instance=ExtResource("3_oging")]
+texture_filter = 1
+position = Vector2(516, 361)
+move_axis = 2
+move_distance = 101.0
+plane = 1
+
+[node name="Feather" parent="." unique_id=1014467335 instance=ExtResource("4_w3dan")]
+texture_filter = 1
+position = Vector2(607, 460)
+size = Vector2(24, 24)
+
+[node name="Door" parent="." unique_id=1396874587 instance=ExtResource("5_h5vvm")]
+position = Vector2(884, 421)
