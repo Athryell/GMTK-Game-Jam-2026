@@ -10,12 +10,18 @@ const PULSE_RATE := 3.0
 ## and stretched over the door's own rect.
 ##
 ## Greyscale on purpose, like [Bricks]: the sheet is tinted with `Palette.DOOR`
-## at draw time, so the portal is the same brass as the light it throws.
+## at draw time, so the portal is the same brass as the light it throws. Each
+## cell is stored already mirrored, so the swirl winds into the level and the
+## draw stays a plain blit.
 const TEXTURE: Texture2D = preload("res://art/sprites/dimensional_portal.png")
 const FRAME_SIZE := Vector2(32.0, 32.0)
 const FRAME_COLUMNS := 3
 const FRAME_COUNT := 6
 const FRAMES_PER_SECOND := 10.0
+## The lit ring inside a cell — the widest it gets across the six frames. The
+## rest of the cell is blank, and stretching that blank is what left the portal
+## sitting narrow and off-centre inside its own doorway.
+const FRAME_CONTENT := Rect2(6.0, 1.0, 18.0, 30.0)
 
 ## The drawn glow around the mouth, in px at its resting size, and how much of
 ## that a breath swings. Wider than the door: it is spill, not a rim.
@@ -57,9 +63,7 @@ func _draw() -> void:
 		Rect2(size / 2.0 - Vector2(glow, glow), Vector2(glow, glow) * 2.0),
 		false, Color(Palette.DOOR, HALO_ALPHA * colour.a))
 	var frame := int(_pulse * FRAMES_PER_SECOND) % FRAME_COUNT
-	var source := Rect2(
-		Vector2(frame % FRAME_COLUMNS, frame / FRAME_COLUMNS) * FRAME_SIZE, FRAME_SIZE)
-	# Drawn right edge to left: the swirl winds into the level, not out of it.
-	draw_texture_rect_region(TEXTURE,
-		Rect2(Vector2(size.x, 0.0), Vector2(-size.x, size.y)), source,
+	var cell := Vector2(frame % FRAME_COLUMNS, frame / FRAME_COLUMNS) * FRAME_SIZE
+	var source := Rect2(cell + FRAME_CONTENT.position, FRAME_CONTENT.size)
+	draw_texture_rect_region(TEXTURE, Rect2(Vector2.ZERO, size), source,
 		Color(Palette.DOOR, colour.a))
