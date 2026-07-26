@@ -37,13 +37,17 @@ const WEDGE_FILL := 0.8
 ## than as sand, and the tones are deliberately close: they are texture, and the
 ## moment they carry real contrast the eye starts reading them as sand MOVING,
 ## which is the surface's job and not theirs.
-const GRAIN_LIGHT := 0.22
-const GRAIN_DARK := 0.18
+const GRAIN_LIGHT := 0.17
+const GRAIN_DARK := 0.13
 const GRAIN_BUCKETS := 16
-const GRAIN_LIT_CELLS := 3
-## Cumulative, not a second count: buckets 3 to 5 are the shaded ones, so a
-## little under a quarter of the pile is speckled at all.
-const GRAIN_SHADE_CELLS := 6
+const GRAIN_LIT_CELLS := 2
+## Cumulative, not a second count: buckets 2 and 3 are the shaded ones, so a
+## quarter of the pile is speckled at all and three quarters are plain sand.
+##
+## Turned DOWN from three-eighths, which read as gravel. The failure is not
+## subtle when it happens: past about a third the speckle stops being a surface
+## the sand has and starts being what the sand is made of.
+const GRAIN_SHADE_CELLS := 4
 
 ## What [method _tone] answers with. `TONE_BODY` draws nothing of its own — the
 ## row's base rect is already that colour underneath.
