@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://dogwwvnjturg2"]
+[gd_scene format=3 uid="uid://de08hs4f51qkh"]
 
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_m3la6"]
-[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_ghito"]
-[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_4cq3d"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_ghito"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_4cq3d"]
 
 [node name="Level" type="Node2D" unique_id=910728674]
 script = ExtResource("1_m3la6")
@@ -16,20 +16,28 @@ position = Vector2(49, 479)
 position = Vector2(902, 438)
 
 [node name="Platform1" parent="Entities" unique_id=1467295106 instance=ExtResource("3_4cq3d")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(0, 502)
 size = Vector2(300, 38)
 
 [node name="Platform2" parent="Entities" unique_id=892561988 instance=ExtResource("3_4cq3d")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(700, 502)
 size = Vector2(260, 38)
 plane = 1
 
 [node name="Platform3" parent="Entities" unique_id=1490232682 instance=ExtResource("3_4cq3d")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(320, 470)
 size = Vector2(84, 16)
 plane = 1
 
 [node name="Platform4" parent="Entities" unique_id=1164449422 instance=ExtResource("3_4cq3d")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(452, 420)
 size = Vector2(84, 16)
 plane = 0
@@ -38,6 +46,8 @@ move_distance = 50.0
 move_speed = 55.0
 
 [node name="Platform5" parent="Entities" unique_id=1004245851 instance=ExtResource("3_4cq3d")]
+texture_filter = 1
+texture_repeat = 2
 position = Vector2(584, 470)
 size = Vector2(84, 16)
 plane = 1
