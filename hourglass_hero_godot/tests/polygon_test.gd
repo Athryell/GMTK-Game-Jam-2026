@@ -22,6 +22,7 @@ func _ready() -> void:
 	_winding()
 	_normals()
 	_growth()
+	_resizing()
 	_finish()
 
 
@@ -75,6 +76,36 @@ func _growth() -> void:
 		is_equal_approx(box.size.y, 42.0), "it is %.2f tall" % box.size.y)
 	_check("a degenerate polygon is returned untouched",
 		Polygons.grow(PackedVector2Array([Vector2.ZERO, Vector2.ONE]), 2.0).size() == 2)
+
+## Typing a size into the inspector: the ground must land on exactly that box,
+## keep the corner it was placed by, and keep the shape of a slope.
+func _resizing() -> void:
+	var slab := PackedVector2Array([
+		Vector2(40.0, 100.0), Vector2(240.0, 100.0),
+		Vector2(240.0, 160.0), Vector2(40.0, 160.0)])
+	var wider := Polygons.resize(slab, Vector2(400.0, 30.0))
+	var box := Polygons.bounds(wider)
+	_check("a resized slab measures what was typed",
+		box.size.is_equal_approx(Vector2(400.0, 30.0)), "it is %v" % box.size)
+	_check("and it grows away from the corner it was placed by",
+		box.position.is_equal_approx(Vector2(40.0, 100.0)), "it starts at %v" % box.position)
+
+	# A ramp is the case a plain rectangle cannot catch: its slope has to survive.
+	var ramp := PackedVector2Array([
+		Vector2(0.0, 40.0), Vector2(80.0, 0.0), Vector2(80.0, 80.0), Vector2(0.0, 80.0)])
+	var doubled := Polygons.resize(ramp, Vector2(160.0, 160.0))
+	_check("doubling a ramp keeps its gradient",
+		is_equal_approx((doubled[1].y - doubled[0].y) / (doubled[1].x - doubled[0].x),
+			(ramp[1].y - ramp[0].y) / (ramp[1].x - ramp[0].x)))
+
+	# The one shape with no height to scale from: a flat line stays flat rather
+	# than blowing up on a division by zero.
+	var flat := PackedVector2Array([
+		Vector2.ZERO, Vector2(100.0, 0.0), Vector2(50.0, 0.0)])
+	_check("an axis with no length to scale is left alone",
+		Polygons.bounds(Polygons.resize(flat, Vector2(200.0, 60.0))).size
+			.is_equal_approx(Vector2(200.0, 0.0)))
+
 
 # ----- Harness ---------------------------------------------------------------
 
