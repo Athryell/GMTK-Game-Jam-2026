@@ -32,6 +32,19 @@ git worktree add .claude/worktrees/<feature> -b <feature> main
 the git root is the jam repo, not this folder: the Godot project lives at
 `<worktree>/hourglass_hero_godot`.
 
+Then import the fresh worktree, once:
+
+```bash
+godot --headless --import --path .claude/worktrees/<feature>/hourglass_hero_godot
+```
+
+`.godot/` is generated and gitignored, so a new worktree does not have one, and
+`project.godot` names the main scene by UID — with no UID table Godot aborts with
+"Main scene's path could not be resolved from UID" before the game even starts.
+This is the agent's job: never hand the user a run command for a worktree that
+has not been imported. It takes a minute and is the only time the agent runs
+Godot itself.
+
 ### 2. Build the feature in the worktree
 
 Work only inside `.claude/worktrees/<feature>/hourglass_hero_godot`. Commit as
