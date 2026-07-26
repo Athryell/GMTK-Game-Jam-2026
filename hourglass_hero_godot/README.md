@@ -86,6 +86,7 @@ Adding a tunable is one line; its slider appears automatically under its
 | `cannon.tscn` | Tracks you while it charges, then fires along the line it held. Blocked by solids, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
 | `gravity_pad.tscn` | Gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
 | `inversion_zone.tscn` | The sand runs backwards inside it: standing still refills you, and a full glass kills. | `size`, `plane` |
+| `feather.tscn` | Picked up, it buys ONE mid-air jump. Spending it empties it for good; landing does not hand it back. | `size`, `plane` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
 | `hint_sign.tscn` | A line of text where the lesson is. `after_deaths` holds it back; `hide_after_deaths` takes it away. | `text`, `after_deaths`, `hide_after_deaths` |
 
@@ -112,7 +113,6 @@ On the level root, under **Rules**:
 |---|---|
 | `chambers` | How many chambers the glass has, 2 to 4 — and so how many planes, and how far a jump turns you. |
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
-| `double_jump` | One extra jump in mid-air, for this level only. |
 | `clock_starts_on_move` | The sand does not run until the player first steers. |
 | `jump_locked_first_life` | No jump until this level has killed you once. |
 
@@ -156,7 +156,7 @@ you are full, ruinous while you are empty. `sand_test.gd` guards the identity.
 | 7 | Ten | Ten ledges, each narrower, planes forced to alternate all the way up. |
 | 8 | Metronome | Five movers, one period, five phases. Cross on the beat. |
 | 9 | The Well | Descending. Every depth is half solid; a flip swaps which half. |
-| 10 | Double or Nothing | The air jump buys reach and costs time, never sand. |
+| 10 | Double or Nothing | One feather, one air jump. Reach bought with time, never sand — and only once. |
 | 11 | Midnight | The gauntlet: everything so far, over a spike pit, finishing in `BACK`. |
 | 12 | The Last Grain | 1.2 s on the clock. Empty is not a problem, it is the resource. |
 | 13 | The Updraft | An inversion zone runs the glass backwards: standing still fills you, and a full glass shatters. |
@@ -188,7 +188,7 @@ scripts/
     terrain.gd            StaticBody2D drawn FROM its own collision polygon
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
     spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd  gravity_pad.gd
-    inversion_zone.gd  hint_sign.gd  plane_area.gd
+    inversion_zone.gd  hint_sign.gd  plane_area.gd  feather.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
     ping_pong.gd  palette.gd  bricks.gd  layers.gd
   fx/
