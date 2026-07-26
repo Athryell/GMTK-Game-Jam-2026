@@ -101,8 +101,8 @@ func shadow_outline() -> PackedVector2Array:
 ## The pad keeps its gold: it is the one platform whose colour says what it does
 ## rather than where it is.
 func _colour() -> Color:
-	var level := 0 if Engine.is_editor_hint() else Game.level_index
-	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
+	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD \
+		else Palette.bricks(Level.group_of(self))
 	# `next` is deliberately not passed on: a slab says where the jump lands with
 	# its dashes, not by pretending to be more solid than it is.
 	return Palette.ghost(base, _active or Engine.is_editor_hint())

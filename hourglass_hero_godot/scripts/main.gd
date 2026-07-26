@@ -84,16 +84,16 @@ func _load_current_level() -> void:
 	_camera.target = _player
 	_camera.frame(_level.world_size)
 	_camera.snap()
+	var theme := _level.theme_group(Game.level_index)
 	# After the snap: where the art is planted depends on what the camera frames.
-	_backdrop.configure(_level, Game.level_index, _camera.view_bottom())
+	_backdrop.configure(_level, theme, _camera.view_bottom())
 	_backdrop.sync(_camera.global_position)
 
-	# The music belongs to the background, so a track lasts exactly as long as the
+	# The music belongs to the theme, so a track lasts exactly as long as the
 	# place it plays in. `play_music` ignores a repeat, so walking from one level
-	# to the next inside a background does not restart it; only crossing into the
+	# to the next inside a theme does not restart it; only crossing into the
 	# next one swaps the track.
-	var track := LEVEL_TRACKS[clampi(Backdrop.group_for_level(Game.level_index),
-		0, LEVEL_TRACKS.size() - 1)]
+	var track := LEVEL_TRACKS[clampi(theme, 0, LEVEL_TRACKS.size() - 1)]
 	if track.is_empty():
 		Audio.stop_music()
 	else:
