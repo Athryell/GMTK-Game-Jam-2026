@@ -1,9 +1,6 @@
-## The solids' shadows. Every solid gets a [LightOccluder2D] built from the same
-## outline it is drawn from, so the player's lamp does not arrive behind it.
-##
-## Subtractive: nothing is painted over the world, which is why two shadows
-## crossing are no darker than one. Occluders are parented to their caster, so a
-## moving platform drags its shadow along and unloading a level takes them all.
+## The solids' shadows: every solid gets a [LightOccluder2D] built from the same
+## outline it is drawn from. Occluders are parented to their caster, so a moving
+## platform drags its shadow along and unloading a level takes them all.
 class_name CastShadows
 extends Node2D
 
@@ -24,7 +21,6 @@ func _ready() -> void:
 	Game.plane_changed.connect(_on_plane_changed)
 
 
-## Called on every level load, once the scene exists.
 func configure(level: Level) -> void:
 	_occluders.clear()
 	_planes.clear()

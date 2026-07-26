@@ -6,25 +6,21 @@ extends PlaneArea
 ## Breaths per second. Shared by the drawn halo and the light — they must match.
 const PULSE_RATE := 3.0
 
-## The exit is a portal rather than a panel: a 3×2 sheet of 32×32 frames, looped
-## and stretched over the door's own rect.
-##
-## Greyscale on purpose, like [Bricks]: the sheet is tinted with `Palette.DOOR`
-## at draw time, so the portal is the same brass as the light it throws. Each
-## cell is stored already mirrored, so the swirl winds into the level and the
-## draw stays a plain blit.
+## A 3×2 sheet of 32×32 frames, looped and stretched over the door's own rect.
+## Greyscale on purpose, like [Bricks]: tinted with `Palette.DOOR` at draw time,
+## so the portal is the same brass as the light it throws.
 const TEXTURE: Texture2D = preload("res://art/sprites/dimensional_portal.png")
 const FRAME_SIZE := Vector2(32.0, 32.0)
 const FRAME_COLUMNS := 3
 const FRAME_COUNT := 6
 const FRAMES_PER_SECOND := 10.0
-## The lit ring inside a cell — the widest it gets across the six frames. The
-## rest of the cell is blank, and stretching that blank is what left the portal
-## sitting narrow and off-centre inside its own doorway.
+## The lit ring inside a cell — the widest it gets across the six frames. The rest
+## of the cell is blank, and stretching that blank leaves the portal narrow and
+## off-centre inside its own doorway.
 const FRAME_CONTENT := Rect2(6.0, 1.0, 18.0, 30.0)
 
-## The drawn glow around the mouth, in px at its resting size, and how much of
-## that a breath swings. Wider than the door: it is spill, not a rim.
+## The drawn glow around the mouth, in px, and how much of it a breath swings.
+## Wider than the door: it is spill, not a rim.
 const HALO_RADIUS := 46.0
 const HALO_SWELL := 0.08
 const HALO_ALPHA := 0.5
@@ -56,8 +52,6 @@ func _touched(_player: Player) -> void:
 
 func _draw() -> void:
 	var colour := _shade(Palette.DOOR)
-	# A round glow, not the old panel's rectangle: the halo has to be the shape
-	# of what throws it, and it breathes with the light on the same PULSE_RATE.
 	var glow := HALO_RADIUS * (1.0 + HALO_SWELL * sin(_pulse * PULSE_RATE))
 	draw_texture_rect(LightKit.falloff(),
 		Rect2(size / 2.0 - Vector2(glow, glow), Vector2(glow, glow) * 2.0),

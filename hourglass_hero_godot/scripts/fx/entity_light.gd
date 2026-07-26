@@ -1,6 +1,5 @@
-## The light an entity gives off. It follows `Game.plane_changed` itself, so
-## hosts attach one and never mention it again. Hazards carry one so they stay
-## readable at any `world_light`.
+## The light an entity gives off. It follows `Game.plane_changed` itself, so hosts
+## attach one and never mention it again.
 class_name EntityLight
 extends PointLight2D
 

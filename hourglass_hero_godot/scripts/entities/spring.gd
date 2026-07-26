@@ -46,16 +46,14 @@ func _touched(player: Player) -> void:
 	queue_redraw()
 
 
-## A plate on two fixed posts: on impact only the plate moves down, so the
-## silhouette holds still and the closing gap reads as compression.
+## Only the plate moves on impact, so the closing gap reads as compression.
 func _draw() -> void:
 	var colour := _shade(Palette.SPRING)
 	var foot := maxf(2.0, size.y * FOOT)
 	var plate := maxf(4.0, size.y * PLATE)
 	var top := (size.y - foot - plate) * TRAVEL * _compress
 
-	# The two slabs only. The posts are already the darkest thing here, and a
-	# line round each would read as two more springs behind the spring.
+	# The two slabs only: a line round each post would read as more springs.
 	var foot_box := Rect2(Vector2(0.0, size.y - foot), Vector2(size.x, foot))
 	Outline.rect(self, foot_box, colour.a)
 	Outline.rect(self, Rect2(Vector2(0.0, top), Vector2(size.x, plate)), colour.a)

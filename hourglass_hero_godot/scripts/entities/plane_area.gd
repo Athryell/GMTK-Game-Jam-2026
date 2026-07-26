@@ -1,8 +1,6 @@
 @tool
-## Base class for plane-aware triggers (door, spring, spikes, monster): owns
-## size, plane, ghosting and the light.
-##
-## The node's origin is the TOP-LEFT corner of `size`, like every other solid.
+## Base class for plane-aware triggers (door, spring, spikes, monster): owns size,
+## plane, ghosting and the light. The origin is the TOP-LEFT corner of `size`.
 class_name PlaneArea
 extends Area2D
 

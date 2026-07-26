@@ -45,8 +45,8 @@ func _draw() -> void:
 		HourglassShape.fill(self, tooth[1], dark)
 
 
-## A tooth's silhouette: the outer corner of each base and the shared tip. Read
-## off the halves, so a change to `_teeth` cannot leave this drawing the old one.
+## A tooth's silhouette, read off the halves so a change to `_teeth` cannot leave
+## this drawing the old one.
 static func _whole(tooth: Array) -> PackedVector2Array:
 	var lit_half: PackedVector2Array = tooth[0]
 	var dark_half: PackedVector2Array = tooth[1]
