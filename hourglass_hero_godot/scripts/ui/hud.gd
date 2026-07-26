@@ -3,8 +3,10 @@ extends Control
 
 ## Centre of the sand gauge, in screen px. Editable on `Root` in `hud.tscn`.
 @export var gauge_centre := Vector2(52.0, 62.0)
-## Drawn size of the gauge hourglass.
-@export var gauge_size := Vector2(48.0, 72.0)
+## Drawn size of the gauge hourglass. [constant HourglassSprite.TRIM]'s size, so
+## the HUD glass is drawn one art px to one px of the 960×540 design canvas —
+## which at `camera_zoom` 1.0 is the same size a pixel comes out in the world.
+@export var gauge_size := Vector2(32.0, 64.0)
 
 ## The bar along the bottom. A level that has taken the jump away must not go on
 ## advertising it.
@@ -17,6 +19,9 @@ const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
 
 
 func _ready() -> void:
+	# The gauge is the same painted glass the player wears; see `terrain.gd` for
+	# why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	Game.level_loaded.connect(_on_level_loaded)
 	Game.status_changed.connect(_on_status_changed)
 	_on_status_changed(Game.status)

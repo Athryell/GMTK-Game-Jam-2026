@@ -46,6 +46,9 @@ func _ready() -> void:
 	# The brick tile is 64 px and the shortest platform in the game is wider than
 	# that; without repeat the whole slab is one stretched course.
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	# See `terrain.gd`: nearest on the brick, linear left alone everywhere the
+	# game draws a gradient.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_apply_size()
 	_apply_kind()
 	if Engine.is_editor_hint():

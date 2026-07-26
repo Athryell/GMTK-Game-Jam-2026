@@ -4,7 +4,12 @@ extends Node2D
 
 ## Drawn size. Cosmetic — the hitbox is the CollisionShape2D on `player.tscn`,
 ## so change both together.
-@export var body_size := Vector2(26.0, 38.0)
+##
+## Exactly [constant HourglassSprite.TRIM]'s size, so the painted glass is drawn
+## one art px to one world px. Anything else gives the player pixels a different
+## size from the brick and skyline ones, and on a non-square ratio it stretches
+## them out of square as well.
+@export var body_size := Vector2(32.0, 64.0)
 
 ## Tremble amplitude at full danger, in px. Keep it to a few px.
 const TREMBLE := 2.2
@@ -19,6 +24,12 @@ var _shiver := 0.0
 ## Where the half-turn currently is, in radians: chases `PI` while the world is
 ## upside down, 0 while it is not. Eased rather than snapped.
 var _upset := 0.0
+
+
+func _ready() -> void:
+	# The painted glass is pixel art at one art px to one world px; see
+	# `terrain.gd` for why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 func _process(delta: float) -> void:
@@ -42,11 +53,15 @@ func _process(delta: float) -> void:
 ## Whether the art is showing its back, and so has to be flipped left-for-right
 ## to keep its face on.
 ##
-## The painted glass is lit down its left side and reflects down its right, so it
-## is the one part of this that a turn does not leave looking the same. Half a
-## turn round puts the highlights on the wrong side; mirroring as well cancels
-## that, leaving a glass that reads upside down instead — which the art, near
-## enough symmetric top to bottom, wears without complaint.
+## For art lit down one side, a turn is the one thing that does not leave it
+## looking the same: half a turn round puts the highlights on the wrong side, and
+## mirroring as well cancels that, leaving a glass that reads upside down instead
+## — which the art, near enough symmetric top to bottom, wears without complaint.
+##
+## The current export has no highlights left in it, only the outline and the
+## wooden caps, so this is a no-op on screen today. Kept because the sand behind
+## it is not symmetric, and because the moment the light comes back into the art
+## this is what stops it landing on the wrong side.
 ##
 ## Read off the rotation rather than counted off the jumps, so it needs no state
 ## to keep straight and cannot drift out of step with what is on screen. The

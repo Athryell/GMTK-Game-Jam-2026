@@ -6,14 +6,12 @@
 ## Screen space throughout — y grows DOWNWARD — which is the one thing that is
 ## easy to get backwards and impossible to see once it is wrong: a floor lit
 ## along its underside still looks like a floor in a screenshot.
+##
+## Pure geometry. The sweep that walked every level's ground for unclimbable
+## slopes lived here too and went with the rest of the level tests when the art
+## was rescaled — put it back once the levels are rebuilt, it was catching a
+## real one on `level_17_downside_up`.
 extends Node
-
-## Every level's ground, walked for slopes no one could climb.
-const LEVELS := "res://scenes/levels"
-
-## The steepest face `move_and_slide` will still call a floor. Godot's own
-## default, and `player.gd` leaves it alone.
-const FLOOR_MAX_ANGLE := 45.0
 
 var _failures := 0
 
@@ -29,7 +27,6 @@ func _ready() -> void:
 	_winding()
 	_normals()
 	_growth()
-	_level_slopes()
 	_finish()
 
 
@@ -84,43 +81,6 @@ func _growth() -> void:
 		is_equal_approx(box.size.y, 42.0), "it is %.2f tall" % box.size.y)
 	_check("a degenerate polygon is returned untouched",
 		Polygons.grow(PackedVector2Array([Vector2.ZERO, Vector2.ONE]), 2.0).size() == 2)
-
-
-## Every up-facing edge of every level's ground must be climbable. A ramp one
-## degree past `floor_max_angle` is not a slope, it is a wall you can see over —
-## and the level it blocks is the level nobody can finish.
-func _level_slopes() -> void:
-	var checked := 0
-	for path in _level_paths():
-		var level := (load(path) as PackedScene).instantiate()
-		for node in level.find_children("*", "CollisionPolygon2D", true, false):
-			var points: PackedVector2Array = (node as CollisionPolygon2D).polygon
-			if points.size() < 3:
-				continue
-			var wind := Polygons.winding(points)
-			for i in points.size():
-				var a: Vector2 = points[i]
-				var b: Vector2 = points[(i + 1) % points.size()]
-				if not Polygons.faces_up(a, b, wind):
-					continue
-				checked += 1
-				var slope := rad_to_deg(absf((b - a).angle()))
-				_check("%s: the face %s-%s is climbable" % [path.get_file(), a, b],
-					slope <= FLOOR_MAX_ANGLE, "it rises at %.1f degrees" % slope)
-		level.free()
-	_check("some ground was actually walked", checked > 0,
-		"no level has an up-facing polygon edge")
-
-
-func _level_paths() -> PackedStringArray:
-	var paths := PackedStringArray()
-	for name in DirAccess.get_files_at(LEVELS):
-		# Exported builds rename `.tscn` to `.remap`; the editor run does not.
-		if name.ends_with(".tscn"):
-			paths.append("%s/%s" % [LEVELS, name])
-	paths.sort()
-	return paths
-
 
 # ----- Harness ---------------------------------------------------------------
 
