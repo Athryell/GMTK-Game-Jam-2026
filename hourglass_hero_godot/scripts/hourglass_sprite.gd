@@ -43,7 +43,6 @@ const BULBS: Array[Array] = [
 ## looking it.
 const BULB_AREA := 421.0
 
-
 ## Sand first, then the glass over it. `fills` is how full each bulb is, 0 to 1,
 ## upper first; `down` is gravity in the glass's own frame and `invert` how far
 ## the flow has turned over, both exactly as [method HourglassShape.draw_glass]

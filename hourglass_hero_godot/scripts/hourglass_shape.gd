@@ -351,6 +351,28 @@ static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Co
 			tone = next
 
 
+## One loose grain, laid on the same grid and wearing the same speckle as a pile.
+##
+## `at` is anywhere in the grain's cell — a spilled grain flies along a smooth arc
+## and is snapped here, so it crosses the screen a whole pixel at a time exactly
+## as a draining surface slides down one. The tone comes off the CELL, so a grain
+## changes shade as it travels: it is the glass's texture showing through a moving
+## hole, which is what the piles do and what keeps the spill made of the same sand.
+static func draw_grain(canvas: CanvasItem, at: Vector2, colour: Color,
+		cell := 1.0) -> void:
+	if cell <= 0.0:
+		return
+	var i := floori(at.x / cell)
+	var row := floori(at.y / cell)
+	var tone := _tone(i, row)
+	var c := colour
+	if tone == TONE_LIT:
+		c = colour.lightened(GRAIN_LIGHT)
+	elif tone == TONE_SHADE:
+		c = colour.darkened(GRAIN_DARK)
+	canvas.draw_rect(Rect2(i * cell, row * cell, cell, cell), c)
+
+
 ## A segment as a rectangle, so a thread of falling sand can go through [method
 ## fill_grains] and land on the same grid as the piles it runs between.
 static func thread_quad(a: Vector2, b: Vector2, width: float) -> PackedVector2Array:
