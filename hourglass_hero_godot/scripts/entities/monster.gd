@@ -36,10 +36,12 @@ var _elapsed := 0.0
 var _hand := 0.0
 
 
+## NOTE: never set `plane` here. A scene only stores a property that differs from
+## its DECLARED default, so a monster left on `BOTH` saves nothing, and an `_init`
+## override would then pull it back to one plane at load.
 func _init() -> void:
 	# Exactly [constant ART_SIZE], so the dial is drawn one art px to one world px.
 	size = Vector2(ART_SIZE, ART_SIZE)
-	plane = Planes.Kind.P0
 	light_tint = Palette.MONSTER
 	light_radius = 105.0
 	# Kept low: at any strength the red wash swallows the clock face.
