@@ -23,57 +23,43 @@ const SPIN := 7.0
 const GRAINS_FULL := 46
 
 ## How hard the sand is thrown out of the break, in px/s: outwards from the throat
-## first, then lifted, so it leaves the glass rather than dropping through it. Well
-## under the wedges' own numbers — sand is what the glass was carrying, and it has
-## to be seen falling out of the pieces rather than racing them off screen.
-##
-## Both are cut against [constant SPILL_GRAVITY] rather than tuned on their own:
-## the slower the fall, the longer a grain has to travel on whatever it was thrown
-## with, and the further off screen the same numbers take it. The one thing that
-## must come out right is that the sand is back on the floor before the death
-## screen ends — about 15 px up by half a second, down again inside 1.4.
+## first, then lifted, so it leaves the glass rather than dropping through it.
+## Sized against [constant SPILL_GRAVITY] — the slower the fall, the longer these
+## carry — so the sand is back on the floor before the death screen ends.
 const SPILL_OUT := Vector2(20.0, 70.0)
 const SPILL_LIFT := Vector2(10.0, 60.0)
 
-## What the sand falls at, against [constant GRAVITY] for everything else. About a
-## seventh of it, and that gap is the effect: the glass is thrown clear and
-## forgotten while the sand has to be WATCHED leaving the break, which it cannot be
-## at a weight that puts it on the floor in three frames.
+## What the sand falls at, against [constant GRAVITY] for everything else. A
+## seventh of it: the glass is thrown clear and forgotten, while the sand has to be
+## watched leaving the break.
 const SPILL_GRAVITY := 120.0
 
 ## How much of a wedge's own glass is left under the painting. The art paints the
 ## frame and leaves the cavity clear, so a piece of pure texture is a piece of
-## outline with a hole in it; this is the body it broke off with. Raised from
-## 0.22, where the wedges read as scratches against a bright sky.
+## outline with a hole in it; this is the body it broke off with. At 0.22 the
+## wedges read as scratches against a bright sky.
 const PIECE_BODY := 0.32
 
 ## How strongly the fresh cut down the side of a piece is drawn, against the fade
-## the piece is already at. The art paints the glass's own outline; this is the
-## edge that was not there a frame ago, and it is what keeps a wedge reading as
-## broken glass rather than as a torn-off scrap.
+## the piece is already at: the art paints the glass's own outline, and this is the
+## edge that was not there a frame ago.
 const PIECE_EDGE := 0.5
 
-## One world px, and one art px: the grid the whole game's pixels sit on. Every
-## death effect is snapped to it, so a flying piece or grain crosses the screen a
-## whole pixel at a time instead of sliding smoothly between two of them.
+## One world px, and one art px. Every death effect is snapped to it, so a flying
+## piece crosses the screen a whole pixel at a time.
 const PIXEL := 1.0
 
 ## How big a spilled grain is, in px a side. Bigger than the one-px cells the sand
-## is drawn with inside the glass, and deliberately: in the bulb a cell is one of
-## thousands packed edge to edge and reads as texture, while in the air it is on
-## its own against the sky, where one px reads as dust rather than as sand. Two is
-## what gets the grain back to the weight the pile had.
+## is drawn with in the glass, deliberately: packed edge to edge one px reads as
+## texture, alone against the sky it reads as dust.
 const SPILL_GRAIN := 2.0
 
-## How many cells a grain may climb looking for somewhere to rest before it gives
-## up and sits where it is. Only reached by a heap several times taller than any a
-## glass this size can pour, so it is a runaway guard and not a shape.
+## Runaway guard on [method _settle], in cells: taller than any heap a glass this
+## size can pour.
 const HEAP_STACK := 24
 
-## How much faster than the death itself a piece fades: the painting stays at full
-## strength for the first two thirds and only then thins out. The texture is the
-## whole point of these pieces, and one that starts dissolving straight away is a
-## texture nobody gets to read.
+## How much faster than the death itself a piece fades: full strength for the first
+## two thirds, so the painting is up long enough to be read.
 const PIECE_SOLID := 3.0
 
 var kind: Kind = Kind.RING
@@ -90,12 +76,11 @@ var _spins: Array[float] = []
 ## PIECES only: where on the art each corner of each fragment came from, in the
 ## texture's own pixels — the wedge cut out of the painting rather than filled in.
 var _uvs: Array[PackedVector2Array] = []
-## SAND only: which grains have landed. A landed grain stops dead and stays put
-## for the rest of the death, so the spill ends as a heap on the floor.
+## SAND only: which grains have landed. A landed grain stops dead and stays put,
+## so the spill ends as a heap on the floor.
 var _rested: Array[bool] = []
-## SAND only: the cells of the [constant SPILL_GRAIN] grid a landed grain is
-## already sitting in, so the next one lands ON it rather than inside it. Keyed by
-## cell, in this node's own frame; the value is never read.
+## SAND only: the grid cells landed grains occupy, in this node's own frame, so the
+## next one lands ON them rather than inside them. Used as a set.
 var _heap: Dictionary = {}
 
 
@@ -116,11 +101,9 @@ static func dust(parent: Node, at: Vector2, tint: Color, force: float) -> void:
 ## effect in it, is freed when that pause ends.
 ##
 ## Every count breaks into the same traced wedges. Two chambers is the painted
-## glass, so those wedges are cut OUT of the painting — each carries the texels
-## that stood on it a frame ago — instead of being filled with flat glass. Any
-## other count is a rosette the game draws itself, with no painting to cut from.
-## `turned` is whether the glass was standing on its head when it died, which is
-## the one attitude the pieces can honour exactly — see [method _break_sprite].
+## glass, so those wedges are cut OUT of the painting; any other count is a rosette
+## the game draws itself, with nothing to cut from. `turned` is whether the glass
+## died on its head — see [method _break_sprite].
 static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life: float,
 		turned := false) -> void:
 	if Game.chamber_count == 2:
@@ -136,11 +119,9 @@ static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life:
 ## Death, the sand half: what the glass was carrying, leaving it.
 ##
 ## The grains are not scattered from the middle of the player — they START as the
-## sand itself. Each bulb's pile is the polygon the glass was drawing a frame ago,
-## rasterised on the same grid it was drawn on, so the first frame of the death is
-## the player's own sand, standing where it stood, and only then does it come out
-## through the break. `fills` is how full each bulb was, `size` the glass it was
-## drawn at, and `turned` whether that glass was on its head.
+## sand itself: each bulb's pile, rasterised on the grid it was drawn on, so the
+## first frame of the death is the player's own sand standing where it stood.
+## `fills` is how full each bulb was and `size` the glass it was drawn at.
 ##
 ## A glass with no painting has no bulbs to empty, so it keeps the plain scatter.
 ## Same `life` constraint as [method shatter].
@@ -164,7 +145,7 @@ static func spill(parent: Node, at: Vector2, tint: Color, fills: PackedFloat32Ar
 	b._rested.resize(b._bits.size())
 
 
-## Turns each bulb's pile into flying grains, one per sampled pixel of it.
+## Turns each bulb's pile into flying grains, one per cell of it.
 func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 	var rng := RandomNumberGenerator.new()
 	# The bulb's capacity at this drawing size, exactly as the sprite works it out —
@@ -187,11 +168,9 @@ func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 				+ Vector2(0.0, -rng.randf_range(SPILL_LIFT.x, SPILL_LIFT.y)))
 
 
-## Every cell centre inside `poly`, on the [constant SPILL_GRAIN] grid: the pile
-## taken apart at the size its grains will be drawn at, and all of it. A third of
-## the cells was cheaper and it showed — a glass that had been visibly full poured
-## out a handful, and the sand the player had been counting all level looked spent
-## at the one moment they were being told they had run out of it.
+## Every cell centre inside `poly`, on the [constant SPILL_GRAIN] grid — and all of
+## them: sampling a third was cheaper, but a visibly full glass then poured out a
+## handful.
 func _sample(poly: PackedVector2Array) -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	if poly.size() < 3:
@@ -227,10 +206,8 @@ static func _make(parent: Node, at: Vector2, kind_: Kind, tint: Color, life: flo
 	# Above every solid, so effects are not hidden behind terrain.
 	b.z_index = 20
 	if kind_ == Kind.PIECES or kind_ == Kind.SAND:
-		# The death effects are pixel art and are snapped to the grid as they fly.
-		# That snap is done in the node's own frame, so the node has to start on the
-		# grid too — otherwise every piece lands a fraction of a pixel off it, and
-		# the whole point is lost. Safe to move: the player is dead and still.
+		# The pieces snap to the grid in the node's own frame, so the node has to start
+		# on it too. Safe to move: the player is dead and still.
 		b.global_position = b.global_position.snapped(Vector2(PIXEL, PIXEL))
 		# The art's own texels, at the size every other pixel in the game is.
 		b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -261,10 +238,9 @@ func _segments(outline: PackedVector2Array) -> Array[Array]:
 ## their own centroid, which is what moves — spinning about a shared origin
 ## would make fragments orbit instead of tumble.
 ##
-## `facing` of -1 breaks the glass upside down: the outline goes through a half
-## turn first, so every wedge is thrown from where it was lying rather than from
-## where it would have been the right way up. The lift is added after, in screen
-## terms, because the fragments fall down the screen either way.
+## `facing` of -1 breaks the glass upside down: the outline turns first, so a wedge
+## is thrown from where it was lying. The lift is added after, in screen terms,
+## because fragments fall down the screen either way.
 func _split(outline: PackedVector2Array, facing := 1.0) -> void:
 	var rng := RandomNumberGenerator.new()
 	for edge in _segments(outline):
@@ -289,21 +265,14 @@ func _split(outline: PackedVector2Array, facing := 1.0) -> void:
 ## The wedges of [method _split], cut out of the painted glass rather than filled
 ## with it: each keeps the texels that stood where it did a frame ago.
 ##
-## Two things the flat wedges do have to go. The spin, because a texture turned
-## off the axis has to resample, and the art comes back with its pixels smeared
-## into sizes no other pixel on screen has — which is the one thing this effect
-## exists to avoid. And the sub-pixel start, because a wedge that begins a third
-## of a pixel off the grid samples the art a third of a pixel off it for the whole
-## flight. Snapped here and snapped again every frame, the two stay a whole number
-## of pixels apart, so the texels land square however far the piece has flown.
+## Two things the flat wedges have must go. The spin, because a texture turned off
+## the axis resamples, and its pixels come back in sizes no other pixel on screen has.
+## And the sub-pixel start, because a wedge beginning a third of a pixel off the
+## grid samples the art a third of a pixel off it for the whole flight. What is left
+## is a pure slide, and the tumble comes from the spread instead.
 ##
-## What is left is a pure slide, which is exact — and the tumble the wedges got
-## from spinning, these get from their spread: each is thrown along the line from
-## the throat out through its own centre, so the caps go up and the bulbs go wide.
-##
-## `turned` is the half turn the art was standing at: the glass is broken up in
-## that attitude, so the wedges fly the way the picture was lying, and each one
-## then reaches BACK through the turn to ask the art what was painted on it.
+## The glass is broken up at the half turn `turned` says it was standing at, and
+## each wedge then reaches BACK through that turn to ask the art what it wore.
 func _break_sprite(size: Vector2, turned: bool) -> void:
 	var facing := -1.0 if turned else 1.0
 	_split(HourglassShape.shell(size, 2), facing)
@@ -342,9 +311,8 @@ func _process(delta: float) -> void:
 	if _elapsed >= duration:
 		queue_free()
 		return
-	# Only the sand is stopped by the world. The glass is not: a wedge is thrown
-	# clear of the level and gone before it would land, and the same rays spent on
-	# it would buy nothing on screen.
+	# Only the sand is stopped by the world: a wedge is thrown clear of the level and
+	# gone before it would land.
 	var space: PhysicsDirectSpaceState2D = null
 	if kind == Kind.SAND and _rested.size() == _bits.size():
 		space = get_world_2d().direct_space_state
@@ -364,37 +332,33 @@ func _process(delta: float) -> void:
 ## Casts grain `i` along the step it is about to take and, if the terrain is in
 ## the way, lays it down against what it hit and takes it out of the simulation.
 ##
-## A ray over the step rather than a test at the far end: a grain crosses several
-## px in a frame, and asking only where it ends up lets it start above a brick and
-## end up below it. Returns whether it landed.
+## A ray over the step rather than a test at the far end: a grain crosses several px
+## in a frame, and asking only where it ends up lets it tunnel through a brick.
+## Returns whether it landed.
 func _land(space: PhysicsDirectSpaceState2D, i: int, to: Vector2) -> bool:
 	var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(
 		global_position + _bits[i], global_position + to, Layers.SOLID))
 	if hit.is_empty():
 		return false
-	# One grain back out along the surface's own normal, so it sits ON the brick
-	# rather than in its first rows of pixels.
+	# One grain back out along the surface's own normal, so it sits ON the brick.
 	var at: Vector2 = hit.position - global_position + hit.normal * SPILL_GRAIN
 	var cell := Vector2i(floori(at.x / SPILL_GRAIN), floori(at.y / SPILL_GRAIN))
 	cell = _settle(cell)
 	_heap[cell] = true
-	# The cell's centre, because that is the point [method HourglassShape.draw_grain]
-	# reads back down to a cell.
+	# The centre, because that is what [method HourglassShape.draw_grain] reads back
+	# down to a cell.
 	_bits[i] = (Vector2(cell) + Vector2(0.5, 0.5)) * SPILL_GRAIN
 	_velocities[i] = Vector2.ZERO
 	_rested[i] = true
 	return true
 
 
-## Where a grain that has just hit the terrain at `cell` actually comes to rest.
-## The ray stops it at the bricks, but the grains already down there stop it
-## sooner, and every grain taking the cell it hit leaves the whole spill inside a
-## single one.
+## Where a grain that has just hit the terrain at `cell` actually comes to rest: the
+## bricks stop it, but the grains already down there stop it sooner.
 ##
-## Rolls off the shoulder before it stacks, so a column slumps into a mound instead
-## of growing into a tower — which is the difference between a heap of sand and a
-## bar chart. A grain only rolls onto something that will hold it: the floor row it
-## landed on, or another grain.
+## Rolls off the shoulder before it stacks, so a column slumps into a mound rather
+## than growing into a tower, and only onto something that will hold it — the floor
+## row it landed on, or another grain.
 func _settle(cell: Vector2i) -> Vector2i:
 	const DOWN := Vector2i(0, 1)
 	var floor_row := cell.y
@@ -427,18 +391,15 @@ func _draw() -> void:
 			for p in _bits:
 				draw_circle(p, 1.4 + 1.4 * fade, Color(colour, fade * 0.9))
 		Kind.SAND:
-			# Square, snapped, and wearing the same speckle as the sand that was in the
-			# glass a frame ago: a spilled pile is the pile that was in the bulb, coming
-			# apart, and it has to be made of the same kind of pixel to read that way.
-			# No fade at all, where every other effect thins out: sand does not go
-			# anywhere once it has landed, and a heap that dissolves on the floor reads
-			# as the spill having been a puff of smoke. It goes when the level does.
+			# The same speckle as the sand in the glass a frame ago: a spilled pile is that
+			# pile coming apart, and has to be made of the same kind of pixel to read so.
+			# No fade at all, where every other effect thins out — a heap that dissolves on
+			# the floor reads as the spill having been smoke. It goes when the level does.
 			for p in _bits:
 				HourglassShape.draw_grain(self, p, colour, SPILL_GRAIN)
 		Kind.PIECES:
-			# The wedges' own fade, applied to the art instead of to a fill: one alpha
-			# over a whole piece leaves every texel where it was, so it costs the pixels
-			# nothing and the break still thins out on the curve it always did.
+			# One alpha over a whole piece leaves every texel where it was, so the break
+			# thins out on the curve it always did and the pixels pay nothing.
 			var strength := clampf(fade * PIECE_SOLID, 0.0, 1.0)
 			var glass := Color(1.0, 1.0, 1.0, strength)
 			var cut := Color(colour, strength * PIECE_EDGE)
@@ -447,14 +408,13 @@ func _draw() -> void:
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
-				# The wedge's own glass first, then the painting over it: the art is a
-				# frame around a clear cavity, so texture alone leaves most of a piece as a
-				# hole and the break goes back to reading as a scatter of outlines.
+				# The wedge's own glass first, then the painting over it: the art is a frame
+				# round a clear cavity, so texture alone leaves most of a piece a hole.
 				draw_colored_polygon(piece, Color(colour, strength * PIECE_BODY))
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
 				piece.append(piece[0])
-				# Not antialiased, unlike the flat wedges: a soft line would leave half-lit
-				# pixels down every cut, at a size no other pixel in the game comes in.
+				# Not antialiased, unlike the flat wedges: a soft line leaves half-lit pixels
+				# down every cut, at a size no other pixel in the game comes in.
 				draw_polyline(piece, cut, 1.0)
 		Kind.SHARDS:
 			# Held near-opaque and dropped late, so glass does not read as smoke.
