@@ -22,18 +22,6 @@ theme_override_colors/font_color = Color(0.918, 0.941, 0.984, 1)
 theme_override_font_sizes/font_size = 16
 text = "1/12"
 
-[node name="PlaneLabel" type="Label" parent="Root"]
-layout_mode = 0
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -190.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = 48.0
-theme_override_font_sizes/font_size = 20
-horizontal_alignment = 2
-text = "FRONT"
-
 [node name="Overlay" type="Label" parent="Root"]
 layout_mode = 1
 anchors_preset = 15
