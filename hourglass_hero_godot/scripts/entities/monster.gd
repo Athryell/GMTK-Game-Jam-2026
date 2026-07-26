@@ -8,18 +8,12 @@ extends PlaneArea
 
 const FACE: Texture2D = preload("res://art/sprites/clock.png")
 
-## The art is a 32×32 dial, and the hand is struck from measurements taken off
-## it rather than guessed at, so retracing the sprite is the only thing that can
-## put them out of step.
-##
-## Only ever read as a ratio against the other three, never as an absolute — the
-## dial halved from 64 to 32 and every measurement below halved with it, which is
-## exactly why the hand came through that unchanged.
+## The dial's size in the art. Only ever read as a ratio against the three below,
+## so rescaling the sprite carries all four.
 const ART_SIZE := 32.0
-## The gold hub the hand turns on — dead centre, as it happens.
+## The gold hub the hand turns on.
 const ART_PIVOT := Vector2(16.0, 16.0)
-## The hour ticks run from radius 6 out to 9.5. Stopping at 7 puts the tip just
-## inside the ring, which is where a clock's own hand stops.
+## The hour ticks run from radius 6 out to 9.5; 7 stops the tip just inside them.
 const ART_REACH := 7.0
 const ART_WIDTH := 2.0
 
@@ -43,23 +37,18 @@ var _hand := 0.0
 
 
 func _init() -> void:
-	# Square, and exactly [constant ART_SIZE], so the dial is drawn one art px to
-	# one world px like every other texture. Anything smaller shrinks the clock's
-	# pixels below the brick ones it stands on.
+	# Exactly [constant ART_SIZE], so the dial is drawn one art px to one world px.
 	size = Vector2(ART_SIZE, ART_SIZE)
 	plane = Planes.Kind.P0
 	light_tint = Palette.MONSTER
 	light_radius = 105.0
-	# Kept low deliberately: at any strength the red wash swallows the clock face
-	# and the hand along with it. Enough glow to be seen coming in the dark, not
-	# enough to repaint what it is lighting.
+	# Kept low: at any strength the red wash swallows the clock face.
 	light_energy = 0.2
 
 
 func _ready() -> void:
 	_origin = position
-	# The dial is pixel art at one art px to one world px; see `terrain.gd` for
-	# why this is per-node rather than a project default.
+	# See `terrain.gd` for why this is per-node rather than a project default.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	super()
 
@@ -67,8 +56,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	# Before the patrol guard, not after: a monster told to hold still is still a
-	# clock, and its hand still has to go round.
+	# Before the patrol guard: a monster told to hold still is still a clock.
 	_hand = fmod(_hand + delta * TAU / HAND_PERIOD, TAU)
 	queue_redraw()
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
@@ -84,16 +72,11 @@ func _touched(_player: Player) -> void:
 
 ## The dial, then the hand over it.
 ##
-## Drawn SQUARE and centred on the hitbox rather than stretched to fill it. The
-## art is a circle, so filling a rect that is not square turned the clock into an
-## egg. At the default `size` the two are the same thing; this only matters if a
-## level resizes one. The square takes the hitbox's longer side, so it still
-## covers everything that can kill you — erring towards a clock whose edge you
-## can brush without dying, rather than one that kills from a gap you can see
-## through.
-##
-## Resizing a monster at all breaks the one-art-px-to-one-world-px rule the rest
-## of the game keeps, and its pixels stop matching the brick behind it.
+## Drawn SQUARE and centred on the hitbox rather than stretched to fill it: the
+## art is a circle, and a non-square rect turns the clock into an egg. The square
+## takes the hitbox's longer side, so it still covers everything that can kill
+## you. Only reachable by resizing a monster, which breaks the
+## one-art-px-to-one-world-px rule anyway.
 func _draw() -> void:
 	var span := maxf(size.x, size.y)
 	var face := Rect2((size - Vector2(span, span)) * 0.5, Vector2(span, span))
@@ -102,12 +85,7 @@ func _draw() -> void:
 	draw_texture_rect(FACE, face, false, _shade(Color.WHITE))
 
 	# Struck last, so it sweeps over the dial rather than under it. One scale for
-	# both axes now the dial is round, so the tip keeps to the ring of ticks the
-	# whole way round.
-	#
-	# The danger red the rest of the monster is lit in, rather than a red of its
-	# own: the hand is the part of the clock that is coming for you, and it costs
-	# no hue to say so.
+	# both axes, so the tip keeps to the ring of ticks the whole way round.
 	var pivot := face.position + face.size * 0.5
 	draw_line(pivot, pivot + Vector2.UP.rotated(_hand) * (span * ART_REACH / ART_SIZE),
 		_shade(Palette.MONSTER),
