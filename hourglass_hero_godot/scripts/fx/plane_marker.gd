@@ -46,8 +46,8 @@ func draw(canvas: CanvasItem, points: PackedVector2Array, plane: Planes.Kind) ->
 # ----- Editor ----------------------------------------------------------------
 
 ## In the editor there is no current plane and nothing is a ghost, so the marker
-## drops the strength ramp and becomes a label: every solid says which plane it
-## is on, all the time, `BOTH` included.
+## drops the strength ramp and becomes a label: every solid and every entity says
+## which plane it is on, all the time, `BOTH` included.
 const TAG_GAP := 2.0
 const TAG_FONT_SIZE := 10
 const TAG_NAMES: Array[String] = ["0", "1", "2", "3", "BOTH"]

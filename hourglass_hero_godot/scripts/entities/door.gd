@@ -51,7 +51,7 @@ func _touched(_player: Player) -> void:
 		Game.win()
 
 
-func _draw() -> void:
+func _paint() -> void:
 	var colour := _shade(Palette.DOOR)
 	var glow := HALO_RADIUS * (1.0 + HALO_SWELL * sin(_pulse * PULSE_RATE))
 	draw_texture_rect(LightKit.falloff(),

@@ -7,6 +7,12 @@ class_name Polygons
 extends RefCounted
 
 
+## `box` as four clockwise corners, starting top-left.
+static func rect(box: Rect2) -> PackedVector2Array:
+	return PackedVector2Array([box.position, Vector2(box.end.x, box.position.y),
+		box.end, Vector2(box.position.x, box.end.y)])
+
+
 ## +1 when `points` wind clockwise on screen, -1 anticlockwise. Every outward
 ## normal below is turned by this, which is what makes the winding free.
 static func winding(points: PackedVector2Array) -> float:
