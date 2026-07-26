@@ -13,9 +13,6 @@ enum Kind {
 ## Height of the flip-pad's trigger strip, sitting on the pad's top face.
 const PAD_DETECT_HEIGHT := 8.0
 
-## How far a plane-bound slab's glow reaches past its edge, in px.
-const PLANE_HALO_MARGIN := 24.0
-
 @export var size := Vector2(120.0, 18.0): set = _set_size
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 @export var kind: Kind = Kind.NORMAL: set = _set_kind
@@ -37,8 +34,11 @@ const PLANE_HALO_MARGIN := 24.0
 var _origin := Vector2.ZERO
 var _elapsed := 0.0
 var _active := true
-## True while a jump would land the player in this plane: brighter, still inert.
+## True while a jump would land the player in this plane: marked at full
+## strength, still inert.
 var _next := false
+## The dashed line that says which plane this slab is in, and its own fade.
+var _marker := PlaneMarker.new()
 
 
 func _ready() -> void:
@@ -61,12 +61,17 @@ func _ready() -> void:
 		EntityLight.attach(self, plane, size, Palette.FLIP_PAD, 150.0, 1.0)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
+	# A level opens with its markers already where they belong: one that dawns on
+	# you over the first fifth of a second reads as something having happened.
+	_marker.settle()
 
 
 func _physics_process(delta: float) -> void:
 	# Otherwise platforms drift while the level is being edited.
 	if Engine.is_editor_hint():
 		return
+	if _marker.advance(delta):
+		queue_redraw()
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
 		return
 	_elapsed += delta
@@ -78,39 +83,27 @@ func _physics_process(delta: float) -> void:
 ## the same course as the brick underneath it rather than half a row out.
 func _draw() -> void:
 	var colour := _colour()
-	_draw_halo(colour.a)
-	# After the halo, so the line reads against the glow rather than under it.
 	Outline.rect(self, Rect2(Vector2.ZERO, size), colour.a)
 	draw_texture_rect(Bricks.TEXTURE, Rect2(Vector2.ZERO, size), true, colour)
 	if size.y >= 6.0:
 		draw_texture_rect(Bricks.TEXTURE,
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
-	# What the next jump brings in is marked at its edge rather than lifted out of
-	# the ghosts — see `Outline.dashes`. Last, so the brick cannot cover it.
-	if _next and not _active:
-		Outline.dashes(self, PackedVector2Array([
-			Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)]),
-			Palette.halo(plane, 1.0), Tuning.cfg.next_outline_gap)
+	# Last, so the brick cannot cover it.
+	_marker.draw(self, _corners(), plane)
 
 
-## Painted under the brick, not lit: there is nothing behind a platform but the
-## parallax sky for a `PointLight2D` to land on, so a real light only tinted the
-## slab itself.
-func _draw_halo(alpha: float) -> void:
-	if kind == Kind.FLIP_PAD or plane == Planes.Kind.BOTH:
-		return
-	draw_texture_rect(LightKit.falloff(),
-		Rect2(Vector2.ZERO, size).grow(PLANE_HALO_MARGIN), false,
-		Palette.halo(plane, alpha))
-
-
-## The outline this casts a shadow from, in this node's own space: its four
-## corners. `Terrain` answers the same question with as many points as its
-## ground has, and `CastShadows` cannot tell them apart.
-func shadow_outline() -> PackedVector2Array:
+## The rectangle as a polygon, in this node's own space, wound clockwise on
+## screen — what both the shadow and the plane marker are cut from.
+func _corners() -> PackedVector2Array:
 	return PackedVector2Array([
 		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
+
+
+## The outline this casts a shadow from. `Terrain` answers the same question with
+## as many points as its ground has, and `CastShadows` cannot tell them apart.
+func shadow_outline() -> PackedVector2Array:
+	return _corners()
 
 
 ## The pad keeps its gold: it is the one platform whose colour says what it does
@@ -131,12 +124,18 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	# An inactive solid sits on no layer: the player passes through it.
 	collision_layer = Layers.SOLID if _active else 0
 	_pad_detector.monitoring = _active and kind == Kind.FLIP_PAD
+	_aim_marker()
 	queue_redraw()
 
 
 func _on_next_plane_changed(next: Planes.Kind) -> void:
 	_next = plane == next
+	_aim_marker()
 	queue_redraw()
+
+
+func _aim_marker() -> void:
+	_marker.aim(plane != Planes.Kind.BOTH, _active, _next)
 
 
 func _on_pad_body_entered(body: Node2D) -> void:

@@ -33,9 +33,11 @@ var _points := PackedVector2Array()
 ## almost never convex.
 var _triangles := PackedInt32Array()
 var _active := true
-## True while a jump would land the player in this plane: marked at the edge by
-## `Outline.dashes`, still as dim and as inert as any other ghost.
+## True while a jump would land the player in this plane: marked at full
+## strength, still as dim and as inert as any other ghost.
 var _next := false
+## The dashed line that says which plane this ground is in, and its own fade.
+var _marker := PlaneMarker.new()
 
 
 func _ready() -> void:
@@ -61,6 +63,15 @@ func _ready() -> void:
 	Tuning.changed.connect(queue_redraw)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
+	# A level opens with its markers already where they belong; see `platform.gd`.
+	_marker.settle()
+
+
+## Steps the marker's fade. Separate from `_process`, which is the editor's
+## polling and is switched off in the game.
+func _physics_process(delta: float) -> void:
+	if _marker.advance(delta):
+		queue_redraw()
 
 
 ## The polygon is edited on the child node, so there is no signal to wait on:
@@ -103,13 +114,10 @@ func _draw() -> void:
 			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
 
-	# Ground the next jump brings in is marked at its edge instead of being lifted
+	# Which plane this ground is in is marked at its edge instead of being lifted
 	# out of the ghosts: the fill stays as dim as everything else you cannot stand
-	# on, and the dashes say which of it is about to change. Drawn last so nothing
-	# else lands on top of it.
-	if _next and not _active:
-		Outline.dashes(self, _points, Palette.halo(plane, 1.0),
-			Tuning.cfg.next_outline_gap)
+	# on, and the dashes carry the plane. Drawn last so nothing lands on top of it.
+	_marker.draw(self, _points, plane)
 
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -183,12 +191,18 @@ func _on_plane_changed(current: Planes.Kind) -> void:
 	_active = Planes.is_active(plane, current)
 	# Ground in another plane sits on no layer: the player passes through it.
 	collision_layer = Layers.SOLID if _active else 0
+	_aim_marker()
 	queue_redraw()
 
 
 func _on_next_plane_changed(next: Planes.Kind) -> void:
 	_next = plane == next
+	_aim_marker()
 	queue_redraw()
+
+
+func _aim_marker() -> void:
+	_marker.aim(plane != Planes.Kind.BOTH, _active, _next)
 
 
 func _colour() -> Color:
