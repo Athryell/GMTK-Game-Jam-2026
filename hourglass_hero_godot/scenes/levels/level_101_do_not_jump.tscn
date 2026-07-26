@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://h4rhavan44md"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_q4kb3"]
+[ext_resource type="PackedScene" path="res://scenes/entities/monster.tscn" id="2_evpw8"]
+[ext_resource type="PackedScene" path="res://scenes/entities/platform.tscn" id="3_b1ejw"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="4_sjbox"]
+[ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_j80in"]
+[ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="6_tybf4"]
+[ext_resource type="PackedScene" path="res://scenes/entities/terrain.tscn" id="7_e6a4c"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="8_a1u82"]
+
+[node name="Level" type="Node2D" unique_id=817486791]
+script = ExtResource("1_q4kb3")
+world_size = Vector2(1400, 540)
+theme = 2
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1076523322]
+position = Vector2(80, 376)
+
+[node name="Entities" type="Node2D" parent="." unique_id=1036711563]
+
+[node name="Monster2" parent="Entities" unique_id=1896920832 instance=ExtResource("2_evpw8")]
+texture_filter = 1
+position = Vector2(432, 264)
+move_axis = 2
+move_distance = 201.0
+size = Vector2(30, 34)
+
+[node name="Platform1" parent="Entities" unique_id=780425392 instance=ExtResource("3_b1ejw")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 496)
+size = Vector2(679, 38)
+plane = 0
+
+[node name="Platform1" parent="Entities/Platform1" unique_id=130973261 instance=ExtResource("3_b1ejw")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 496)
+size = Vector2(679, 38)
+plane = 0
+
+[node name="Monster1" parent="Entities" unique_id=1138477217 instance=ExtResource("2_evpw8")]
+texture_filter = 1
+position = Vector2(328, 264)
+move_axis = 2
+move_distance = 201.0
+size = Vector2(30, 34)
+
+[node name="Door" parent="Entities" unique_id=1396874587 instance=ExtResource("4_sjbox")]
+position = Vector2(1144, 168)
+rotation = -1.5707964
+
+[node name="InversionZone" parent="." unique_id=869822917 instance=ExtResource("5_j80in")]
+position = Vector2(552, 368)
+size = Vector2(128, 128)
+
+[node name="GravityPad" parent="." unique_id=938446193 instance=ExtResource("6_tybf4")]
+position = Vector2(760, 496)
+size = Vector2(56, 16)
+plane = 1
+
+[node name="Terrain" parent="." unique_id=2143310149 instance=ExtResource("7_e6a4c")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(680, 512)
+plane = 1
+metadata/_edit_group_ = true
+
+[node name="Shape" type="CollisionPolygon2D" parent="Terrain" unique_id=2142745839]
+polygon = PackedVector2Array(82, 0, 136, 0, 136, 16, 82, 16)
+
+[node name="Terrain2" parent="." unique_id=1863192453 instance=ExtResource("7_e6a4c")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(224, 232)
+metadata/_edit_group_ = true
+
+[node name="Shape" type="CollisionPolygon2D" parent="Terrain2" unique_id=288792015]
+polygon = PackedVector2Array(18, 0, 604, 0, 604, 32, 18, 32)
+
+[node name="Feather" parent="." unique_id=1695751862 instance=ExtResource("8_a1u82")]
+texture_filter = 1
+position = Vector2(264, 281)
+size = Vector2(24, 24)
