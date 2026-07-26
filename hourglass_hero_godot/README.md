@@ -1,20 +1,19 @@
 # Hourglass Hero — Godot 4
 
-A platformer where the player **is** an hourglass. A sand gauge drains
-continuously; at zero, you die. Every jump does three things at once:
+A platformer where the player **is** an hourglass. The sand drains continuously;
+at zero, you die. Every jump does three things at once:
 
 1. **Flips the hourglass** — the drained sand comes back, so `sand` becomes
-   `SAND_MAX - sand`. Waiting until you are nearly empty refills you almost
-   completely; flipping while still full leaves you with almost nothing.
-2. **Swaps plane** — each level exists as two superimposed versions (front and
-   back) with different platforms and monsters. The jump teleports you between
-   them at an identical `(x, y)`. You may land on a platform that only exists in
-   the other plane… or drop into a pit.
+   `SAND_MAX - sand`. Flip while nearly empty and you refill; flip while full
+   and you are left with almost nothing.
+2. **Swaps plane** — a level exists as two (or up to four) superimposed
+   versions with different platforms and monsters. The jump teleports you
+   between them at the same `(x, y)`.
 3. **Launches you** — an ordinary upward impulse.
 
-The consequence that drives every level: **you can only refuel by net-changing
-plane.** Two designed elements bend that rule — a **spring** bounces you with no
-flip, and a **flip-pad** flips the sand with no jump and no plane change.
+So **you can only refuel by net-changing plane**. Two elements bend that: a
+**spring** bounces with no flip, and a **flip-pad** flips the sand with no jump
+and no plane change.
 
 Godot 4 port of the vanilla-JS prototype in `../hourglass_hero`.
 
@@ -24,111 +23,88 @@ Godot 4 port of the vanilla-JS prototype in `../hourglass_hero`.
 godot --path hourglass_hero_godot
 ```
 
-Controls: `←`/`→` or `A`/`D` to move, `Space`/`W`/`↑` to jump, `R` to restart,
-`Esc` to go back to the menu, `F1` for the tuning panel, `Alt+Enter` (or `F11`)
-to leave fullscreen.
+`←`/`→` or `A`/`D` move, `Space`/`W`/`↑` jump, `R` restarts, `Esc` returns to
+the menu, `F1` opens the tuning panel, `Alt+Enter` (or `F11`) leaves fullscreen.
 
-It launches fullscreen. 960×540 stays the design resolution — every level
-coordinate is in those units — and the picture is letterboxed to fit, so a level
-frames identically on every display. Widening it instead (`stretch/aspect`) would
-hand taller screens more world to see, because `main.gd` derives the camera
-limits from the viewport size.
+It launches fullscreen at a 960×540 design resolution — every level coordinate
+is in those units — letterboxed to fit, so a level frames identically on every
+display.
 
 ## The menu
 
-`scenes/ui/main_menu.tscn` is the entry point: a title screen with one button
-per level. The list is built from `Game.level_scenes`, and each label comes from
-the level's own `level_name` read straight out of the `.tscn` — a new level
-shows up on the next run with nothing to wire.
+`scenes/ui/main_menu.tscn` is the entry point: one button per level, built from
+`Game.level_scenes`, each label read from the level's own `level_name`. A new
+level shows up on the next run with nothing to wire.
 
-**Every level is unlocked.** Gating lives in one place, `Game.is_unlocked()`:
-set `Game.unlock_all = false` and it falls back to `levels_reached`, which the
-game already keeps up to date. The menu greys out locked buttons on its own.
+Every level is unlocked. Set `Game.unlock_all = false` and `Game.is_unlocked()`
+falls back to `levels_reached`.
 
-## Tuning the game
+## Tuning
 
-Every gameplay number lives in one place: [`scripts/game_config.gd`](scripts/game_config.gd).
+Every gameplay number lives in [`scripts/game_config.gd`](scripts/game_config.gd).
+Edit `resources/game_config.tres` in the Inspector, or press `F1` while playing:
+the panel builds one slider per `@export_range`, changes apply next frame, and
+**Save** writes them back to the `.tres` (editor only — an exported build cannot
+write to `res://`).
 
-- **In the editor** — open `resources/game_config.tres` and edit it in the
-  Inspector.
-- **While playing** — press `F1`. The panel builds one slider per variable,
-  changes apply on the next frame, and **Save** writes the values back into the
-  `.tres` so they survive a restart and land in git. (Saving is editor-only; an
-  exported build cannot write to `res://`.)
-
-**Adding a tunable variable** is one line in `game_config.gd`:
+Adding a tunable is one line; its slider appears automatically under its
+`@export_group`:
 
 ```gdscript
 @export_range(0.0, 500.0, 5.0) var dash_speed: float = 320.0
 ```
 
-Its slider appears in the panel automatically, under the heading of whatever
-`@export_group` it sits in. There is no UI code to touch.
-
-### Which numbers live where
-
-Three homes, and the choice is about *scope*, not importance:
-
 | Home | For | Example |
 |---|---|---|
 | `game_config.gd` → F1 panel | One value for the whole game | `gravity`, `sand_drain_rate` |
 | `@export` on an entity | Varies per instance in a level | a platform's `size`, a spring's `power` |
-| `const` in the script | Never usefully varies; drawing detail | chevron length, eye radius |
-
-The third row is deliberate: putting every drawing constant in the F1 panel
-would bury the dozen sliders that actually change how the game plays.
+| `const` in the script | Drawing detail that never usefully varies | chevron length, eye radius |
 
 ## Adding a level
 
 1. Duplicate `scenes/levels/level_01_wake_up.tscn` and rename it, keeping the
-   numbered prefix — **play order follows the filename** (`level_07_….tscn`).
-2. On the root node, set `level_name` (shown in the HUD) and `world_size`
-   (bounds the camera; falling below it kills). The editor draws the bounds.
-3. Move the `Spawn` marker to where the hourglass should appear.
-4. Draw the ground. Add a **`Terrain`** node under `Entities` — it arrives with
-   a `Shape` child holding a rectangle. Select that child and Godot's own
-   polygon tool takes over: drag a handle to move a point, ctrl-click an edge to
-   insert one. What you draw is what you stand on, slopes included; there is no
-   second shape to keep in sync.
-5. Drag scenes from `scenes/entities/` into the `Entities` node and lay them
-   out. Each has `size` and `plane` in the Inspector and redraws live.
-6. Run. Levels are discovered by scanning the folder — there is no list to
-   update anywhere.
+   numbered prefix — **play order follows the filename**.
+2. On the root, set `level_name` and `world_size` (bounds the camera; falling
+   below it kills).
+3. Move the `Spawn` marker.
+4. Draw the ground: add a **`Terrain`** node under `Entities`, select its
+   `Shape` child and use Godot's polygon tool. What you draw is what you stand
+   on, slopes included.
+5. Drag scenes from `scenes/entities/` into `Entities`. Each has `size` and
+   `plane` in the Inspector and redraws live.
+6. Run. Levels are discovered by scanning the folder.
 
 ### The building blocks
 
 | Node / Scene | What it is | Key properties |
 |---|---|---|
-| **`Terrain`** (node) | The ground, as a polygon: floor, ledge, wall and **slope** in one node. Edit the points on its `Shape` child. | `plane` |
+| **`Terrain`** (node) | The ground, as a polygon: floor, ledge, wall and **slope** in one node. | `plane` |
 | `platform.tscn` | A rectangle that MOVES, or a refuel pad (`kind = FLIP_PAD`). Static ground belongs in a `Terrain`. | `size`, `plane`, `kind`, `move_axis`/`move_distance`/`move_speed` |
-| `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = use the tuned default) |
-| `monster.tscn` | Patrols an axis, kills on contact, but only in its own plane. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
-| `spikes.tscn` | A monster that does not walk. Says "do not jump here" in a way you can see. | `size`, `plane`, `facing` |
-| `cannon.tscn` | A laser that tracks you while it charges, then fires along the line it held at the shot. Blocked by anything solid, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
-| `gravity_pad.tscn` | Turns the world over: touch it and gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
+| `spring.tscn` | Bounces you upward — no flip, no plane change. | `size`, `plane`, `power` (0 = tuned default) |
+| `monster.tscn` | Patrols an axis, kills on contact, in its own plane only. | `size`, `plane`, `move_axis`/`move_distance`/`move_speed` |
+| `spikes.tscn` | A monster that does not walk. | `size`, `plane`, `facing` |
+| `cannon.tscn` | Tracks you while it charges, then fires along the line it held. Blocked by solids, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
+| `gravity_pad.tscn` | Gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
+| `inversion_zone.tscn` | The sand runs backwards inside it: standing still refills you, and a full glass kills. | `size`, `plane` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
-| `hint_sign.tscn` | A line of text standing in the world, where the lesson is. `after_deaths` holds it back until the level has killed you that many times; `hide_after_deaths` takes it away again, so only one sentence is ever up. | `text`, `after_deaths`, `hide_after_deaths` |
+| `hint_sign.tscn` | A line of text where the lesson is. `after_deaths` holds it back; `hide_after_deaths` takes it away. | `text`, `after_deaths`, `hide_after_deaths` |
 
-`plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
-turns into a faint, non-solid ghost. A plane-bound *solid* is never lifted back
-towards looking solid, because looking solid is the one thing that would lie
-about it: it carries a dashed line outside its silhouette instead, in its plane's
-hue — at its strongest in the plane the next jump lands in, dropped to a quiet
-trim in the one you are standing in (`PlaneMarker`, `next_outline_gap`). It cuts
-between the two on the frame the flip lands, like the stone it is drawn around.
-Hazards and zones do still lift (`ghost_next_lift`): there is nothing to stand on
-there for a brighter fill to mislead you about. Past
-two chambers there are several ghost planes and only one of them is where you are
-going, so leaning left or right lights up the world you are choosing before you
-commit to it. Moving entities travel `move_distance` px
-from where you placed them and back, so you author the *start* of the path;
-`move_phase` shifts where in that cycle they begin, which is the only way to
-break two movers of equal period out of lockstep.
+`plane` is `FRONT`, `BACK` or `BOTH`. Anything outside the player's plane turns
+into a faint, non-solid ghost. A plane-bound *solid* is never lifted back towards
+looking solid — looking solid is the one thing that would lie about it. It
+carries a dashed line outside its silhouette instead, in its plane's hue,
+strongest in the plane the next jump lands in (`PlaneMarker`,
+`next_outline_gap`). Hazards and zones do lift (`ghost_next_lift`): there is
+nothing to stand on there to be misled about.
 
-Spikes kill on the inner 75% of the band, not on the outline — the tips are
+Moving entities travel `move_distance` px from where you placed them and back,
+so you author the *start* of the path. `move_phase` is the only way to break two
+movers of equal period out of lockstep.
+
+Spikes kill on the inner 75% of the band, not on the outline: the tips are
 visual overhang, because spikes that kill on their silhouette feel cheap.
 
-### The rules a level may bend for itself
+### The rules a level may bend
 
 On the level root, under **Rules**:
 
@@ -136,54 +112,42 @@ On the level root, under **Rules**:
 |---|---|
 | `chambers` | How many chambers the glass has, 2 to 4 — and so how many planes, and how far a jump turns you. |
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
-| `double_jump` | Grants one extra jump in mid-air, for this level only. |
-| `clock_starts_on_move` | The sand does not run until the player first steers. A level that has something to say says it before anything is at stake. |
-| `jump_locked_first_life` | No jump until this level has killed you once. The death is what hands it back, and leaving the level arms the lock again. |
+| `double_jump` | One extra jump in mid-air, for this level only. |
+| `clock_starts_on_move` | The sand does not run until the player first steers. |
+| `jump_locked_first_life` | No jump until this level has killed you once. |
 
-All are applied by `main.gd` after the scene exists, and all reset between
-levels, so a level cannot leak its rules into the next one.
+All are applied by `main.gd` after the scene exists and reset between levels, so
+a level cannot leak its rules into the next.
 
-### Turning the world over
+### Gravity
 
-Gravity is not a level rule — it is a pad you place, so any level can gain one
-without being rebuilt. Underneath it is a single signed number,
-`Game.gravity_sign`, which the player follows through `gravity_changed` and
-keeps as its own `pull`. Every vertical quantity — the pull, the jump, the fall
-cap, which way you land — is written as a downward component times that sign,
-so an upside-down world runs the same arithmetic as every other and cannot
-drift from it.
-
-The player keeps its own copy rather than reading `Game` each frame for the
-same reason it keeps its own death band: a level is freed a frame after the
-next one is armed, and a player still winding down must keep judging by the
-world it was born in, not the one that has just been armed.
+Gravity is a pad you place, not a level rule, so any level can gain one without
+being rebuilt. Underneath it is one signed number, `Game.gravity_sign`: every
+vertical quantity is a downward component times that sign, so an upside-down
+world runs the same arithmetic as every other.
 
 A pad SETS a direction and never toggles one. That is what makes it safe to
-stand on, lets two pads facing the same way agree instead of cancelling, and
-lets a pad you are already obeying go dim rather than lie. Every level starts
-the right way up.
+stand on and lets two pads facing the same way agree instead of cancelling.
+Every level starts the right way up.
+
+### The sand economy
 
 The glass carries one bulb of sand per turn it takes to get a drained bulb back
 on top — one at two and three chambers, two at four, where the sand lands
-opposite and a turn has to be paid for in between. The top always opens at
-`sand_start`, so the runway before the first turn is the same everywhere; what
-the count changes is what comes back. Three chambers split every drain in two
-and hand you back only the half you turn into, which is why they carry one bulb
-and not one and a half.
+opposite. The top always opens at `sand_start`, so the runway before the first
+turn is the same everywhere; the count only changes what comes back. Three
+chambers split every drain in two and hand back only the half you turn into.
 
-The air jump needs no balancing of its own. `sand_flip_base` is 0, so on a
-two-chamber glass a turn gives back exactly `max - sand`: an involution. Two
-turns return you to your starting plane **and** to your starting sand, so a
-double jump is pure
-height and pure time — free while you are full, ruinous while you are empty.
-That is the exact mirror of the single jump, and it falls out of the formula
-rather than out of a tuning pass. `sand_test.gd` guards the identity.
+`sand_flip_base` is 0, so on a two-chamber glass a turn gives back exactly
+`max - sand`: an involution. Two turns return you to your starting plane **and**
+your starting sand, so a double jump is pure height and pure time — free while
+you are full, ruinous while you are empty. `sand_test.gd` guards the identity.
 
 ### The levels
 
 | # | Level | What it teaches |
 |---|---|---|
-| 1 | Wake-Up | The tutorial, taught by killing you once. It opens frozen and with no jump, so the only thing to try is walking — and walking is 68 px short of the door. The death is what unlocks the jump, and the sign that then appears is the only place the game explains that a turn of the glass is a refuel. |
+| 1 | Wake-Up | The tutorial, taught by killing you once. Frozen and jumpless, so the only thing to try is walking — and walking is 68 px short of the door. |
 | 2 | The Void | The far floor is `BACK`: the last hop has to be a step, not a jump. |
 | 3 | The Ledge | A spike ceiling forbids refuelling for 820 px. Fill up *before* you commit. |
 | 4 | The Spring | Height without a flip, climbing a shaft. |
@@ -196,10 +160,10 @@ rather than out of a tuning pass. `sand_test.gd` guards the identity.
 | 11 | Midnight | The gauntlet: everything so far, over a spike pit, finishing in `BACK`. |
 | 12 | The Last Grain | 1.2 s on the clock. Empty is not a problem, it is the resource. |
 | 13 | The Updraft | An inversion zone runs the glass backwards: standing still fills you, and a full glass shatters. |
-| 14 | Trefoil | Three chambers, three planes. A jump turns you a third of the way, so coming home takes three. |
-| 15 | Quarters | Four chambers, four planes, and sand that can be stranded two turns from where you need it. |
+| 14 | Trefoil | Three chambers, three planes. A jump turns you a third of the way. |
+| 15 | Quarters | Four chambers, and sand that can be stranded two turns from where you need it. |
 | 16 | Crossfire | Two lasers lock on before they fire. Dodging the shot is the jump, and the jump is the refuel. |
-| 17 | Downside Up | A pad turns the world over. The ceiling is the only bridge across the pit, and a second pad puts you back down. |
+| 17 | Downside Up | A pad turns the world over. The ceiling is the only bridge across the pit. |
 
 ## Architecture
 
@@ -208,6 +172,7 @@ scripts/
   game_config.gd          Resource: every tunable number
   hourglass_shape.gd      Draws the glass — shared by the player and the HUD gauge
   hourglass_motion.gd     The tumble, the sand's slosh, the trickle's wobble
+  chamber_layout.gd       Which chamber drains, receives, or is sealed
   planes.gd               FRONT / BACK / BOTH and the "is it active?" rule
   polygons.gd             Winding, outward normals, offset — the drawn ground
   level.gd                Level root: name, bounds, spawn
@@ -216,109 +181,96 @@ scripts/
     tuning.gd    (Tuning) Owns the single GameConfig; reads @export metadata
     game.gd      (Game)   Sand, plane, status, progression + signals
     glass.gd     (Glass)  The one HourglassMotion: player and HUD share it
+    audio.gd     (Audio)  Music, sfx and the volume buses
     screen.gd    (Screen) The window: launches fullscreen, Alt+Enter toggles
   entities/
     player.gd             CharacterBody2D: coyote time, jump buffer, jump cut
     terrain.gd            StaticBody2D drawn FROM its own collision polygon
     platform.gd           AnimatableBody2D, carries riders, flip-pad variant
-    spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd
+    spring.gd  monster.gd  spikes.gd  cannon.gd  door.gd  gravity_pad.gd
+    inversion_zone.gd  hint_sign.gd  plane_area.gd
     hourglass_visual.gd   Draws the glass, the sand and the flip tumble
-    ping_pong.gd  palette.gd  layers.gd
+    ping_pong.gd  palette.gd  bricks.gd  layers.gd
   fx/
     backdrop.gd  backdrop_layer.gd  Parallax city behind the level
     camera_rig.gd         Follow, lead, slack, shake
     burst.gd              Dust, sparks, shatter, spill
     light_kit.gd          Builds the 2D lights from a shared radial falloff
     entity_light.gd       The glow on doors, springs, pads and hazards
+    outline.gd            The ink around a shape, and the dashed marker
     plane_marker.gd       The dashed line saying which plane a solid is in
-    cast_shadows.gd       Hands every solid a LightOccluder2D — see below
+    cast_shadows.gd       Hands every solid a LightOccluder2D
   ui/
     main_menu.gd          Title screen + level select, built from the level list
     hud.gd                Sand gauge, level name, end screens
     tuning_panel.gd       F1 panel, sliders generated from GameConfig
+    audio_settings.gd     One volume slider per bus
 ```
 
 Two ideas hold it together:
 
 - **Nobody talks to anybody directly.** `Game` owns the run state and emits
   `plane_changed` / `next_plane_changed` / `status_changed` / `level_loaded`;
-  entities and the HUD listen. Adding an entity type means writing one script,
-  not editing five.
+  entities and the HUD listen. Adding an entity type means writing one script.
 - **Plane switching is one uniform rule.** On `plane_changed`, every entity asks
-  `Planes.is_active(plane, current)` and either takes itself off the physics
-  layer (solids) or stops monitoring (areas), then redraws as a ghost. Whether
-  it is a body or an area, the mechanism is the same.
+  `Planes.is_active(plane, current)` and either leaves the physics layer (solids)
+  or stops monitoring (areas), then redraws as a ghost.
 
-### The light and the shadows
+### Light and shadows
 
-`CanvasModulate` sits the whole world at `world_light`, and every light adds back
-on top of it. The glass carries the only one that casts: `CastShadows` walks the
-level on load and gives each solid a `LightOccluder2D` built from the outline it
-is drawn from, parented to the caster so a moving platform drags its shadow along
-and unloading a level takes every occluder with it. A solid in the other plane is
-walk-through, so `plane_changed` takes it off the light mask and it stops casting.
+`CanvasModulate` sits the world at `world_light` and every light adds back on
+top. The glass carries the only one that casts: `CastShadows` gives each solid a
+`LightOccluder2D` built from the outline it is drawn from, parented to the caster
+so a moving platform drags its shadow along. A solid in another plane is
+walk-through, so it stops casting.
 
-The result is subtractive: nothing is painted over the world, the lamp simply
-does not arrive behind a wall. Two shadows crossing are no darker than one, and a
-shadow never darkens the thing that cast it. `shadow_strength` is how much of the
-lamp a solid cuts out — at 1 a shadow falls all the way back to `world_light`.
-Occluders are inset a few px inside their solid, because Godot's shadow map
-darkens everything past the first surface a ray meets, the caster included: on
-the outline exactly, a slab bands along its own lit face.
+The result is subtractive — nothing is painted over the world, the lamp simply
+does not arrive behind a wall — so two shadows crossing are no darker than one.
+Occluders are inset a few px inside their solid: Godot's shadow map darkens
+everything past the first surface a ray meets, the caster included, so an outline
+sitting exactly on the drawn surface bands along its own lit face.
 
 ## Tests
 
-The levels themselves are played, not tested — the benches below cover the maths
-under them and nothing else.
+The levels are played, not tested. The benches cover the maths under them and
+nothing else.
 
 ```bash
 godot --path hourglass_hero_godot --headless tests/sand_test.tscn
 ```
 
-The sand test checks the geometry: that the area drawn
-equals the sand there is at every tilt, that the free surface stays level in
-*world* space rather than turning with the walls, and that a flip lands with no
-jump in the sand.
+The sand test checks the geometry: that the area drawn equals the sand there is
+at every tilt, that the free surface stays level in *world* space rather than
+turning with the walls, and that a flip lands with no jump in the sand.
 
 ```bash
 godot --path hourglass_hero_godot --headless tests/chamber_layout_test.tscn
 ```
 
-The chamber layout test checks the maths underneath the multi-chamber glass
-with nothing drawn and no game running: which chambers drain, receive, or seal
-shut at each chamber count, who pours into whom, and the two- and three-turn
-lessons the three- and four-chamber levels are built to teach.
+The chamber layout test checks the multi-chamber glass: which chambers drain,
+receive or seal shut at each count, who pours into whom, and the lessons the
+three- and four-chamber levels are built to teach.
 
 ```bash
 godot --path hourglass_hero_godot --headless tests/polygon_test.tscn
 ```
 
-The polygon test checks the geometry the drawn ground stands on — which way a
-polygon winds, which of its edges face the sky, and that the offset an occluder
-is inset by grows a long thin slab on all four sides.
-Then it walks every level's ground and fails on any slope steeper than the 45°
-`move_and_slide` will still call a floor: a ramp one degree past that is not a
-slope, it is a wall you can see over.
+The polygon test checks the geometry the drawn ground stands on: which way a
+polygon winds, which edges face the sky, and that the occluder inset grows a
+long thin slab on all four sides.
 
 ## How the sand moves
 
 The sand is a liquid, not a block glued inside the glass. `HourglassMotion`
 works out `down` — where gravity points *in the glass's own frame* — and
-`HourglassShape` cuts every free surface square to it, by bisecting for the cut
-that leaves exactly the right area below. Tip the glass and the sand pools in
-whatever corner is lowest.
+`HourglassShape` cuts every free surface square to it, bisecting for the cut that
+leaves exactly the right area below. Tip the glass and the sand pools in whatever
+corner is lowest.
 
-Two consequences worth knowing before you touch it:
-
-- **The neck gates the sand.** Each bulb keeps its own contents mid-tumble; the
-  sand does not slosh from one to the other. That is why a real hourglass laid on
-  its side does not empty.
+- **The neck gates the sand.** Each bulb keeps its own contents mid-tumble, which
+  is why a real hourglass laid on its side does not empty.
 - **A flip lands seamlessly because the bulbs are each other turned half a turn.**
-  At the end of the tumble the glass snaps from π back to 0, and at that same
-  instant `chambers()` swaps which bulb holds what. The two cancel exactly. Break
-  one and the sand visibly jumps — `tests/sand_test.tscn` guards it.
+  The glass snaps from π back to 0, and at that same instant `chambers()` swaps
+  which bulb holds what. The two cancel exactly; `sand_test.tscn` guards it.
 - **There is one glass, drawn twice.** The sprite and the HUD gauge both read the
-  single `HourglassMotion` held by the `Glass` autoload, which the player feeds
-  its sideways speed. Run right and the sand banks against the left wall in both,
-  identically — not because the two are tuned alike, but because there is only
-  one spring.
+  single `HourglassMotion` held by the `Glass` autoload, so they cannot drift.
