@@ -11,8 +11,8 @@ class_name InversionZone
 extends PlaneArea
 
 ## Large and outlined: the zone must read as a place, not as a thing to collect.
-## Heavier than it looks — three of the four skies are hot and bright, and a 0.10
-## wash vanished into them whatever its hue.
+## Heavier than it looks: at 0.10 the wash vanished into the bright skies whatever
+## its hue.
 const FIELD_ALPHA := 0.2
 const EDGE_ALPHA := 0.8
 ## Multiplier while the zone actually holds the player. The sand takes half a
@@ -55,8 +55,8 @@ func contains_player() -> bool:
 
 
 func _paint() -> void:
-	# The light stays gold in every theme; the field is the theme's own, since it
-	# is what has to stand out against the sky.
+	# Only the field follows the theme: the light is gold everywhere, since a glow
+	# is not what the sky washes out.
 	var tint := _shade(Palette.inversion(Level.group_of(self)))
 	var boost := HELD_BOOST if contains_player() else 1.0
 	var edge := Color(tint, minf(tint.a * EDGE_ALPHA * boost, 1.0))
