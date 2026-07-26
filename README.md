@@ -43,3 +43,11 @@ table, the rules a level may bend, and how to tune.
 [docs/DESIGN.md](docs/DESIGN.md) explains why the sand, the planes, the gravity
 and the light behave the way they do.
 [AGENTS.md](AGENTS.md) has the workflow for building a feature.
+
+## Contributors
+
+Sandbound was built by:
+
+- [@Athryell](https://github.com/Athryell)
+- [@pierclgr](https://github.com/pierclgr)
+- [@Letju](https://github.com/Letju)
