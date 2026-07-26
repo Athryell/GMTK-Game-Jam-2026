@@ -1,4 +1,6 @@
-# Sandbound — Godot 4
+![Sandbound — every jump turns the hourglass](images/header.png)
+
+# Sandbound
 
 A platformer where the player **is** an hourglass. The sand drains
 continuously; at zero, you die. Every jump does three things at once:
@@ -13,6 +15,21 @@ continuously; at zero, you die. Every jump does three things at once:
 
 So **you can only refuel by net-changing plane**. A **spring** throws you with
 no flip, and a **flip-pad** flips the sand with no jump and no plane change.
+
+## Screenshots
+
+![Downside Up: the world upside down, a spring below and the exit
+ahead](images/screen_1.png)
+
+*"Downside Up" — a gravity pad has turned the world over, so the glass falls
+upward. The gauge top-left is the same hourglass you are playing.*
+
+![Crossfire: two cannons tracking the player, with a ghosted platform in the
+other plane](images/screen_2.png)
+
+*"Crossfire" — cannons hold the line they aimed on, so the brick block is real
+cover. The dashed cyan slab is solid in the plane the next jump lands in, not in
+this one.*
 
 ## Running
 
