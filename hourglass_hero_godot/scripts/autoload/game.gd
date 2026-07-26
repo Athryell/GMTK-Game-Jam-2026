@@ -9,8 +9,8 @@ const INVERSION_GROUP := "inversion_zones"
 ## The player puts itself here, so nothing has to be cleared when the level goes.
 const PLAYER_GROUP := "player"
 
-## Same file `Audio` writes its buses to, another section. Spelt out rather than
-## read off `Audio`: that autoload is registered after this one.
+## `Audio`'s settings file, another section. Spelt out rather than read off
+## `Audio`: that autoload is registered after this one.
 const SETTINGS_PATH := "user://settings.cfg"
 const PROGRESS_SECTION := "progress"
 
@@ -40,10 +40,9 @@ var level_index := 0
 ## that the menu is not on the clock.
 var run_time := 0.0
 
-## Dev switch, toggled from the menu: opens every level without writing anything
-## into the progress that was actually earned.
+## Dev switch from the menu: opens every level without touching what was earned.
 var cheat_mode := false
-## Highest level index unlocked. Saved; frozen while `cheat_mode` is on.
+## Highest level index unlocked. Saved between runs.
 var levels_reached := 0
 
 ## How much sand sits in each chamber, indexed by SLOT — by fixed position on
@@ -239,7 +238,6 @@ func is_unlocked(index: int) -> bool:
 	return cheat_mode or index <= levels_reached
 
 
-## The furthest level the menu's PLAY button may drop you into.
 func resume_index() -> int:
 	return clampi(levels_reached, 0, maxi(level_scenes.size() - 1, 0))
 
@@ -251,8 +249,8 @@ func set_cheat_mode(on: bool) -> void:
 	_save_progress()
 
 
-## Opens `index` for good. Refuses to skip ahead: only the level after the
-## furthest one earned can be added, so a cheated jump cannot bank progress.
+## Only ever opens the level right after the furthest one earned, so a level
+## reached in cheat mode cannot bank the ones it skipped.
 func unlock(index: int) -> void:
 	if index <= levels_reached or index > levels_reached + 1:
 		return
