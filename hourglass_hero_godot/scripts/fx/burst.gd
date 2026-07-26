@@ -70,6 +70,9 @@ var _spins: Array[float] = []
 ## PIECES only: where on the art each corner of each fragment came from, in the
 ## texture's own pixels — the wedge cut out of the painting rather than filled in.
 var _uvs: Array[PackedVector2Array] = []
+## SAND only: which grains have landed. A landed grain stops dead and stays put
+## for the rest of the death, so the spill ends as a heap on the floor.
+var _rested: Array[bool] = []
 
 
 ## The plane swap.
@@ -131,8 +134,10 @@ static func spill(parent: Node, at: Vector2, tint: Color, fills: PackedFloat32Ar
 		var rng := RandomNumberGenerator.new()
 		for i in b._bits.size():
 			b._bits[i] = Vector2(rng.randf_range(-8.0, 8.0), rng.randf_range(-14.0, 14.0))
+		b._rested.resize(b._bits.size())
 		return
 	b._empty(fills, size, -1.0 if turned else 1.0)
+	b._rested.resize(b._bits.size())
 
 
 ## Turns each bulb's pile into flying grains, one per sampled pixel of it.
@@ -311,12 +316,42 @@ func _process(delta: float) -> void:
 	if _elapsed >= duration:
 		queue_free()
 		return
+	# Only the sand is stopped by the world. The glass is not: a wedge is thrown
+	# clear of the level and gone before it would land, and the same rays spent on
+	# it would buy nothing on screen.
+	var space: PhysicsDirectSpaceState2D = null
+	if kind == Kind.SAND and _rested.size() == _bits.size():
+		space = get_world_2d().direct_space_state
 	for i in _bits.size():
+		if space != null and _rested[i]:
+			continue
 		_velocities[i] += Vector2(0.0, GRAVITY * delta)
-		_bits[i] += _velocities[i] * delta
+		var to: Vector2 = _bits[i] + _velocities[i] * delta
+		if space != null and _land(space, i, to):
+			continue
+		_bits[i] = to
 	for i in _angles.size():
 		_angles[i] += _spins[i] * delta
 	queue_redraw()
+
+
+## Casts grain `i` along the step it is about to take and, if the terrain is in
+## the way, lays it down against what it hit and takes it out of the simulation.
+##
+## A ray over the step rather than a test at the far end: a grain crosses several
+## px in a frame, and asking only where it ends up lets it start above a brick and
+## end up below it. Returns whether it landed.
+func _land(space: PhysicsDirectSpaceState2D, i: int, to: Vector2) -> bool:
+	var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(
+		global_position + _bits[i], global_position + to, Layers.SOLID))
+	if hit.is_empty():
+		return false
+	# One px back out along the surface's own normal, so the grain sits ON the
+	# brick rather than in its first row of pixels.
+	_bits[i] = hit.position - global_position + hit.normal * PIXEL
+	_velocities[i] = Vector2.ZERO
+	_rested[i] = true
+	return true
 
 
 func _draw() -> void:
@@ -341,8 +376,11 @@ func _draw() -> void:
 			# in the bulb, coming apart, and it has to be made of the same pixels to
 			# read that way. One cell each, not a 3px blob — a grain in a bulb is one
 			# pixel, so a grain in the air is too.
+			# No fade at all, where every other effect thins out: sand does not go
+			# anywhere once it has landed, and a heap that dissolves on the floor reads
+			# as the spill having been a puff of smoke. It goes when the level does.
 			for p in _bits:
-				HourglassShape.draw_grain(self, p, Color(colour, fade * 0.95), PIXEL)
+				HourglassShape.draw_grain(self, p, colour, PIXEL)
 		Kind.PIECES:
 			# The wedges' own fade, applied to the art instead of to a fill: one alpha
 			# over a whole piece leaves every texel where it was, so it costs the pixels
