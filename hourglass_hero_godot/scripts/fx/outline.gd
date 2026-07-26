@@ -27,26 +27,16 @@ static func polygon(canvas: CanvasItem, points: PackedVector2Array, alpha := 1.0
 
 
 ## Size of one block of the dashed marker below, in px. Nothing in the art is
-## smaller than this, so the marker reads as part of the same pixel grid rather
-## than as a vector line laid over it.
+## smaller, so the marker reads as part of the same pixel grid.
 const CELL := 4.0
 ## Blocks drawn, then blocks skipped, along the run. Both counted in `CELL`s.
 const DASH_ON := 2
 const DASH_OFF := 2
 
 
-## A dashed, pixel-blocked marker sitting just OUTSIDE the ink, for a shape that
-## is not solid yet.
-##
-## Every block is a `CELL`-sized square snapped to the CELL grid, so the marker
-## is made of the same pixels the art is and a ramp comes out as a staircase
-## rather than as a smooth diagonal. Walking the offset ring and keeping each
-## new cell it enters is what draws that staircase: the run follows the
-## silhouette, the grid decides where the corners land.
-##
-## Dashes rather than a solid band, and a band rather than a brighter fill: the
-## fill is what says "you cannot stand here", so lifting it is the one lie this
-## cue must not tell.
+## A dashed line `distance` px outside the ink, blocked onto the `CELL` grid so a
+## ramp comes out as a staircase rather than as a smooth diagonal: the walk
+## follows the silhouette, the grid decides where the corners land.
 static func dashes(canvas: CanvasItem, points: PackedVector2Array,
 		colour: Color, distance: float) -> void:
 	var count := points.size()
@@ -57,8 +47,7 @@ static func dashes(canvas: CanvasItem, points: PackedVector2Array,
 	for i in count:
 		var a := ring[i]
 		var b := ring[(i + 1) % count]
-		# Half a cell a step: enough that the walk cannot skip over a cell it
-		# clips the corner of, cheap enough to run on every point of the ground.
+		# Half a cell a step, so the walk cannot skip a cell it only clips.
 		var steps := maxi(1, int(ceil(a.distance_to(b) / (CELL * 0.5))))
 		for s in steps:
 			var p := a.lerp(b, float(s) / float(steps))
@@ -66,8 +55,8 @@ static func dashes(canvas: CanvasItem, points: PackedVector2Array,
 			if cells.is_empty() or cells[cells.size() - 1] != cell:
 				cells.append(cell)
 	var period := DASH_ON + DASH_OFF
-	# Cells the walk reached twice — a spur, or the closing seam — would be drawn
-	# twice and come out brighter than the dash beside them.
+	# A cell the walk reached twice would be drawn twice, and come out brighter
+	# than the dash beside it.
 	var drawn := {}
 	for i in cells.size():
 		if i % period >= DASH_ON or drawn.has(cells[i]):

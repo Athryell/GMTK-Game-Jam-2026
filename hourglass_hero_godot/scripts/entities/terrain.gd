@@ -36,7 +36,7 @@ var _active := true
 ## True while a jump would land the player in this plane: marked at full
 ## strength, still as dim and as inert as any other ghost.
 var _next := false
-## The dashed line that says which plane this ground is in, and its own fade.
+## The dashed line that says which plane this ground is in.
 var _marker := PlaneMarker.new()
 
 
@@ -105,9 +105,8 @@ func _draw() -> void:
 			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
 
-	# Which plane this ground is in is marked at its edge instead of being lifted
-	# out of the ghosts: the fill stays as dim as everything else you cannot stand
-	# on, and the dashes carry the plane. Drawn last so nothing lands on top of it.
+	# The plane is carried at the edge rather than by lifting the fill, which is
+	# what says "you can stand here". Last, so nothing lands on top of it.
 	_marker.draw(self, _points, plane)
 
 

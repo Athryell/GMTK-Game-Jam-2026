@@ -20,9 +20,8 @@ const PLANE_SOLIDS: Array[Color] = [
 	Color("7fe04c"), ## P2 — lime.
 	Color("f0764c"), ## P3 — terracotta.
 ]
-## Strength of the tint `marker` hands out, before the marker's own fade. Under
-## 1 on purpose: the dashes sit on top of whatever is behind the slab, and a
-## line you can see the city through is a line that belongs to the world rather
+## Strength of the tint `marker` hands out, before the marker's own alpha. Under
+## 1 on purpose: a line you can see the city through belongs to the world rather
 ## than to the HUD.
 const MARKER_ALPHA := 0.6
 const SPRING := Color("5fe6c0") ## Spring: launches without flipping.
@@ -86,7 +85,6 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 
 ## The hue `PlaneMarker` dashes a plane-bound solid in, so which world a slab
 ## belongs to stays readable while the stone still looks like every other stone.
-## `alpha` is the marker's own fade.
 static func marker(plane: Planes.Kind, alpha: float) -> Color:
 	var tint := PLANE_SOLIDS[clampi(int(plane), 0, PLANE_SOLIDS.size() - 1)]
 	return Color(tint.r, tint.g, tint.b, MARKER_ALPHA * alpha)
