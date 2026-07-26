@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/entities/hint_sign.gd" id="1_hint"]
+
+[node name="HintSign" type="Node2D"]
+z_index = 10
+script = ExtResource("1_hint")
+text = "A / ←    D / →    to move"
+
+[node name="Label" type="Label" parent="."]
+offset_left = -300.0
+offset_right = 300.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(0.933, 0.949, 1, 1)
+theme_override_colors/font_outline_color = Color(0.024, 0.031, 0.063, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1

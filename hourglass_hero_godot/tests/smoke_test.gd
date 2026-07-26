@@ -27,18 +27,62 @@ func _ready() -> void:
 		_finish()
 		return
 
-	# --- Sand drains ---------------------------------------------------------
+	# --- The tutorial: the level opens frozen and with no jump ----------------
+	# Both are level 1's own rules. They are checked here, in the opening state
+	# of a real boot, because that is the only moment they exist.
 	var sand_at_start := Game.sand
 	await _frames(30)
-	_check("sand drains", Game.sand < sand_at_start,
+	_check("level 1 holds the clock until the player moves",
+		is_equal_approx(Game.sand, sand_at_start),
 		"%.0f → %.0f" % [sand_at_start, Game.sand])
 
-	# --- Falling and landing -------------------------------------------------
+	var plane_at_start := Game.plane
 	await _frames(60)
 	_check("player lands on the floor", player.is_on_floor(),
 		"y=%.1f" % player.global_position.y)
+	await _press("jump", 4)
+	await _frames(4)
+	_check("level 1 takes the jump away for the first life",
+		Game.plane == plane_at_start and player.is_on_floor(),
+		"plane=%s floor=%s" % [Game.plane, player.is_on_floor()])
+	_check("a locked jump does not run the clock either",
+		is_equal_approx(Game.sand, sand_at_start), "%.0f" % Game.sand)
+
+	# --- Sand drains, once you move ------------------------------------------
+	Input.action_press("move_right")
+	await _frames(30)
+	_check("sand drains once the player moves", Game.sand < sand_at_start,
+		"%.0f → %.0f" % [sand_at_start, Game.sand])
+
+	# --- Walking straight must KILL: level 1 starts at half sand and the
+	# crossing is longer than that reserve. Still holding right from above.
+	var died := false
+	for i in 600:
+		await get_tree().physics_frame
+		if Game.status == Game.Status.DEAD:
+			died = true
+			break
+	Input.action_release("move_right")
+	_check("walking without jumping empties the glass and kills", died,
+		"status=%s" % Game.status)
+
+	# --- And the death is what hands the jump back ---------------------------
+	Game.restart()
+	await _load_level_scene()
+	await _frames(5)
+	player = _find_player()
+	_check("the first death unlocks the jump", Game.jump_enabled,
+		"deaths=%d" % Game.level_deaths)
 
 	# --- The jump: flips the glass and swaps plane ---------------------------
+	for i in 120:
+		await get_tree().physics_frame
+		if player.is_on_floor():
+			break
+	# Walk first, and not for show: the retry starts frozen and exactly half
+	# full, and a turn of a half-full two-chamber glass gives back precisely what
+	# it took. There has to be sand spent before a refuel can be measured.
+	await _press("move_right", 30)
 	var plane_before := Game.plane
 	var sand_before := Game.sand
 	await _press("jump", 4)
@@ -56,23 +100,9 @@ func _ready() -> void:
 	await _frames(4)
 	_check("second jump returns to the starting plane", Game.plane == plane_before)
 
-	# --- Walking straight must KILL: level 1 starts at half sand and the
-	# crossing is longer than that reserve.
-	Game.restart()
-	await _frames(5)
-	Input.action_press("move_right")
-	var died := false
-	for i in 600:
-		await get_tree().physics_frame
-		if Game.status == Game.Status.DEAD:
-			died = true
-			break
-	Input.action_release("move_right")
-	_check("walking without jumping empties the glass and kills", died,
-		"status=%s" % Game.status)
-
 	# --- Walking WHILE jumping refuels and reaches the door: the whole loop.
 	Game.restart()
+	await _load_level_scene()
 	await _frames(5)
 	player = _find_player()
 	var level_before := Game.level_index
@@ -115,6 +145,14 @@ func _ready() -> void:
 			"double_jump=%s chambers=%d/%d sand=%.0f (override %.0f)"
 				% [Game.double_jump, Game.chamber_count, level.chambers, Game.sand,
 					level.sand_start_override])
+		# The tutorial's two rules, checked on every level rather than on the one
+		# that uses them: what matters is that they cannot leak into the others.
+		_check("level %d (%s) runs the clock unless it says otherwise" % [i + 1, _level_name()],
+			Game.clock_running != level.clock_starts_on_move,
+			"clock_running=%s" % Game.clock_running)
+		_check("level %d (%s) allows the jump unless it says otherwise" % [i + 1, _level_name()],
+			Game.jump_enabled != level.jump_locked_first_life,
+			"jump_enabled=%s deaths=%d" % [Game.jump_enabled, Game.level_deaths])
 
 		var budget := level.sand_start_override if level.sand_start_override > 0.0 \
 			else Tuning.cfg.sand_start

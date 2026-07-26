@@ -107,6 +107,7 @@ would bury the dozen sliders that actually change how the game plays.
 | `cannon.tscn` | A laser that tracks you while it charges, then fires along the line it held at the shot. Blocked by anything solid, so cover is real. | `plane`, `aim_time`, `fire_time`, `phase` |
 | `gravity_pad.tscn` | Turns the world over: touch it and gravity pulls the way its arrows point, until another pad says otherwise. | `size`, `plane`, `pulls_up` |
 | `door.tscn` | The exit. A `BACK` door forces you to *arrive* in the back plane. | `size`, `plane` |
+| `hint_sign.tscn` | A line of text standing in the world, where the lesson is. `after_deaths` holds it back until the level has killed you that many times; `hide_after_deaths` takes it away again, so only one sentence is ever up. | `text`, `after_deaths`, `hide_after_deaths` |
 
 `plane` is `FRONT`, `BACK` or `BOTH`. Anything not in the player's current plane
 turns into a faint, non-solid ghost — except the one plane a jump would land you
@@ -130,6 +131,8 @@ On the level root, under **Rules**:
 | `chambers` | How many chambers the glass has, 2 to 4 — and so how many planes, and how far a jump turns you. |
 | `sand_start_override` | Sand you begin with, in ms. 0 uses the tuned `sand_start`. |
 | `double_jump` | Grants one extra jump in mid-air, for this level only. |
+| `clock_starts_on_move` | The sand does not run until the player first steers. A level that has something to say says it before anything is at stake. |
+| `jump_locked_first_life` | No jump until this level has killed you once. The death is what hands it back, and leaving the level arms the lock again. |
 
 All are applied by `main.gd` after the scene exists, and all reset between
 levels, so a level cannot leak its rules into the next one.
@@ -174,7 +177,7 @@ rather than out of a tuning pass. `sand_test.gd` guards the identity.
 
 | # | Level | What it teaches |
 |---|---|---|
-| 1 | Wake-Up | A jump is a refuel. Walking straight ahead kills you. |
+| 1 | Wake-Up | The tutorial, taught by killing you once. It opens frozen and with no jump, so the only thing to try is walking — and walking is 68 px short of the door. The death is what unlocks the jump, and the sign that then appears is the only place the game explains that a turn of the glass is a refuel. |
 | 2 | The Void | The far floor is `BACK`: the last hop has to be a step, not a jump. |
 | 3 | The Ledge | A spike ceiling forbids refuelling for 820 px. Fill up *before* you commit. |
 | 4 | The Spring | Height without a flip, climbing a shaft. |
@@ -238,11 +241,13 @@ Two ideas hold it together:
 godot --path hourglass_hero_godot --headless tests/smoke_test.tscn
 ```
 
-The smoke test boots the real game and plays it: sand drains, a jump swaps
-plane and refuels by exactly `max - sand`, two jumps return you to the starting
-plane, walking level 1 without jumping runs you dry (the core design
-constraint), walking *while* jumping reaches the door, and every level loads and
-runs. Exits non-zero on failure, so it drops straight into CI.
+The smoke test boots the real game and plays it: level 1 opens with its clock
+held and its jump locked, sand drains the moment you move, walking without
+jumping runs you dry (the core design constraint), that death hands the jump
+back, a jump then swaps plane and refuels by exactly `max - sand`, two jumps
+return you to the starting plane, walking *while* jumping reaches the door, and
+every level loads and runs with exactly the rules it declares — including that
+no other level inherits level 1's two. Exits non-zero on failure, so it drops straight into CI.
 
 ```bash
 godot --path hourglass_hero_godot --headless tests/sand_test.tscn

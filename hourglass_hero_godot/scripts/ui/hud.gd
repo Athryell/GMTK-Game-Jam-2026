@@ -11,6 +11,11 @@ extends Control
 ## front and no back — the planes are a ring, so they are numbered instead.
 const PLANE_NAMES := ["FRONT", "BACK"]
 
+## The bar along the bottom. A level that has taken the jump away must not go on
+## advertising it.
+const HINT_FULL := "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
+const HINT_NO_JUMP := "← → move    R restart    ESC menu    F1 tuning"
+
 @onready var _level_label: Label = $LevelLabel
 @onready var _plane_label: Label = $PlaneLabel
 @onready var _overlay: Label = $Overlay
@@ -57,6 +62,8 @@ func _draw() -> void:
 
 func _on_level_loaded(index: int, level_name: String) -> void:
 	_level_label.text = "%d/%d — %s" % [index + 1, Game.level_scenes.size(), level_name]
+	# Emitted after the level's rules are applied, so the jump lock is settled.
+	_hint.text = HINT_FULL if Game.jump_enabled else HINT_NO_JUMP
 	# The plane label spells out the chamber count, and a new level can change
 	# that count without ever changing the plane — arriving on a three-chamber
 	# level in P0 left the label reading FRONT. `level_loaded` is emitted after
@@ -75,7 +82,6 @@ func _on_status_changed(status: Game.Status) -> void:
 	match status:
 		Game.Status.PLAY:
 			_overlay.text = ""
-			_hint.text = "← → move    SPACE jump (turns the glass + moves you on)    R restart    ESC menu    F1 tuning"
 		# No banner: both states resolve on their own within a second.
 		Game.Status.DEAD, Game.Status.LEVEL_CLEAR:
 			_overlay.text = ""

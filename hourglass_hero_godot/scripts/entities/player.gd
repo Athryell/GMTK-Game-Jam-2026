@@ -123,15 +123,21 @@ func _physics_process(delta: float) -> void:
 	var steer := Input.get_axis("move_left", "move_right")
 	velocity.x = steer * cfg.move_speed
 	Game.aim(steer)
+	# The clock is the player's to start; a level that holds it runs frozen
+	# until this line.
+	if not is_zero_approx(steer):
+		Game.start_clock()
+
+	# A locked jump reads as never pressed, buffer included.
+	var pressed_jump := Game.jump_enabled and Input.is_action_just_pressed("jump")
 
 	# Coyote time, then jump buffer.
 	_coyote = cfg.coyote_time if is_on_floor() else maxf(0.0, _coyote - delta)
-	_buffer = cfg.jump_buffer if Input.is_action_just_pressed("jump") \
-		else maxf(0.0, _buffer - delta)
+	_buffer = cfg.jump_buffer if pressed_jump else maxf(0.0, _buffer - delta)
 
 	if _buffer > 0.0 and _coyote > 0.0:
 		_jump(steer)
-	elif _air_jumps > 0 and Input.is_action_just_pressed("jump"):
+	elif _air_jumps > 0 and pressed_jump:
 		# Keyed to the press, not `_buffer`: a buffered jump must not be spent in
 		# the air. A second real flip, so it undoes the first: pure height.
 		_air_jumps -= 1

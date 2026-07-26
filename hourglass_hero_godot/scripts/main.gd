@@ -87,6 +87,8 @@ func _load_current_level() -> void:
 ## before the level scene exists.
 func _apply_level_rules() -> void:
 	Game.double_jump = _level.double_jump
+	Game.clock_running = not _level.clock_starts_on_move
+	Game.jump_locked_first_life = _level.jump_locked_first_life
 	# Every level starts the right way up; only a pad turns the world.
 	Game.set_gravity(1.0)
 	var top := _level.sand_start_override if _level.sand_start_override > 0.0 \

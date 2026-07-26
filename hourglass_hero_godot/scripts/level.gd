@@ -23,6 +23,12 @@ extends Node2D
 ## turns restore both the starting plane and the exact sand, so the double jump
 ## is pure height — free while you are full, ruinous while you are empty.
 @export var double_jump := false
+## Holds the sand until the player first steers, so a level with something to say
+## can say it before anything is at stake.
+@export var clock_starts_on_move := false
+## Takes the jump away for the first life only; the death hands it back. Walking
+## straight ahead until you run dry is a lesson no sentence teaches.
+@export var jump_locked_first_life := false
 
 @onready var spawn: Marker2D = $Spawn
 

@@ -87,6 +87,20 @@ var flow_blend := 0.0
 ## `start_level` runs before it is instantiated.
 var double_jump := false
 
+## Is the sand allowed to run yet? Held back by `Level.clock_starts_on_move`
+## until the player first moves.
+var clock_running := true
+## `Level.jump_locked_first_life`, pushed here by `main.gd`.
+var jump_locked_first_life := false
+## Deaths on the level being played. Survives `restart`, cleared by moving to
+## another level.
+var level_deaths := 0
+
+## The lock is spent by the first death, so what the level killed you for is what
+## hands the jump back.
+var jump_enabled: bool:
+	get: return not (jump_locked_first_life and level_deaths == 0)
+
 ## Screen-y of "down" right now: +1 normally, -1 while the world is upside down.
 ## Changed mid-level by a [GravityPad]. Every vertical quantity is written as a
 ## downward component times this, so an inverted world is the same code.
@@ -126,6 +140,9 @@ func _process(delta: float) -> void:
 	if pad_flash > 0.0:
 		pad_flash = maxf(0.0, pad_flash - delta)
 	if status != Status.PLAY:
+		return
+	# A held clock is held for everything: the drain, the flow and both death rules.
+	if not clock_running:
 		return
 	# Both ends of the glass kill, and it is the DRAINING chambers that run out,
 	# not the glass: at four chambers you can die with sand still sealed in a side
@@ -220,7 +237,10 @@ func is_unlocked(index: int) -> bool:
 
 # ----- Level lifecycle -------------------------------------------------------
 
-func start_level(index: int) -> void:
+## `keep_deaths` tells a retry from a fresh arrival: only `restart` passes it.
+func start_level(index: int, keep_deaths := false) -> void:
+	if not keep_deaths or index != level_index:
+		level_deaths = 0
 	level_index = clampi(index, 0, level_scenes.size() - 1)
 	levels_reached = maxi(levels_reached, level_index)
 	# Two chambers until the level says otherwise. `main.gd` re-arms the glass
@@ -248,14 +268,22 @@ func restart() -> void:
 	if status == Status.VICTORY:
 		start_level(0)
 	else:
-		start_level(level_index)
+		start_level(level_index, true)
 
 
 func set_status(new_status: Status) -> void:
 	if status == new_status:
 		return
+	# Counted before the signal goes out, so listeners read the toll including it.
+	if new_status == Status.DEAD:
+		level_deaths += 1
 	status = new_status
 	status_changed.emit(status)
+
+
+## The player has moved. Idempotent: called from the movement branch every frame.
+func start_clock() -> void:
+	clock_running = true
 
 
 ## Called by `main.gd` once the level scene is built and the player placed, so

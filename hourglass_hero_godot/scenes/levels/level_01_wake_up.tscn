@@ -3,10 +3,13 @@
 [ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
 [ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
 [ext_resource type="Script" uid="uid://b62bjh4xkmsp0" path="res://scripts/entities/terrain.gd" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/entities/hint_sign.tscn" id="4_hint"]
 
 [node name="Level" type="Node2D" unique_id=2033491078]
 script = ExtResource("1_level")
 level_name = "Wake-Up"
+clock_starts_on_move = true
+jump_locked_first_life = true
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=447216131]
 position = Vector2(53, 479)
@@ -14,11 +17,21 @@ position = Vector2(53, 479)
 [node name="Entities" type="Node2D" parent="." unique_id=1541318319]
 
 [node name="Door" parent="Entities" unique_id=1228334491 instance=ExtResource("2_door")]
-position = Vector2(901, 386)
+position = Vector2(901, 438)
 
 [node name="Ground" type="StaticBody2D" parent="Entities" unique_id=1001778845]
 collision_mask = 0
 script = ExtResource("3_terrain")
 
 [node name="Shape" type="CollisionPolygon2D" parent="Entities/Ground" unique_id=492484394]
-polygon = PackedVector2Array(0, 502, 380, 502, 380, 476, 700, 476, 700, 449, 960, 449, 960, 560, 0, 560)
+polygon = PackedVector2Array(0, 502, 960, 502, 960, 560, 0, 560)
+
+[node name="MoveHint" parent="Entities" instance=ExtResource("4_hint")]
+position = Vector2(230, 420)
+hide_after_deaths = 1
+text = "A / ←        D / →"
+
+[node name="JumpHint" parent="Entities" instance=ExtResource("4_hint")]
+position = Vector2(250, 420)
+after_deaths = 1
+text = "SPACE / ↑   turns the glass over: the sand runs back"
