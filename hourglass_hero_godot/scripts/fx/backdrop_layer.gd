@@ -57,9 +57,18 @@ func configure(world_size: Vector2, floor_y: float) -> void:
 func sync(camera_position: Vector2) -> void:
 	if is_nan(_datum_y):
 		_datum_y = camera_position.y
+	var drop := camera_position.y - _datum_y
 	position = Vector2(
 		_snap(camera_position.x * (1.0 - scroll)),
-		_snap((camera_position.y - _datum_y) * (1.0 - Backdrop.VERTICAL_SCROLL)))
+		_snap(drop - vertical_lag(drop)))
+
+
+## How far the art trails a camera that has dropped `drop` px below the datum.
+## Capped at the margin the art is planted below the ground: trail any further
+## and the bottom edge clears that ground, and a long fall opens a strip of bare
+## sky under the skyline.
+static func vertical_lag(drop: float) -> float:
+	return minf(drop * Backdrop.VERTICAL_SCROLL, Backdrop.ART_DROP)
 
 
 ## `value` rounded to a whole art px, in world px. At an `ART_SCALE` of 1 this is

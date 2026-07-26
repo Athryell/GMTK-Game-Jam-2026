@@ -118,7 +118,8 @@ func _clamped(point: Vector2) -> Vector2:
 ## show, less `camera_edge_margin`. Must be applied AFTER the smoothing, which
 ## otherwise lags far enough behind a spring launch to lose the player.
 ## Deliberately not re-clamped to the level limits afterwards — the leash only
-## pulls towards the player, who is already inside them.
+## pulls towards the player, who is already inside them. Which is why the target
+## is dropped on death: a dead player is not.
 func _leashed(point: Vector2) -> Vector2:
 	if target == null or not is_instance_valid(target):
 		return point
@@ -132,6 +133,10 @@ func _leashed(point: Vector2) -> Vector2:
 func _on_status_changed(status: Game.Status) -> void:
 	if status == Game.Status.DEAD:
 		add_trauma(0.85)
+		# A dead glass keeps falling and nothing kills it a second time, so the
+		# leash would drag the view thousands of px below the world. Nothing is
+		# lost: it hides itself on the death frame, and the fragments stay put.
+		target = null
 
 
 func _on_flipped(from_pad: bool) -> void:
