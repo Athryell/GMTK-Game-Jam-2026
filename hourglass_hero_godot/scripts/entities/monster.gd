@@ -8,16 +8,20 @@ extends PlaneArea
 
 const FACE: Texture2D = preload("res://art/sprites/clock.png")
 
-## The art is a 64×64 dial, and the hand is struck from measurements taken off
+## The art is a 32×32 dial, and the hand is struck from measurements taken off
 ## it rather than guessed at, so retracing the sprite is the only thing that can
 ## put them out of step.
-const ART_SIZE := 64.0
+##
+## Only ever read as a ratio against the other three, never as an absolute — the
+## dial halved from 64 to 32 and every measurement below halved with it, which is
+## exactly why the hand came through that unchanged.
+const ART_SIZE := 32.0
 ## The gold hub the hand turns on — dead centre, as it happens.
-const ART_PIVOT := Vector2(32.0, 32.0)
-## The hour ticks run from radius 12 out to 19. Stopping at 14 puts the tip just
+const ART_PIVOT := Vector2(16.0, 16.0)
+## The hour ticks run from radius 6 out to 9.5. Stopping at 7 puts the tip just
 ## inside the ring, which is where a clock's own hand stops.
-const ART_REACH := 14.0
-const ART_WIDTH := 4.0
+const ART_REACH := 7.0
+const ART_WIDTH := 2.0
 
 ## Seconds for one full sweep, clockwise from twelve.
 const HAND_PERIOD := 0.55

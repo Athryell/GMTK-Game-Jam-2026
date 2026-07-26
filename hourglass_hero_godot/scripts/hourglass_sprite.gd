@@ -3,8 +3,9 @@
 ##
 ## Only the frame is painted. The cavity inside the outline is TRANSPARENT in the
 ## art, so the sand — which has to move, and so cannot be painted — is drawn
-## first and shows through it, and the highlights down the left and the blue
-## reflections down the right land on top of the sand rather than under it.
+## first and shows through it. Anything the art paints inside the cavity lands on
+## top of the sand rather than under it; the current export paints nothing there,
+## so the sand reads flat.
 ##
 ## Two chambers only. The art is one two-bulb glass; a three- or four-lobed
 ## rosette is a different object and `HourglassShape` still draws those.
@@ -13,11 +14,11 @@ extends RefCounted
 
 const TEXTURE: Texture2D = preload("res://art/sprites/hourglass.png")
 
-## The part of the 64×64 canvas the glass actually occupies. The art is centred
-## with six columns of margin either side and runs the full height, so this is
-## what gets mapped onto the caller's `size` — draw the whole canvas instead and
-## the glass comes out narrower than it was asked to be.
-const TRIM := Rect2(6.0, 0.0, 52.0, 64.0)
+## The part of the canvas the glass actually occupies, and what gets mapped onto
+## the caller's `size`. The art is trimmed to its own bounds, so this is the whole
+## 32×64 canvas — but keep it going through here rather than reading the texture
+## size: the moment a margin comes back, this is the one line that has to change.
+const TRIM := Rect2(0.0, 0.0, 32.0, 64.0)
 
 ## The inside of each bulb, in the art's own pixel coordinates, upper first.
 ##
@@ -25,29 +26,29 @@ const TRIM := Rect2(6.0, 0.0, 52.0, 64.0)
 ## out to the convex hull — `draw_colored_polygon` only fills a convex shape
 ## honestly, and the glass narrows into its throat with a corner that is not.
 ##
-## They stop a row short of the throat, and that row is the whole reason. Where
-## the funnel turns into the throat the outline thins to a single pixel either
-## side, and a hull carried all the way down cuts that corner and puts sand out
-## through it — a bead of yellow either side of the hole, the one place on the
-## glass where a pixel of overshoot has nothing to hide under. Stopping short
-## leaves the throat itself unfilled, which costs nothing: the falling thread is
-## drawn straight through it and is wider than the hole.
+## They stop two rows short of each other, leaving the pinch of the throat itself
+## unfilled. That costs nothing — the falling thread is drawn straight through it
+## and is wider than the hole — and it is what keeps the hull off the one corner
+## it cannot round honestly, where the funnel turns into the throat and the
+## outline has the least width to hide an overshoot under.
+##
+## Measured off the alpha of `hourglass.png`, not typed by hand: the cavity is
+## the transparent region the outline encloses, taken row by row and pushed out
+## to the convex hull. Rasterised back afterwards, and no filled pixel lands
+## outside the glass on either bulb — that check is what makes the two rows
+## above the right number rather than a guess.
 const BULBS: Array[Array] = [
 	[
-		Vector2(11.0, 7.0), Vector2(53.0, 7.0), Vector2(53.0, 10.0),
-		Vector2(51.0, 19.0), Vector2(50.0, 22.0), Vector2(49.0, 24.0),
-		Vector2(47.0, 26.0), Vector2(41.0, 29.0), Vector2(33.0, 31.0),
-		Vector2(31.0, 31.0), Vector2(23.0, 29.0), Vector2(17.0, 26.0),
-		Vector2(15.0, 24.0), Vector2(14.0, 22.0), Vector2(13.0, 19.0),
-		Vector2(11.0, 10.0),
+		Vector2(4.0, 7.0), Vector2(28.0, 7.0), Vector2(28.0, 12.0),
+		Vector2(27.0, 19.0), Vector2(25.0, 25.0), Vector2(22.0, 28.0),
+		Vector2(17.0, 31.0), Vector2(15.0, 31.0), Vector2(10.0, 28.0),
+		Vector2(7.0, 25.0), Vector2(5.0, 19.0), Vector2(4.0, 12.0),
 	],
 	[
-		Vector2(11.0, 54.0), Vector2(13.0, 45.0), Vector2(14.0, 42.0),
-		Vector2(15.0, 40.0), Vector2(17.0, 38.0), Vector2(23.0, 35.0),
-		Vector2(31.0, 33.0), Vector2(33.0, 33.0), Vector2(41.0, 35.0),
-		Vector2(47.0, 38.0), Vector2(49.0, 40.0), Vector2(50.0, 42.0),
-		Vector2(51.0, 45.0), Vector2(53.0, 54.0), Vector2(53.0, 57.0),
-		Vector2(11.0, 57.0),
+		Vector2(4.0, 52.0), Vector2(5.0, 45.0), Vector2(7.0, 39.0),
+		Vector2(10.0, 36.0), Vector2(15.0, 33.0), Vector2(17.0, 33.0),
+		Vector2(22.0, 36.0), Vector2(25.0, 39.0), Vector2(27.0, 45.0),
+		Vector2(28.0, 52.0), Vector2(28.0, 57.0), Vector2(4.0, 57.0),
 	],
 ]
 
@@ -57,7 +58,7 @@ const BULBS: Array[Array] = [
 ## area scales with the drawing, so the caller's `size` is all that is missing.
 ## Must be remeasured if [constant BULBS] is ever retraced, or a chamber the game
 ## calls full stops looking it.
-const BULB_AREA := 823.0
+const BULB_AREA := 467.0
 
 
 ## Sand first, then the glass over it. `fills` is how full each bulb is, 0 to 1,

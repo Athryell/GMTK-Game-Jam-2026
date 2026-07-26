@@ -7,7 +7,7 @@ extends Control
 ## Drawn size of the gauge hourglass. [constant HourglassSprite.TRIM]'s size, so
 ## the HUD glass is drawn one art px to one px of the 960×540 design canvas —
 ## which at `camera_zoom` 1.0 is the same size a pixel comes out in the world.
-@export var gauge_size := Vector2(52.0, 64.0)
+@export var gauge_size := Vector2(32.0, 64.0)
 
 ## What the two planes are called on a two-chamber level. Past two there is no
 ## front and no back — the planes are a ring, so they are numbered instead.
