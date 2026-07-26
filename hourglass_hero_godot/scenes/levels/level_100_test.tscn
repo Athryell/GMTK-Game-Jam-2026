@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://by0v1m7ask8xr"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/terrain.tscn" id="2_gcs4s"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="3_16rb2"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="4_vsghg"]
+
+[node name="Level" type="Node2D" unique_id=446458163]
+script = ExtResource("1_level")
+world_size = Vector2(1242.31, 540)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=745319571]
+position = Vector2(53, 479)
+
+[node name="Terrain" parent="." unique_id=1967074100 instance=ExtResource("2_gcs4s")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(0, 512)
+metadata/_edit_group_ = true
+
+[node name="Shape" type="CollisionPolygon2D" parent="Terrain" unique_id=1107196150]
+polygon = PackedVector2Array(0, 0, 321, 0, 321, 32, 0, 32)
+
+[node name="Feather" parent="." unique_id=324718674 instance=ExtResource("3_16rb2")]
+texture_filter = 1
+position = Vector2(680, 224)
+size = Vector2(24, 24)
+
+[node name="Spring" parent="." unique_id=211549438 instance=ExtResource("4_vsghg")]
+position = Vector2(208.00002, 352)
+rotation = 0.7853982
+size = Vector2(56, 14)
+plane = 1
+
+[node name="Terrain2" parent="." unique_id=1923972202 instance=ExtResource("2_gcs4s")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(856, 344)
+plane = 0
+metadata/_edit_group_ = true
+
+[node name="Shape" type="CollisionPolygon2D" parent="Terrain2" unique_id=1162565861]
+polygon = PackedVector2Array(0, 0, 310, 0, 310, 32, 0, 32)
+
+[node name="Terrain3" parent="." unique_id=1031016377 instance=ExtResource("2_gcs4s")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(192, 360)
+rotation = 0.7853982
+plane = 1
+metadata/_edit_group_ = true
+
+[node name="Shape" type="CollisionPolygon2D" parent="Terrain3" unique_id=952959183]
+polygon = PackedVector2Array(0, 0, 64, 0, 64, 16, 0, 16)
+
+[node name="Door" parent="." unique_id=1396874587 instance=ExtResource("2_door")]
+position = Vector2(1136, 272)
+plane = 1
