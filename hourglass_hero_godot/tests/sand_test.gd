@@ -305,7 +305,7 @@ func _ready() -> void:
 
 	# --- The inversion zone reverses the clock --------------------------------
 	# The flow is asked of a Godot group, so a stub in that group drives it and
-	# this bench stays pure. Real containment is smoke_test's job.
+	# this bench stays pure. Real containment is checked by playing the game.
 	_check("no zones means the sand flows normally", Game.poll_sand_flow() > 0.0)
 
 	var empty_zone := _StubZone.new(false)

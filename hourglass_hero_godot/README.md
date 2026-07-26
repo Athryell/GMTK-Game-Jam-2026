@@ -237,23 +237,14 @@ Two ideas hold it together:
 
 ## Tests
 
-```bash
-godot --path hourglass_hero_godot --headless tests/smoke_test.tscn
-```
-
-The smoke test boots the real game and plays it: level 1 opens with its clock
-held and its jump locked, sand drains the moment you move, walking without
-jumping runs you dry (the core design constraint), that death hands the jump
-back, a jump then swaps plane and refuels by exactly `max - sand`, two jumps
-return you to the starting plane, walking *while* jumping reaches the door, and
-every level loads and runs with exactly the rules it declares — including that
-no other level inherits level 1's two. Exits non-zero on failure, so it drops straight into CI.
+The levels themselves are played, not tested — the benches below cover the maths
+under them and nothing else.
 
 ```bash
 godot --path hourglass_hero_godot --headless tests/sand_test.tscn
 ```
 
-The sand test checks the geometry the smoke test cannot see: that the area drawn
+The sand test checks the geometry: that the area drawn
 equals the sand there is at every tilt, that the free surface stays level in
 *world* space rather than turning with the walls, and that a flip lands with no
 jump in the sand.
