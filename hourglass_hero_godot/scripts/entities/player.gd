@@ -212,19 +212,15 @@ func _on_status_changed(status: Game.Status) -> void:
 	if status != Game.Status.DEAD:
 		return
 	var life: float = Tuning.cfg.death_delay
-	# How full the whole glass was, 0 to 1. Each chamber reads 0 to 1 against its
-	# own capacity and the glass holds `count / 2` of those, so that is what
-	# normalises the total — and at two chambers it is the shipped `x + y`.
-	var chambers := Glass.motion.chambers()
-	var full := 0.0
-	for fill in chambers:
-		full += fill
 	# The glass breaks the way up it was standing: gravity inverted means the art
-	# was a half turn round, and the pieces have to start there too.
+	# was a half turn round, and the pieces and the sand have to start there too.
+	var turned := pull < 0.0
 	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life,
-		pull < 0.0)
+		turned)
+	# The bulb fills as the glass was DRAWING them, not the raw chamber numbers: the
+	# sand that flies out has to be the sand that was on screen, pile for pile.
 	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
-		full / (chambers.size() / 2.0), life)
+		Glass.motion.sprite_fills(), _visual.body_size, life, turned)
 	_visual.hide()
 	Audio.sfx("death")
 

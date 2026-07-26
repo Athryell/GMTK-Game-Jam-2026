@@ -19,8 +19,27 @@ const RING_RADIUS := 58.0
 ## Spin of a glass fragment, in rad/s. Sign randomised per fragment.
 const SPIN := 7.0
 
-## Grains spilled by a completely full hourglass.
+## Grains spilled by a glass with no painting of its own, at completely full.
 const GRAINS_FULL := 46
+
+## What fraction of the sand's own pixels are thrown when the painted glass
+## breaks. The pile is a solid block of them and every one would be several
+## hundred rects a frame, so it is sampled — but sampled thinly enough and the
+## sand stops leaving the glass and starts puffing out of it. A third reads as the
+## pile coming apart while it is still recognisably the pile.
+const SPILL_KEEP := 0.34
+
+## How hard the sand is thrown out of the break, in px/s: outwards from the throat
+## first, then lifted, so it leaves the glass rather than dropping through it. Well
+## under the wedges' own numbers — sand is what the glass was carrying, and it has
+## to be seen falling out of the pieces rather than racing them off screen.
+const SPILL_OUT := Vector2(40.0, 150.0)
+const SPILL_LIFT := Vector2(40.0, 190.0)
+
+## How much of a wedge's own glass is left under the painting. The art paints the
+## frame and leaves the cavity clear, so a piece of pure texture is a piece of
+## outline with a hole in it; this is the body it broke off with.
+const PIECE_BODY := 0.22
 
 ## How strongly the fresh cut down the side of a piece is drawn, against the fade
 ## the piece is already at. The art paints the glass's own outline; this is the
@@ -87,15 +106,78 @@ static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life:
 	b._split(HourglassShape.shell(size, Game.chamber_count))
 
 
-## Death, the sand half. `left` is how full the glass was, 0 to 1, and sets the
-## grain count. Same `life` constraint as [method shatter].
-static func spill(parent: Node, at: Vector2, tint: Color, left: float, life: float) -> void:
+## Death, the sand half: what the glass was carrying, leaving it.
+##
+## The grains are not scattered from the middle of the player — they START as the
+## sand itself. Each bulb's pile is the polygon the glass was drawing a frame ago,
+## rasterised on the same grid it was drawn on, so the first frame of the death is
+## the player's own sand, standing where it stood, and only then does it come out
+## through the break. `fills` is how full each bulb was, `size` the glass it was
+## drawn at, and `turned` whether that glass was on its head.
+##
+## A glass with no painting has no bulbs to empty, so it keeps the plain scatter.
+## Same `life` constraint as [method shatter].
+static func spill(parent: Node, at: Vector2, tint: Color, fills: PackedFloat32Array,
+		size: Vector2, life: float, turned := false) -> void:
 	var b := _make(parent, at, Kind.SAND, tint, life)
-	b._scatter(int(round(GRAINS_FULL * clampf(left, 0.0, 1.0))), 120.0, -1.3, 1.3)
-	# Spread over the body of the glass rather than issued from a single point.
+	if Game.chamber_count != 2 or fills.size() < 2:
+		# How full the whole glass was, 0 to 1: each chamber reads against its own
+		# capacity and the glass holds `count / 2` of those.
+		var left := 0.0
+		for fill in fills:
+			left += fill
+		left /= maxf(fills.size() / 2.0, 1.0)
+		b._scatter(int(round(GRAINS_FULL * clampf(left, 0.0, 1.0))), 120.0, -1.3, 1.3)
+		var rng := RandomNumberGenerator.new()
+		for i in b._bits.size():
+			b._bits[i] = Vector2(rng.randf_range(-8.0, 8.0), rng.randf_range(-14.0, 14.0))
+		return
+	b._empty(fills, size, -1.0 if turned else 1.0)
+
+
+## Turns each bulb's pile into flying grains, one per sampled pixel of it.
+func _empty(fills: PackedFloat32Array, size: Vector2, facing: float) -> void:
 	var rng := RandomNumberGenerator.new()
-	for i in b._bits.size():
-		b._bits[i] = Vector2(rng.randf_range(-8.0, 8.0), rng.randf_range(-14.0, 14.0))
+	# The bulb's capacity at this drawing size, exactly as the sprite works it out —
+	# a fill of 1 has to come out as the pile that filled the bulb on screen.
+	var capacity := HourglassSprite.BULB_AREA \
+		* (size.x / HourglassSprite.TRIM.size.x) * (size.y / HourglassSprite.TRIM.size.y)
+	for i in 2:
+		if fills[i] <= 0.001:
+			continue
+		# Pass `Vector2.DOWN` and no inversion: the sand is at rest in the glass's own
+		# frame the instant it dies, whichever way up that frame is. `facing` carries
+		# the half turn afterwards, so it lands on the grains and the wedges alike.
+		var pile := HourglassShape.pile(HourglassSprite.bulb(size, i), Vector2.DOWN,
+			clampf(fills[i], 0.0, 1.0) * capacity)
+		for cell in _sample(pile, rng):
+			var from := cell * facing
+			var away := from.normalized() if from.length() > 0.01 else Vector2.UP
+			_bits.append(from)
+			_velocities.append(away * rng.randf_range(SPILL_OUT.x, SPILL_OUT.y)
+				+ Vector2(0.0, -rng.randf_range(SPILL_LIFT.x, SPILL_LIFT.y)))
+
+
+## Some of the pixel centres inside `poly`, on the [constant PIXEL] grid — the
+## same cells [method HourglassShape.fill_grains] would have filled, thinned by
+## [constant SPILL_KEEP].
+func _sample(poly: PackedVector2Array, rng: RandomNumberGenerator) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	if poly.size() < 3:
+		return out
+	var box := Rect2(poly[0], Vector2.ZERO)
+	for v in poly:
+		box = box.expand(v)
+	var row := floori(box.position.y / PIXEL)
+	while row <= floori(box.end.y / PIXEL):
+		var col := floori(box.position.x / PIXEL)
+		while col <= floori(box.end.x / PIXEL):
+			var centre := Vector2((col + 0.5) * PIXEL, (row + 0.5) * PIXEL)
+			if rng.randf() < SPILL_KEEP and Geometry2D.is_point_in_polygon(centre, poly):
+				out.append(centre)
+			col += 1
+		row += 1
+	return out
 
 
 ## Nerves: a single bead flicked off the shaking glass. Called repeatedly while
@@ -273,6 +355,10 @@ func _draw() -> void:
 				var piece := PackedVector2Array()
 				for point in _pieces[i]:
 					piece.append(at + point)
+				# The wedge's own glass first, then the painting over it: the art is a
+				# frame around a clear cavity, so texture alone leaves most of a piece as a
+				# hole and the break goes back to reading as a scatter of outlines.
+				draw_colored_polygon(piece, Color(colour, strength * PIECE_BODY))
 				draw_colored_polygon(piece, glass, _uvs[i], HourglassSprite.TEXTURE)
 				piece.append(piece[0])
 				# Not antialiased, unlike the flat wedges: a soft line would leave half-lit
