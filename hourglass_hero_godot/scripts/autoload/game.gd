@@ -31,6 +31,11 @@ var level_scenes: Array[PackedScene] = []
 var level_names: Array[String] = []
 var level_index := 0
 
+## Seconds played on the current run. Advanced by `main.gd` rather than here, so
+## the menu and the victory screen are not on the clock; only `start_run` puts it
+## back to zero.
+var run_time := 0.0
+
 ## Progression gate; everything is unlocked for now.
 var unlock_all := true
 ## Highest level index reached; tracked even while `unlock_all` is on.
@@ -211,6 +216,13 @@ func is_unlocked(index: int) -> bool:
 
 # ----- Level lifecycle -------------------------------------------------------
 
+## Starts the clock over and drops into `index`. The only way into a level from
+## outside a run, so picking a level from the menu times that attempt too.
+func start_run(index: int) -> void:
+	run_time = 0.0
+	start_level(index)
+
+
 ## `keep_deaths` tells a retry from a fresh arrival: only `restart` passes it.
 func start_level(index: int, keep_deaths := false) -> void:
 	if not keep_deaths or index != level_index:
@@ -238,7 +250,7 @@ func next_level() -> void:
 
 func restart() -> void:
 	if status == Status.VICTORY:
-		start_level(0)
+		start_run(0)
 	else:
 		start_level(level_index, true)
 
@@ -280,6 +292,16 @@ func aim(travel_dir: float) -> void:
 		return
 	next_plane = wanted
 	next_plane_changed.emit(next_plane)
+
+
+# ----- The clock -------------------------------------------------------------
+
+## A duration as `M:SS.CS`. Truncated rather than rounded, so what a run reads on
+## the last frame is never more than what it reads on the victory screen, and
+## minutes are not capped: a long run shows 12:04.37 rather than 0:724.37.
+static func format_time(seconds: float) -> String:
+	var cs := int(floorf(maxf(seconds, 0.0) * 100.0))
+	return "%d:%02d.%02d" % [cs / 6000, (cs / 100) % 60, cs % 100]
 
 
 # ----- The hourglass ---------------------------------------------------------
