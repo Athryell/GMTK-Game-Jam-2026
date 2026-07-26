@@ -113,9 +113,9 @@ would bury the dozen sliders that actually change how the game plays.
 turns into a faint, non-solid ghost. A plane-bound *solid* is never lifted back
 towards looking solid, because looking solid is the one thing that would lie
 about it: it carries a dashed line outside its silhouette instead, in its plane's
-hue — full strength in the plane the next jump lands in, faded to a quiet trim in
-the one you are standing in (`PlaneMarker`, `next_outline_gap`). The line fades
-between the two rather than switching, so a flip is something you watch happen.
+hue — at its strongest in the plane the next jump lands in, dropped to a quiet
+trim in the one you are standing in (`PlaneMarker`, `next_outline_gap`). It cuts
+between the two on the frame the flip lands, like the stone it is drawn around.
 Hazards and zones do still lift (`ghost_next_lift`): there is nothing to stand on
 there for a brighter fill to mislead you about. Past
 two chambers there are several ghost planes and only one of them is where you are

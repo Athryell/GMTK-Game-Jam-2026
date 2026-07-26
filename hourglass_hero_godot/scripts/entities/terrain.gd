@@ -63,15 +63,6 @@ func _ready() -> void:
 	Tuning.changed.connect(queue_redraw)
 	_on_plane_changed(Game.plane)
 	_on_next_plane_changed(Game.next_plane)
-	# A level opens with its markers already where they belong; see `platform.gd`.
-	_marker.settle()
-
-
-## Steps the marker's fade. Separate from `_process`, which is the editor's
-## polling and is switched off in the game.
-func _physics_process(delta: float) -> void:
-	if _marker.advance(delta):
-		queue_redraw()
 
 
 ## The polygon is edited on the child node, so there is no signal to wait on:
