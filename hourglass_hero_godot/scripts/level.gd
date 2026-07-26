@@ -5,8 +5,7 @@
 class_name Level
 extends Node2D
 
-## Name shown in the HUD, taken from the .tscn's own filename. Renaming the file
-## renames the level; there is nothing to keep in sync.
+## Name shown in the HUD. Renaming the .tscn renames the level.
 var level_name: String: get = _get_level_name
 ## Playable extent. Bounds the camera; falling below it kills. May exceed one
 ## screen on either axis — the camera clamps and scrolls.
@@ -32,8 +31,7 @@ func _get_level_name() -> String:
 	return title_from_path(scene_file_path)
 
 
-## "res://scenes/levels/level_04_the_spring.tscn" -> "The Spring". The leading
-## `level` and the ordering number are scaffolding, not part of the title.
+## "res://scenes/levels/level_04_the_spring.tscn" -> "The Spring".
 static func title_from_path(path: String) -> String:
 	var stem := path.get_file().get_basename()
 	var words := PackedStringArray()
