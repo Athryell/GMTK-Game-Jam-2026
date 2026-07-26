@@ -25,6 +25,26 @@ const FLIP_PAD := Color("ffc971") ## Flip-pad: refuels without changing plane.
 const MONSTER := Color("ff4d6d")
 const DOOR := Color("ffd166")
 
+## What the brick a platform and the ground are built from is tinted, one entry
+## per background. Stone belongs to the PLACE, not to the plane: it is lit by
+## the sky behind it, so it changes when that does. Which plane a solid sits in
+## is still read off its alpha — solid is the one you can stand on.
+const BRICK_TINTS: Array[Color] = [
+	Color("ff874a"), ## Backgrounds 1 — warm brick, at the top of its value.
+	Color("ea7562"), ## 2 — the same brick, gone rosy.
+	Color("5856a8"), ## 3 — cold blue-violet stone, the darkest of the four.
+	Color("efab5a"), ## 4 — pale sandstone.
+]
+
+## How far the tints above are lifted before they reach the tile.
+##
+## This is not the knob for "brighter" any more. Past about 1.5 the tile's top
+## few percent of texels — the mortar highlights — saturate against the widest
+## tint channel and flatten out, taking the relief with them. Raise the tints
+## themselves instead: they clip the same way, but a brighter, more saturated
+## tint spends the headroom on colour rather than on washing the courses out.
+const BRICK_GAIN := 1.5
+
 # ----- The hourglass ---------------------------------------------------------
 
 const GLASS := Color("eef2ff") ## Hourglass frame.
@@ -57,6 +77,20 @@ const PLANE_ROOMS: Array[Array] = [
 static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 	var effective := current if plane == Planes.Kind.BOTH else plane
 	return PLANE_SOLIDS[clampi(int(effective), 0, PLANE_SOLIDS.size() - 1)]
+
+
+## The brick tint a level is built in, grouped exactly as the backgrounds are so
+## the stone and the skyline always change on the same level.
+##
+## Lifted by `BRICK_GAIN`, because a modulate is a MULTIPLY: the tile averages
+## 47% grey, so handing it the colour raw lays the stone at half the colour.
+static func bricks(level_index: int) -> Color:
+	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
+	var group := level_index / Backdrop.LEVELS_PER_BACKGROUND
+	var tint := BRICK_TINTS[clampi(group, 0, BRICK_TINTS.size() - 1)]
+	# Rebuilt rather than scaled: `Color * float` takes the alpha with it, and
+	# the alpha is `ghost`'s to set.
+	return Color(tint.r * BRICK_GAIN, tint.g * BRICK_GAIN, tint.b * BRICK_GAIN)
 
 
 ## Faded when the entity lives in another plane, and less faded in the one a jump

@@ -42,6 +42,7 @@ func _touched(player: Player) -> void:
 		return
 	player.bounce(power if power > 0.0 else Tuning.cfg.spring_power)
 	_compress = 1.0
+	Audio.sfx("bounce")
 	queue_redraw()
 
 

@@ -50,7 +50,7 @@ extends Resource
 @export_range(0.0, 3000.0, 10.0) var spring_power: float = 1400.0
 ## Opacity of entities in the opposite plane (the "ghosts"). `world_light`
 ## multiplies it, so low values vanish.
-@export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.26
+@export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.22
 ## How far the plane a jump would land in is lifted out of `ghost_alpha` towards
 ## solid. 0 hides which way you are going; 1 makes it look walkable.
 @export_range(0.0, 1.0, 0.01) var ghost_next_lift: float = 0.45
@@ -89,7 +89,9 @@ extends Resource
 ## Reach of the light the player carries, in px.
 @export_range(40.0, 700.0, 10.0) var player_light_radius: float = 270.0
 ## Brightness of the player's light with a full glass; scales down with the sand.
-@export_range(0.0, 4.0, 0.05) var player_light_energy: float = 1.35
+## Kept well under 1 now the glass is painted rather than drawn: a bright lamp
+## sitting inside the art washes the wood and the highlights out of it.
+@export_range(0.0, 4.0, 0.05) var player_light_energy: float = 0.6
 ## Brightness of the lights on doors, springs, pads and hazards.
 @export_range(0.0, 4.0, 0.05) var entity_light_energy: float = 1.1
 ## How far a platform's shadow is thrown at the player's feet, in px. Shrinks to

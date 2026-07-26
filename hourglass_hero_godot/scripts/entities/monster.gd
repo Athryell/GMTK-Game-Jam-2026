@@ -1,7 +1,26 @@
 @tool
 ## Monster: patrols along an axis and kills on contact, within its own plane only.
+##
+## Drawn as a clock, with a hand going round. The thing chasing you in a game
+## about running out of time should look like the clock it is.
 class_name Monster
 extends PlaneArea
+
+const FACE: Texture2D = preload("res://art/sprites/clock.png")
+
+## The art is a 64×64 dial, and the hand is struck from measurements taken off
+## it rather than guessed at, so retracing the sprite is the only thing that can
+## put them out of step.
+const ART_SIZE := 64.0
+## The gold hub the hand turns on — dead centre, as it happens.
+const ART_PIVOT := Vector2(32.0, 32.0)
+## The hour ticks run from radius 12 out to 19. Stopping at 14 puts the tip just
+## inside the ring, which is where a clock's own hand stops.
+const ART_REACH := 14.0
+const ART_WIDTH := 4.0
+
+## Seconds for one full sweep, clockwise from twelve.
+const HAND_PERIOD := 0.55
 
 @export_group("Patrol")
 @export var move_axis: PingPong.Axis = PingPong.Axis.X
@@ -15,6 +34,8 @@ extends PlaneArea
 
 var _origin := Vector2.ZERO
 var _elapsed := 0.0
+## Where the hand has got to, in radians clockwise from twelve.
+var _hand := 0.0
 
 
 func _init() -> void:
@@ -22,7 +43,10 @@ func _init() -> void:
 	plane = Planes.Kind.P0
 	light_tint = Palette.MONSTER
 	light_radius = 105.0
-	light_energy = 0.8
+	# Kept low deliberately: at any strength the red wash swallows the clock face
+	# and the hand along with it. Enough glow to be seen coming in the dark, not
+	# enough to repaint what it is lighting.
+	light_energy = 0.2
 
 
 func _ready() -> void:
@@ -33,6 +57,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	# Before the patrol guard, not after: a monster told to hold still is still a
+	# clock, and its hand still has to go round.
+	_hand = fmod(_hand + delta * TAU / HAND_PERIOD, TAU)
+	queue_redraw()
 	if move_axis == PingPong.Axis.NONE or move_speed <= 0.0:
 		return
 	_elapsed += delta
@@ -44,10 +72,28 @@ func _touched(_player: Player) -> void:
 	Game.kill()
 
 
+## The dial, then the hand over it.
+##
+## Drawn SQUARE and centred on the hitbox rather than stretched to fill it. The
+## art is a circle and `size` is not, so filling the rect turned every clock into
+## an egg. The square takes the hitbox's longer side, so it still covers
+## everything that can kill you — erring towards a clock whose edge you can brush
+## without dying, rather than one that kills from a gap you can see through.
 func _draw() -> void:
-	var colour := _shade(Palette.MONSTER)
-	draw_rect(Rect2(Vector2.ZERO, size), colour)
-	var eye := Color(0.06, 0.05, 0.09, colour.a)
-	var r := maxf(size.x * 0.09, 2.0)
-	draw_circle(Vector2(size.x * 0.32, size.y * 0.34), r, eye)
-	draw_circle(Vector2(size.x * 0.68, size.y * 0.34), r, eye)
+	var span := maxf(size.x, size.y)
+	var face := Rect2((size - Vector2(span, span)) * 0.5, Vector2(span, span))
+	# White modulate is the sprite's own colours untouched; out of plane `_shade`
+	# takes the alpha down and ghosts the whole dial at once.
+	draw_texture_rect(FACE, face, false, _shade(Color.WHITE))
+
+	# Struck last, so it sweeps over the dial rather than under it. One scale for
+	# both axes now the dial is round, so the tip keeps to the ring of ticks the
+	# whole way round.
+	#
+	# The danger red the rest of the monster is lit in, rather than a red of its
+	# own: the hand is the part of the clock that is coming for you, and it costs
+	# no hue to say so.
+	var pivot := face.position + face.size * 0.5
+	draw_line(pivot, pivot + Vector2.UP.rotated(_hand) * (span * ART_REACH / ART_SIZE),
+		_shade(Palette.MONSTER),
+		maxf(span * ART_WIDTH / ART_SIZE, 1.0), true)

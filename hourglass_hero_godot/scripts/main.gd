@@ -21,6 +21,7 @@ var _advance_timer := 0.0
 
 func _ready() -> void:
 	Game.status_changed.connect(_on_status_changed)
+	Game.flow_changed.connect(_on_flow_changed)
 	Tuning.changed.connect(_apply_world_light)
 	_apply_world_light()
 	# `start_level` arms the state (sand, plane, status); `_load_current_level`
@@ -78,8 +79,7 @@ func _load_current_level() -> void:
 	_backdrop.sync(_camera.global_position)
 
 	# `play_music` ignores a track already playing, so this does not restart it.
-	Audio.play_music("level")
-	Audio.play_music("falling_sand")
+	Audio.play_music("return_8_bit")
 	Game.announce_level(_level.level_name)
 
 
@@ -110,6 +110,12 @@ func _advance() -> void:
 		if Game.status == Game.Status.VICTORY:
 			return
 	_load_current_level()
+
+
+## An inversion zone reverses the sand rather than gravity, but it is sold to
+## the player as gravity, so it borrows the pads' pair of sounds.
+func _on_flow_changed(flow: float) -> void:
+	Audio.sfx("gravity_up" if flow < 0.0 else "gravity_down")
 
 
 func _on_status_changed(status: Game.Status) -> void:

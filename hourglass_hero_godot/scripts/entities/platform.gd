@@ -40,6 +40,9 @@ var _next := false
 
 func _ready() -> void:
 	_origin = position
+	# The brick tile is 64 px and the shortest platform in the game is wider than
+	# that; without repeat the whole slab is one stretched course.
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	_apply_size()
 	_apply_kind()
 	if Engine.is_editor_hint():
@@ -65,11 +68,15 @@ func _physics_process(delta: float) -> void:
 		move_axis, _elapsed, move_distance, move_speed, move_phase)
 
 
+## Both rects are tiled from the node's own origin, so the lit lip is struck on
+## the same course as the brick underneath it rather than half a row out.
 func _draw() -> void:
-	var rect := Rect2(Vector2.ZERO, size)
-	draw_rect(rect, _colour())
+	var colour := _colour()
+	draw_texture_rect(Bricks.TEXTURE, Rect2(Vector2.ZERO, size), true, colour)
 	if size.y >= 6.0:
-		draw_rect(Rect2(Vector2.ZERO, Vector2(size.x, 3.0)), _colour().lightened(0.35))
+		draw_texture_rect(Bricks.TEXTURE,
+			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
+			true, colour.lightened(Bricks.LIP_LIFT))
 
 
 ## The outline this casts a shadow from, in this node's own space: its four
@@ -80,9 +87,11 @@ func shadow_outline() -> PackedVector2Array:
 		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
 
 
+## The pad keeps its gold: it is the one platform whose colour says what it does
+## rather than where it is. Everything else is masonry, tinted by the level.
 func _colour() -> Color:
-	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
-	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.solid(plane, current)
+	var level := 0 if Engine.is_editor_hint() else Game.level_index
+	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
 	# A ghost lives in the other plane: visible, but not solid.
 	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 

@@ -19,6 +19,6 @@ shape = SubResource("RectangleShape2D_door")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1367986667]
 stream = ExtResource("2_ewl7v")
-volume_db = 10.0
+volume_db = 14.0
 autoplay = true
 max_distance = 500.0

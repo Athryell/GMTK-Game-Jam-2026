@@ -23,6 +23,9 @@ signal flipped(from_pad: bool)
 signal status_changed(status: Status)
 ## Which way the world pulls has changed. `sign` is the new [member gravity_sign].
 signal gravity_changed(sign: float)
+## The player crossed into or out of an inversion zone. `flow` is the new
+## [member sand_flow]: -1 on the way in, +1 on the way out.
+signal flow_changed(flow: float)
 signal level_loaded(index: int, level_name: String)
 
 ## Level scenes, sorted by filename (level_01_… before level_02_…).
@@ -144,12 +147,19 @@ func _process(delta: float) -> void:
 ## `sand_flow` and returns it. Zones never push to `Game`, so the clock keeps a
 ## single writer. One containing zone is enough: the flow is a direction, not
 ## a total, so overlapping zones do not stack.
+## Crossing the boundary is a signal rather than something a zone announces, for
+## the same reason the flow itself is polled: a level reload while the player
+## stands inside one must not leave an "entered" event owing its "exited" one.
+## `start_level` rearms it by writing `sand_flow` straight back to +1.
 func poll_sand_flow() -> float:
+	var before := sand_flow
 	sand_flow = 1.0
 	for zone in get_tree().get_nodes_in_group(INVERSION_GROUP):
 		if zone.contains_player():
 			sand_flow = -1.0
 			break
+	if sand_flow != before:
+		flow_changed.emit(sand_flow)
 	return sand_flow
 
 

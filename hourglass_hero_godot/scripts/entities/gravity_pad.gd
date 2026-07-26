@@ -51,7 +51,12 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+## Read `_armed` first: `set_gravity` clears it through `gravity_changed` on the
+## same call. A spent pad still flashes — you did touch it — but it stays silent,
+## because nothing turned over.
 func _touched(_player: Player) -> void:
+	if _armed:
+		Audio.sfx("gravity_up" if pulls_up else "gravity_down")
 	Game.set_gravity(-1.0 if pulls_up else 1.0)
 	_flash = 1.0
 	queue_redraw()

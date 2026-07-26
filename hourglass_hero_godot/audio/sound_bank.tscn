@@ -3,8 +3,12 @@
 [ext_resource type="AudioStream" uid="uid://nmxnfhscnkk5" path="res://audio/sfx/jump.mp3" id="1_jump"]
 [ext_resource type="AudioStream" uid="uid://cjunyc2y20owo" path="res://audio/sfx/land.wav" id="2_land"]
 [ext_resource type="AudioStream" uid="uid://uphrtvolae4g" path="res://audio/sfx/death.wav" id="3_death"]
-[ext_resource type="AudioStream" uid="uid://cytdh25mhf2ao" path="res://audio/sfx/win.mp3" id="4_win"]
+[ext_resource type="AudioStream" path="res://audio/sfx/win.wav" id="4_win"]
+[ext_resource type="AudioStream" path="res://audio/sfx/bounce.wav" id="5_bounce"]
+[ext_resource type="AudioStream" path="res://audio/sfx/gravity_up.wav" id="8_gravity_up"]
+[ext_resource type="AudioStream" path="res://audio/sfx/gravity_down.wav" id="9_gravity_down"]
 [ext_resource type="AudioStream" uid="uid://cmmusr2qbbnfh" path="res://audio/music/falling_sand.wav" id="6_sand"]
+[ext_resource type="AudioStream" path="res://audio/music/return_8_bit.mp3" id="7_return"]
 
 [node name="SoundBank" type="Node" unique_id=1992489972]
 
@@ -17,17 +21,32 @@ bus = &"SFX"
 
 [node name="land" type="AudioStreamPlayer" parent="Sfx" unique_id=1791855978]
 stream = ExtResource("2_land")
-volume_db = -8.0
+volume_db = -15.0
 bus = &"SFX"
 
 [node name="death" type="AudioStreamPlayer" parent="Sfx" unique_id=1018953885]
 stream = ExtResource("3_death")
-volume_db = -4.0
+volume_db = -12.0
 bus = &"SFX"
 
 [node name="win" type="AudioStreamPlayer" parent="Sfx" unique_id=1418900523]
 stream = ExtResource("4_win")
-volume_db = -4.0
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="bounce" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("5_bounce")
+volume_db = -7.0
+bus = &"SFX"
+
+[node name="gravity_up" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("8_gravity_up")
+volume_db = -10.0
+bus = &"SFX"
+
+[node name="gravity_down" type="AudioStreamPlayer" parent="Sfx"]
+stream = ExtResource("9_gravity_down")
+volume_db = -10.0
 bus = &"SFX"
 
 [node name="Music" type="Node" parent="." unique_id=278794889]
@@ -42,4 +61,9 @@ bus = &"Music"
 
 [node name="falling_sand" type="AudioStreamPlayer" parent="Music" unique_id=329639387]
 stream = ExtResource("6_sand")
+bus = &"Music"
+
+[node name="return_8_bit" type="AudioStreamPlayer" parent="Music"]
+stream = ExtResource("7_return")
+volume_db = -10.0
 bus = &"Music"

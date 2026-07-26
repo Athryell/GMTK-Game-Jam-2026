@@ -24,10 +24,6 @@ static var STARTER := PackedVector2Array([
 	Vector2(0.0, 0.0), Vector2(240.0, 0.0), Vector2(240.0, 60.0), Vector2(0.0, 60.0),
 ])
 
-## Thickness of the lit lip along every up-facing edge — the same 3 px highlight
-## a Platform wears along its top.
-const LIP_WIDTH := 3.0
-
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 
 var _shape: CollisionPolygon2D
@@ -45,6 +41,9 @@ func _ready() -> void:
 	# A Terrain collides with nothing; it is the thing others collide with.
 	collision_layer = Layers.SOLID
 	collision_mask = 0
+	# Ground is measured in hundreds of px and the brick tile in tens, so the UVs
+	# run well past 1 and have to wrap.
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	if Engine.is_editor_hint():
 		_plant_shape()
 		_refresh()
@@ -73,7 +72,7 @@ func _draw() -> void:
 	var body := _colour()
 	var i := 0
 	while i + 2 < _triangles.size():
-		draw_colored_polygon(PackedVector2Array([
+		Bricks.polygon(self, PackedVector2Array([
 			_points[_triangles[i]],
 			_points[_triangles[i + 1]],
 			_points[_triangles[i + 2]],
@@ -88,13 +87,13 @@ func _draw() -> void:
 	# centred, so it overhangs the silhouette, and two strokes meeting at a fold
 	# leave a notch on the outside of the corner — the joint is mitred here
 	# because both edges read the SAME inset vertex.
-	var lip := body.lightened(0.35)
+	var lip := body.lightened(Bricks.LIP_LIFT)
 	var wind := Polygons.winding(_points)
-	var inner := Polygons.grow(_points, -LIP_WIDTH)
+	var inner := Polygons.grow(_points, -Bricks.LIP_WIDTH)
 	for j in _points.size():
 		var next := (j + 1) % _points.size()
 		if Polygons.faces_up(_points[j], _points[next], wind):
-			draw_colored_polygon(PackedVector2Array([
+			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
 
 
@@ -178,9 +177,9 @@ func _on_next_plane_changed(next: Planes.Kind) -> void:
 
 
 func _colour() -> Color:
-	var current := Game.plane if not Engine.is_editor_hint() else Planes.Kind.P0
-	var base := Palette.solid(plane, current)
-	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
+	var level := 0 if Engine.is_editor_hint() else Game.level_index
+	return Palette.ghost(Palette.bricks(level),
+		_active or Engine.is_editor_hint(), _next)
 
 
 func _set_plane(value: Planes.Kind) -> void:

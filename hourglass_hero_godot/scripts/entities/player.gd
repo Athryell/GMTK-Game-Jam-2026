@@ -39,6 +39,9 @@ const SWEAT_FASTEST := 0.09
 
 var _sweat_timer := 0.0
 var _rng := RandomNumberGenerator.new()
+## Suppress the landing sound until the player has first settled on the floor
+## after spawn — the spawn drop is not a landing.
+var _settled := false
 
 
 ## How far below its feet the glass reaches for the ground, in px. Only slopes
@@ -145,10 +148,11 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	if is_on_floor():
-		if was_airborne:
+		if was_airborne and _settled:
 			_land(impact)
 		_jumping = false
 		_air_jumps = 1 if Game.double_jump else 0
+		_settled = true
 
 	if global_position.y < death_top or global_position.y > death_bottom:
 		Game.kill()
