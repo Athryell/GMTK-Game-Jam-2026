@@ -11,6 +11,13 @@ var level_name: String: get = _get_level_name
 ## screen on either axis — the camera clamps and scrolls.
 @export var world_size := Vector2(960.0, 540.0): set = _set_world_size
 
+@export_group("Look")
+## The place this level is in: its skyline, its brick tint and its music, which
+## always change together. "From the level order" keeps the old grouping, four
+## levels to a theme, so a level dropped in the middle of the run still fits.
+@export_enum("From the level order:-1", "Theme 1:0", "Theme 2:1", "Theme 3:2",
+	"Theme 4:3") var theme := -1: set = _set_theme
+
 @export_group("Rules")
 ## How many chambers this level's glass has — also how many planes, and how far a
 ## jump turns you. Raising it does not make the level faster: a chamber still
@@ -40,6 +47,30 @@ static func title_from_path(path: String) -> String:
 			continue
 		words.append(word.capitalize())
 	return " ".join(words) if not words.is_empty() else stem
+
+
+## Which theme this level plays in, given its rank in the level order — the
+## answer `Backdrop`, `Palette` and the music all take.
+func theme_group(level_index: int) -> int:
+	return theme if theme >= 0 else Backdrop.group_for_level(level_index)
+
+
+## The theme of the level a piece of scenery sits in. Scenery is `owner`ed by the
+## level root both in the editor and once instantiated; a node with no level over
+## it (a test scene) falls back to the level order.
+static func group_of(node: Node) -> int:
+	var index := 0 if Engine.is_editor_hint() else Game.level_index
+	var level := node.owner as Level
+	return level.theme_group(index) if level != null else Backdrop.group_for_level(index)
+
+
+## Repaints the scenery so the inspector shows the new stone straight away.
+func _set_theme(value: int) -> void:
+	theme = value
+	if not Engine.is_editor_hint():
+		return
+	for node in find_children("*", "CanvasItem", true, false):
+		(node as CanvasItem).queue_redraw()
 
 
 func _set_world_size(value: Vector2) -> void:
