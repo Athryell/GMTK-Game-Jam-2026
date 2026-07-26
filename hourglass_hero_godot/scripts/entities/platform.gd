@@ -91,7 +91,7 @@ func shadow_outline() -> PackedVector2Array:
 ## rather than where it is. Everything else is masonry, tinted by the level.
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
-	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
+	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level, plane)
 	# A ghost lives in the other plane: visible, but not solid.
 	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 

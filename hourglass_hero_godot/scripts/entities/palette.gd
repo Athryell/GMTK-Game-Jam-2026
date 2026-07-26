@@ -82,12 +82,21 @@ static func solid(plane: Planes.Kind, current: Planes.Kind) -> Color:
 ## The brick tint a level is built in, grouped exactly as the backgrounds are so
 ## the stone and the skyline always change on the same level.
 ##
+## `plane` washes that stone with the hue of the plane the solid belongs to, and
+## `BOTH` leaves it bare. This is the only thing that says what a jump will take
+## away: bare stone is the level you can always stand on, and coloured stone is
+## scaffolding that comes and goes — in the colour of the chamber it comes back
+## with. Alpha still says whether you can stand on it NOW; this says whether you
+## will be able to next time.
+##
 ## Lifted by `BRICK_GAIN`, because a modulate is a MULTIPLY: the tile averages
 ## 47% grey, so handing it the colour raw lays the stone at half the colour.
-static func bricks(level_index: int) -> Color:
+static func bricks(level_index: int, plane := Planes.Kind.BOTH) -> Color:
 	@warning_ignore("integer_division") # Grouping, not measurement — the floor is the point.
 	var group := level_index / Backdrop.LEVELS_PER_BACKGROUND
 	var tint := BRICK_TINTS[clampi(group, 0, BRICK_TINTS.size() - 1)]
+	if plane != Planes.Kind.BOTH:
+		tint = tint.lerp(solid(plane, plane), Tuning.cfg.plane_wash)
 	# Rebuilt rather than scaled: `Color * float` takes the alpha with it, and
 	# the alpha is `ghost`'s to set.
 	return Color(tint.r * BRICK_GAIN, tint.g * BRICK_GAIN, tint.b * BRICK_GAIN)
