@@ -1,6 +1,5 @@
 Sprites:
 [ ] - spires
-[ ] - door (do we even wanna have a door?
 [ ] - jumping platforms
 [ ] - invert gravity platforms
 [ ] - laser cannons
@@ -15,4 +14,3 @@ Music:
 [ ] - lvl 13-17 (background 4) music
 
 Level design:
-
