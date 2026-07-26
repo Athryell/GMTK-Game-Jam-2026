@@ -27,14 +27,12 @@ var _jumping := false
 ## it rides on top of the steering instead.
 var _launch := 0.0
 
-## How long the portal takes to draw the glass in, in s. Under `level_fade`, so
-## the glass is gone before the screen is: the swallow is the exit, not the fade.
+## How long the portal takes to draw the glass in, in s. Kept under `level_fade`,
+## so the glass is gone before the screen is: the swallow is the exit, not the fade.
 const SWALLOW_TIME := 0.35
-## Turns the glass makes on its way down the throat.
 const SWALLOW_SPINS := 1.5
 
-## The portal's hold on the glass: 0 loose, 1 all the way in. Read by [Door] for
-## its flare and by `Visual` for the spin-down.
+## The portal's hold on the glass: 0 loose, 1 all the way in.
 var swallow := 0.0
 var _swallowing := false
 var _swallow_from := Vector2.ZERO
@@ -100,7 +98,7 @@ func _process(delta: float) -> void:
 	# The lamp goes down with the glass, or a swallowed player leaves a lit hole.
 	var left := 1.0 - swallow
 	_light.energy = cfg.player_light_energy * (0.42 + 0.58 * fuel) * throb * charge * left
-	# Never all the way to zero: a zero-scale light is not a legal one.
+	# The reach never reaches zero: a zero-scale light is not a legal one.
 	_light.texture_scale = LightKit.scale_for(
 		cfg.player_light_radius * charge * maxf(left, 0.05))
 	# What still reaches into a shadow. At full strength, nothing.
@@ -253,9 +251,8 @@ func _on_status_changed(status: Game.Status) -> void:
 
 # ----- The portal ------------------------------------------------------------
 
-## The exit has hold of the glass: from here on it is pulled to `mouth` and no
-## longer plays. Called by [Door] on the same frame it wins the level, so the
-## swallow runs under the level-clear delay rather than after it.
+## The exit has hold of the glass: from here on it is drawn to `mouth` and no
+## longer plays.
 func swallowed_by(mouth: Vector2) -> void:
 	if _swallowing:
 		return
@@ -265,8 +262,8 @@ func swallowed_by(mouth: Vector2) -> void:
 	velocity = Vector2.ZERO
 
 
-## Gravity is off and so is `move_and_slide`: the portal wins over the floor, and
-## the glass has to be able to leave through a wall it is standing against.
+## No gravity and no `move_and_slide`: the glass has to be able to leave through
+## a wall it is standing against.
 ##
 ## Squared, so it hangs for an instant and then goes: a linear slide reads as the
 ## glass walking in of its own accord.
