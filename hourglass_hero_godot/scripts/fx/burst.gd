@@ -20,12 +20,41 @@ const RING_RADIUS := 58.0
 const SPIN := 7.0
 
 ## Grains spilled by a completely full hourglass.
-const GRAINS_FULL := 46
+##
+## A grain is one world px, the size it was in the bulb, so the spill only reads
+## as sand if there is a MASS of it: a few dozen single pixels scatter into
+## nothing before the eye has found them. This is roughly what a full glass holds
+## on screen, and it is meant to be — what pours out is what was in there.
+const GRAINS_FULL := 170
+
+## How far the spill is thrown, in px/s, and how wide. Deliberately slower than a
+## landing's chips: sand that is fired out of the frame in three frames is sand
+## nobody sees fall. It wants to lift, hang, and come down inside the pause.
+const SPILL_SPEED := 74.0
+const SPILL_SPREAD := 1.2
+
+## Gravity on a grain, against [constant GRAVITY] on everything else. Sand is
+## small and slow to fall; this is also what keeps the spill on screen for the
+## length of the death pause rather than a third of it.
+const SPILL_GRAVITY := 620.0
+
+## The last fraction of the spill's life, over which it fades out. Before that the
+## sand is at full strength.
+const SPILL_FADE := 0.22
 
 ## How big a piece of the player's sprite is, in art px a side. The art is 32×64,
 ## so 8 cuts it into a 4×8 grid — big enough that a piece still reads as a bit of
 ## the glass rather than as confetti, small enough that a dozen or more fly.
 const PIECE_CELL := 8
+
+## How hard the break flashes. The pieces are drawn through this, lerped back to
+## plain white — an unlit multiply — over [constant PIECE_FLASH_TIME].
+##
+## The art is a thin dark outline and two wooden caps against a dark room, and
+## broken up it is thinner still. Without a flash the moment of the break has
+## nothing loud in it at all, and the first thing the eye finds is already debris.
+const PIECE_FLASH := 2.4
+const PIECE_FLASH_TIME := 0.16
 
 ## One world px, and one art px: the grid the whole game's pixels sit on. Every
 ## death effect is snapped to it, so a flying piece or grain crosses the screen a
@@ -42,11 +71,13 @@ const PIECE_BLINK := 13.0
 
 ## How long the broken glass hangs in the air before its pieces fly, in seconds.
 ##
-## Four frames of the sprite standing there in pieces, which is the whole reason
+## Six frames of the sprite standing there in pieces, which is the whole reason
 ## to break the art rather than a traced outline: for that beat the player still
-## sees themselves, cracked. Without it the glass is a cloud of debris on the
-## frame it dies and the eye never gets to read what came apart.
-const PIECE_HOLD := 0.07
+## sees themselves, cracked — the pieces have shifted a pixel apart along the way
+## they are about to go, so the cracks are open and readable. Without it the glass
+## is a cloud of debris on the frame it dies and the eye never gets to read what
+## came apart.
+const PIECE_HOLD := 0.1
 
 var kind: Kind = Kind.RING
 var colour := Color.WHITE
@@ -66,6 +97,8 @@ var _piece_sizes: Array[Vector2] = []
 var _lives: Array[float] = []
 ## PIECES only: whether the art is drawn a half turn round, because the glass was.
 var _turned := false
+## SAND only: the floor, in this node's own frame. `INF` is no floor at all.
+var _floor := INF
 
 
 ## The plane swap.
@@ -104,9 +137,17 @@ static func shatter(parent: Node, at: Vector2, size: Vector2, tint: Color, life:
 
 ## Death, the sand half. `left` is how full the glass was, 0 to 1, and sets the
 ## grain count. Same `life` constraint as [method shatter].
-static func spill(parent: Node, at: Vector2, tint: Color, left: float, life: float) -> void:
+## `ground` is the world Y the grains come to rest on — the floor the glass was
+## standing on. Leave it off and they fall straight through, which is what the
+## effect used to do and the reason the spill was over before it was seen: sand
+## that lands stays on screen for the rest of the pause, in a heap, and a heap is
+## what says the glass emptied.
+static func spill(parent: Node, at: Vector2, tint: Color, left: float, life: float,
+		ground := INF) -> void:
 	var b := _make(parent, at, Kind.SAND, tint, life)
-	b._scatter(int(round(GRAINS_FULL * clampf(left, 0.0, 1.0))), 120.0, -1.3, 1.3)
+	b._floor = ground - b.global_position.y
+	b._scatter(int(round(GRAINS_FULL * clampf(left, 0.0, 1.0))),
+		SPILL_SPEED, -SPILL_SPREAD, SPILL_SPREAD)
 	# Spread over the body of the glass rather than issued from a single point.
 	var rng := RandomNumberGenerator.new()
 	for i in b._bits.size():
@@ -211,11 +252,18 @@ func _break_sprite(size: Vector2, turned: bool) -> void:
 		_piece_sizes.append(piece_size)
 		# Held as the piece's top-left, which is what gets drawn and what gets
 		# snapped: snapping a centre would move whole pixels by half of one.
-		_bits.append(corner)
+		#
+		# Opened by one pixel along the way it is about to go, so the hold shows a
+		# glass with cracks in it rather than one that merely stopped. One pixel is
+		# the smallest crack this art can have and the largest it can take without
+		# the outline coming apart before the piece has moved.
+		_bits.append(corner + Vector2(signf(away.x), signf(away.y)) * PIXEL)
 		# Lifted as well as thrown outwards, for the same reason the wedges are: a
-		# purely radial kick fires the lower half straight into the floor.
-		_velocities.append((away * rng.randf_range(70.0, 165.0))
-			+ Vector2(0.0, rng.randf_range(-250.0, -110.0)))
+		# purely radial kick fires the lower half straight into the floor. Slower
+		# than the wedges' throw — these are read, not just registered, and a piece
+		# that has left the screen by the third frame is not read at all.
+		_velocities.append((away * rng.randf_range(52.0, 118.0))
+			+ Vector2(0.0, rng.randf_range(-185.0, -85.0)))
 		_lives.append(rng.randf_range(0.72, 1.0))
 
 
@@ -238,9 +286,21 @@ func _process(delta: float) -> void:
 		# Broken but not yet flying — see [constant PIECE_HOLD].
 		queue_redraw()
 		return
+	var pull := SPILL_GRAVITY if kind == Kind.SAND else GRAVITY
 	for i in _bits.size():
-		_velocities[i] += Vector2(0.0, GRAVITY * delta)
+		# A landed grain is done; nothing moves it again.
+		if kind == Kind.SAND and _velocities[i] == Vector2.ZERO:
+			continue
+		_velocities[i] += Vector2(0.0, pull * delta)
 		_bits[i] += _velocities[i] * delta
+		# A grain that reaches the floor stops there and stays for the rest of the
+		# pause, a pixel or two into a heap rather than all of them on one row. Not
+		# a bounce and not sand that settles — three lines, and what they buy is the
+		# only part of the spill the eye has time to read: a heap on the ground where
+		# the glass was. Everything else has fallen out of frame by then.
+		if kind == Kind.SAND and _bits[i].y > _floor:
+			_bits[i].y = _floor - (i % 3) * PIXEL
+			_velocities[i] = Vector2.ZERO
 	for i in _angles.size():
 		_angles[i] += _spins[i] * delta
 	queue_redraw()
@@ -268,9 +328,19 @@ func _draw() -> void:
 			# in the bulb, coming apart, and it has to be made of the same pixels to
 			# read that way. One cell each, not a 3px blob — a grain in a bulb is one
 			# pixel, so a grain in the air is too.
+			#
+			# Held at full strength and dropped at the very end, the way the glass
+			# pieces are: sand thinning out over half a second reads as smoke, and a
+			# heap on the floor that is already half gone reads as nothing at all.
+			var grain := clampf(fade / SPILL_FADE, 0.0, 1.0)
 			for p in _bits:
-				HourglassShape.draw_grain(self, p, Color(colour, fade * 0.95), PIXEL)
+				HourglassShape.draw_grain(self, p, Color(colour, grain), PIXEL)
 		Kind.PIECES:
+			# The break, lit. A multiply above white, decaying to none: the art keeps
+			# its own colours, they are simply blown out for a sixth of a second.
+			var glare := lerpf(PIECE_FLASH, 1.0,
+				clampf(_elapsed / PIECE_FLASH_TIME, 0.0, 1.0))
+			var lit := Color(glare, glare, glare)
 			for i in _regions.size():
 				var life: float = _lives[i]
 				if t >= life:
@@ -290,10 +360,10 @@ func _draw() -> void:
 					# would be the same picture through a resample.
 					draw_set_transform(at + _piece_sizes[i], 0.0, Vector2(-1.0, -1.0))
 					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i])
+						Rect2(Vector2.ZERO, _piece_sizes[i]), _regions[i], lit)
 				else:
 					draw_texture_rect_region(HourglassSprite.TEXTURE,
-						Rect2(at, _piece_sizes[i]), _regions[i])
+						Rect2(at, _piece_sizes[i]), _regions[i], lit)
 			if _turned:
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		Kind.SHARDS:

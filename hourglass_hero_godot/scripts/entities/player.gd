@@ -223,8 +223,15 @@ func _on_status_changed(status: Game.Status) -> void:
 	# was a half turn round, and the pieces have to start there too.
 	Burst.shatter(get_parent(), global_position, _visual.body_size, Palette.GLASS, life,
 		pull < 0.0)
+	# Where the spilled sand comes to rest: the ground the glass was standing on,
+	# which is its own feet. Only when it was standing, and only the right way up —
+	# sand falls down whatever gravity the player was under, so a glass that died
+	# in the air or on a ceiling has nothing under it to land on.
+	var ground := INF
+	if is_on_floor() and pull > 0.0:
+		ground = global_position.y + _visual.body_size.y * 0.5
 	Burst.spill(get_parent(), global_position, Palette.sand(Game.danger()),
-		full / (chambers.size() / 2.0), life)
+		full / (chambers.size() / 2.0), life, ground)
 	_visual.hide()
 	Audio.sfx("death")
 
