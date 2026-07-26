@@ -45,8 +45,8 @@ func _touched(_player: Player) -> void:
 	pass
 
 
-## Override this instead of `_draw`: the base owns the frame so it can stamp the
-## editor plane tag over every entity without each one remembering to.
+## Override this, not `_draw`: the base owns the frame so the editor plane tag
+## lands on every entity without each one remembering to ask for it.
 func _paint() -> void:
 	pass
 

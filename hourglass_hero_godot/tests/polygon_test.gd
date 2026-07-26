@@ -26,8 +26,8 @@ func _ready() -> void:
 	_finish()
 
 
-## The entity plane tag rings a hitbox through `rect()`, and the tag's chip hangs
-## off the polygon's first corner, so the order of the four points is load-bearing.
+## The plane tag hangs its chip off the polygon's first corner, so the order of
+## the four points a hitbox is turned into is load-bearing, not cosmetic.
 func _boxes() -> void:
 	var box := Polygons.rect(Rect2(Vector2(4.0, 9.0), Vector2(32.0, 16.0)))
 	_check("a rect starts at its top-left corner", box[0] == Vector2(4.0, 9.0))
