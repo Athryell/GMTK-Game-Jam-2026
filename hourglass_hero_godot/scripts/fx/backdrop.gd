@@ -57,9 +57,9 @@ func _ready() -> void:
 	_build_sky()
 
 
-## Fits the room to a level, swapping in the art of `group` — the level's theme,
-## from `Level.theme_group` — whenever it differs from the one already up.
-## `view_bottom` is the lowest world y the opening frame shows.
+## Fits the room to a level, swapping in the art of `group` — the level's theme —
+## whenever it differs from the one already up. `view_bottom` is the lowest world
+## y the opening frame shows.
 func configure(level: Level, group: int, view_bottom: float) -> void:
 	var index := _background_index_for_group(group)
 	if index != _background_index:
