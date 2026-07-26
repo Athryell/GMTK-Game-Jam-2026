@@ -64,7 +64,14 @@ extends Resource
 ## How close the camera sits. 1.0 shows the 960×540 design view; above that it
 ## moves in and the level scrolls. `CameraRig` must divide the viewport by this
 ## zoom rather than trust `get_viewport_rect()`.
-@export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.55
+##
+## Held at 1.0, and this is the one tuning value that is not free to taste. Every
+## texture is drawn one art px to one world px, so world-to-screen IS the size of
+## a pixel: at 1.0 the 960×540 canvas scales to a 1920×1080 window by exactly 2,
+## and every art pixel lands on a 2×2 block. Any other zoom makes that fractional
+## and the whole point of the uniform scale is lost — pixels come out uneven, and
+## `TEXTURE_FILTER_NEAREST` shows it rather than blurring over it.
+@export_range(0.6, 2.5, 0.05) var camera_zoom: float = 1.0
 ## Camera follow smoothing. 0 = locked to the player.
 @export_range(0.0, 20.0, 0.5) var camera_smoothing: float = 7.0
 ## How far the view leads the player in the direction they are running, in px.

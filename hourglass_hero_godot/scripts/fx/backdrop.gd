@@ -9,12 +9,14 @@ const BG_ROOT := "res://art/bg"
 ## How many levels share one background before the next takes over.
 const LEVELS_PER_BACKGROUND := 4
 
-## The painted layers are exported at 576×324. Drawn at 5/3 they would exactly
-## fill the 960×540 design canvas — but the camera only ever shows a ~619 px
-## window of it, so the skyline read as a magnified detail rather than the scene
-## it was composed as. Pulled back below that, more of the artwork fits on
-## screen. Purely how big the art is drawn; nothing else reads it.
-const ART_SCALE := 1.25
+## The painted layers are exported at 576×324 and drawn one art px to one world
+## px, like every other texture in the game — that single rule is what keeps a
+## pixel the same size whether it lands on a brick, the glass or the skyline.
+##
+## Nothing else may read this: it is here so the rule has a name, not so the
+## backdrop can be sized independently. At 1.0 the art is narrower than the
+## 960 px view, so `BackdropLayer` tiles it sideways to cover the level.
+const ART_SCALE := 1.0
 
 ## How far below the ground line the art is planted, in px. A little overlap
 ## reads better than a butt joint, and it covers the bare sky the camera's

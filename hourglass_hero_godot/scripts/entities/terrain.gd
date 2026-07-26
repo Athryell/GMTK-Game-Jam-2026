@@ -44,6 +44,10 @@ func _ready() -> void:
 	# Ground is measured in hundreds of px and the brick tile in tens, so the UVs
 	# run well past 1 and have to wrap.
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	# Drawn at one art px to one world px, so every texel lands on a whole pixel
+	# and there is nothing to interpolate. Set here rather than project-wide: the
+	# lights and the sky are gradients, and nearest-filtering those bands them.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if Engine.is_editor_hint():
 		_plant_shape()
 		_refresh()

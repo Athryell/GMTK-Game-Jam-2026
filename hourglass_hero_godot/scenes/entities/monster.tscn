@@ -4,7 +4,7 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_monster"]
 resource_local_to_scene = true
-size = Vector2(30, 34)
+size = Vector2(64, 64)
 
 [node name="Monster" type="Area2D"]
 collision_layer = 0
@@ -12,5 +12,5 @@ collision_mask = 2
 script = ExtResource("1_monster")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(15, 17)
+position = Vector2(32, 32)
 shape = SubResource("RectangleShape2D_monster")

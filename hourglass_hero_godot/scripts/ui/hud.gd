@@ -4,8 +4,10 @@ extends Control
 
 ## Centre of the sand gauge, in screen px. Editable on `Root` in `hud.tscn`.
 @export var gauge_centre := Vector2(52.0, 62.0)
-## Drawn size of the gauge hourglass.
-@export var gauge_size := Vector2(48.0, 72.0)
+## Drawn size of the gauge hourglass. [constant HourglassSprite.TRIM]'s size, so
+## the HUD glass is drawn one art px to one px of the 960×540 design canvas —
+## which at `camera_zoom` 1.0 is the same size a pixel comes out in the world.
+@export var gauge_size := Vector2(52.0, 64.0)
 
 ## What the two planes are called on a two-chamber level. Past two there is no
 ## front and no back — the planes are a ring, so they are numbered instead.
@@ -18,6 +20,9 @@ const PLANE_NAMES := ["FRONT", "BACK"]
 
 
 func _ready() -> void:
+	# The gauge is the same painted glass the player wears; see `terrain.gd` for
+	# why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	Game.level_loaded.connect(_on_level_loaded)
 	Game.status_changed.connect(_on_status_changed)
 	Game.plane_changed.connect(_on_plane_changed)

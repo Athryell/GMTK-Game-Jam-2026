@@ -4,7 +4,12 @@ extends Node2D
 
 ## Drawn size. Cosmetic — the hitbox is the CollisionShape2D on `player.tscn`,
 ## so change both together.
-@export var body_size := Vector2(26.0, 38.0)
+##
+## Exactly [constant HourglassSprite.TRIM]'s size, so the painted glass is drawn
+## one art px to one world px. Anything else gives the player pixels a different
+## size from the brick and skyline ones, and on a non-square ratio it stretches
+## them out of square as well.
+@export var body_size := Vector2(52.0, 64.0)
 
 ## Tremble amplitude at full danger, in px. Keep it to a few px.
 const TREMBLE := 2.2
@@ -19,6 +24,12 @@ var _shiver := 0.0
 ## Where the half-turn currently is, in radians: chases `PI` while the world is
 ## upside down, 0 while it is not. Eased rather than snapped.
 var _upset := 0.0
+
+
+func _ready() -> void:
+	# The painted glass is pixel art at one art px to one world px; see
+	# `terrain.gd` for why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 func _process(delta: float) -> void:

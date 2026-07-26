@@ -39,7 +39,10 @@ var _hand := 0.0
 
 
 func _init() -> void:
-	size = Vector2(30.0, 34.0)
+	# Square, and exactly [constant ART_SIZE], so the dial is drawn one art px to
+	# one world px like every other texture. Anything smaller shrinks the clock's
+	# pixels below the brick ones it stands on.
+	size = Vector2(ART_SIZE, ART_SIZE)
 	plane = Planes.Kind.P0
 	light_tint = Palette.MONSTER
 	light_radius = 105.0
@@ -51,6 +54,9 @@ func _init() -> void:
 
 func _ready() -> void:
 	_origin = position
+	# The dial is pixel art at one art px to one world px; see `terrain.gd` for
+	# why this is per-node rather than a project default.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	super()
 
 
@@ -75,10 +81,15 @@ func _touched(_player: Player) -> void:
 ## The dial, then the hand over it.
 ##
 ## Drawn SQUARE and centred on the hitbox rather than stretched to fill it. The
-## art is a circle and `size` is not, so filling the rect turned every clock into
-## an egg. The square takes the hitbox's longer side, so it still covers
-## everything that can kill you — erring towards a clock whose edge you can brush
-## without dying, rather than one that kills from a gap you can see through.
+## art is a circle, so filling a rect that is not square turned the clock into an
+## egg. At the default `size` the two are the same thing; this only matters if a
+## level resizes one. The square takes the hitbox's longer side, so it still
+## covers everything that can kill you — erring towards a clock whose edge you
+## can brush without dying, rather than one that kills from a gap you can see
+## through.
+##
+## Resizing a monster at all breaks the one-art-px-to-one-world-px rule the rest
+## of the game keeps, and its pixels stop matching the brick behind it.
 func _draw() -> void:
 	var span := maxf(size.x, size.y)
 	var face := Rect2((size - Vector2(span, span)) * 0.5, Vector2(span, span))

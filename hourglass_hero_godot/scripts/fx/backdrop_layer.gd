@@ -21,6 +21,13 @@ var _floor_y := 540.0
 var _datum_y := NAN
 
 
+func _ready() -> void:
+	# Painted at one art px to one world px like everything else; see
+	# `terrain.gd` for why this is per-node rather than a project default. The
+	# SKY behind these layers is a gradient and deliberately keeps linear.
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
 ## Sizes the tile run to a level. `_draw` reads `_world`/`_floor_y` fresh each
 ## redraw. `floor_y` is where the ground actually sits — not always
 ## `world_size.y`, which only bounds how far you can fall.
