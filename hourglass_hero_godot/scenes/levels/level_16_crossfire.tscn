@@ -8,6 +8,7 @@
 
 [node name="Level" type="Node2D" unique_id=567933069]
 script = ExtResource("1_level")
+theme = null
 
 [node name="Spawn" type="Marker2D" parent="." unique_id=1305655727]
 position = Vector2(60, 479)
@@ -44,5 +45,5 @@ position = Vector2(890, 438)
 
 [node name="Spring" parent="." unique_id=54364975 instance=ExtResource("5_yvijg")]
 position = Vector2(105, 457)
-rotation = 1.4583061
+rotation = 1.226726
 size = Vector2(56, 14)

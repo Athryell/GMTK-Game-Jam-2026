@@ -38,8 +38,8 @@ position = Vector2(407, 996)
 size = Vector2(24.715, 343.845)
 
 [node name="Spring1" parent="Entities" unique_id=1095997758 instance=ExtResource("5_spring")]
-position = Vector2(292, 1326)
-rotation = -0.54541546
+position = Vector2(310, 1325)
+rotation = 5.185604e-05
 power = 1400.0
 size = Vector2(56, 14)
 
@@ -49,7 +49,12 @@ power = 1400.0
 size = Vector2(52, 14)
 
 [node name="Spring3" parent="Entities" unique_id=1851974612 instance=ExtResource("5_spring")]
-position = Vector2(716, 1324)
+position = Vector2(561, 1321)
+power = 1400.0
+size = Vector2(52, 14)
+
+[node name="Spring4" parent="Entities" unique_id=1584351314 instance=ExtResource("5_spring")]
+position = Vector2(673, 1321)
 power = 1400.0
 size = Vector2(52, 14)
 
@@ -58,3 +63,9 @@ texture_filter = 1
 position = Vector2(387, 995)
 facing = 2
 size = Vector2(20, 345.905)
+
+[node name="Spikes" parent="." unique_id=1187816332 instance=ExtResource("5_hcm0f")]
+texture_filter = 1
+position = Vector2(432, 1124)
+facing = 1
+size = Vector2(207.055, 24)

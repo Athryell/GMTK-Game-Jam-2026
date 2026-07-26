@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://bs4mowjgkrc7o"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_y0bpb"]
+[ext_resource type="PackedScene" path="res://scenes/entities/cannon.tscn" id="3_44ebj"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="4_dli14"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="4_xseoh"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="5_knycj"]
+[ext_resource type="PackedScene" path="res://scenes/entities/inversion_zone.tscn" id="5_oultk"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="6_44ebj"]
+
+[node name="Level" type="Node2D" unique_id=567933069]
+script = ExtResource("1_y0bpb")
+world_size = Vector2(960, 1500)
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=1305655727]
+position = Vector2(55, 1399)
+
+[node name="Entities" type="Node2D" parent="." unique_id=1406894775]
+
+[node name="Door" parent="Entities" unique_id=1777228813 instance=ExtResource("4_dli14")]
+position = Vector2(831, 912)
+
+[node name="Cannon2" parent="Entities" unique_id=1748958001 instance=ExtResource("3_44ebj")]
+position = Vector2(459, 1130)
+plane = 0
+
+[node name="Cannon3" parent="Entities" unique_id=1223396620 instance=ExtResource("3_44ebj")]
+position = Vector2(459, 1196)
+plane = 0
+
+[node name="Cannon4" parent="Entities" unique_id=1668632121 instance=ExtResource("3_44ebj")]
+position = Vector2(459, 1263)
+plane = 0
+
+[node name="Cannon8" parent="Entities" unique_id=908994193 instance=ExtResource("3_44ebj")]
+position = Vector2(853, 1219)
+plane = 1
+
+[node name="Cannon11" parent="Entities" unique_id=687526645 instance=ExtResource("3_44ebj")]
+position = Vector2(853, 1149)
+plane = 1
+
+[node name="Cannon9" parent="Entities" unique_id=1155018500 instance=ExtResource("3_44ebj")]
+position = Vector2(853, 1285)
+plane = 1
+
+[node name="Cannon10" parent="Entities" unique_id=1258993321 instance=ExtResource("3_44ebj")]
+position = Vector2(853, 1352)
+plane = 1
+
+[node name="Cannon5" parent="Entities" unique_id=588257324 instance=ExtResource("3_44ebj")]
+position = Vector2(342, 1130)
+plane = 0
+
+[node name="Cannon12" parent="Entities" unique_id=205401665 instance=ExtResource("3_44ebj")]
+position = Vector2(459, 1061)
+plane = 0
+
+[node name="Cannon14" parent="Entities" unique_id=1217009637 instance=ExtResource("3_44ebj")]
+position = Vector2(520, 1061)
+plane = 0
+
+[node name="Cannon15" parent="Entities" unique_id=1795856908 instance=ExtResource("3_44ebj")]
+position = Vector2(581, 1061)
+plane = 0
+
+[node name="Cannon13" parent="Entities" unique_id=197779767 instance=ExtResource("3_44ebj")]
+position = Vector2(342, 1061)
+plane = 0
+
+[node name="Cannon6" parent="Entities" unique_id=1357592200 instance=ExtResource("3_44ebj")]
+position = Vector2(342, 1196)
+plane = 0
+
+[node name="Cannon7" parent="Entities" unique_id=550173359 instance=ExtResource("3_44ebj")]
+position = Vector2(342, 1263)
+plane = 0
+
+[node name="Platform" parent="Entities" unique_id=130973261 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-5, 1469)
+size = Vector2(974, 32)
+
+[node name="Platform2" parent="Entities" unique_id=323434769 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(113, 1343)
+size = Vector2(520, 18)
+
+[node name="Platform3" parent="Entities" unique_id=750758373 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(3, 994)
+size = Vector2(322, 18)
+
+[node name="Platform4" parent="Entities" unique_id=1591631423 instance=ExtResource("4_xseoh")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(618, 994)
+size = Vector2(311, 18)
+
+[node name="InversionZone" parent="Entities" unique_id=1521030229 instance=ExtResource("5_oultk")]
+position = Vector2(284, 1368)
+size = Vector2(220, 100)
+
+[node name="Feather" parent="Entities" unique_id=431833120 instance=ExtResource("6_44ebj")]
+texture_filter = 1
+position = Vector2(75, 781)
+size = Vector2(24, 24)
+
+[node name="Spring" parent="." unique_id=320276668 instance=ExtResource("5_knycj")]
+position = Vector2(731, 1450)
+size = Vector2(56, 14)
+
+[node name="Spring2" parent="." unique_id=256863415 instance=ExtResource("5_knycj")]
+position = Vector2(374, 1328)
+size = Vector2(56, 14)
+
+[node name="Spring3" parent="." unique_id=735085351 instance=ExtResource("5_knycj")]
+position = Vector2(46, 974)
+size = Vector2(56, 14)

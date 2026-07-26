@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://cafynoikeaql4"]
+
+[ext_resource type="Script" uid="uid://dxec45qo6wc0" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://cggpaij3sjfcg" path="res://scenes/entities/door.tscn" id="2_door"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spring.tscn" id="3_7da1l"]
+[ext_resource type="PackedScene" uid="uid://ctubyeprxboeq" path="res://scenes/entities/platform.tscn" id="3_f4fe7"]
+[ext_resource type="PackedScene" path="res://scenes/entities/feather.tscn" id="4_f4fe7"]
+[ext_resource type="PackedScene" path="res://scenes/entities/gravity_pad.tscn" id="4_gravity_pad"]
+[ext_resource type="PackedScene" path="res://scenes/entities/spikes.tscn" id="5_uvsab"]
+
+[node name="Level" type="Node2D" unique_id=102215989]
+script = ExtResource("1_level")
+chambers = 3
+
+[node name="Spawn" type="Marker2D" parent="." unique_id=57842719]
+position = Vector2(53, 479)
+
+[node name="Entities" type="Node2D" parent="." unique_id=1619493822]
+
+[node name="Platform" parent="Entities" unique_id=130973261 instance=ExtResource("3_f4fe7")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(1, 504)
+size = Vector2(241, 54)
+
+[node name="Platform3" parent="Entities" unique_id=575745979 instance=ExtResource("3_f4fe7")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(958, 32)
+rotation = -3.1415925
+size = Vector2(956, 54)
+
+[node name="Platform2" parent="Entities" unique_id=1427779578 instance=ExtResource("3_f4fe7")]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(619, 504)
+size = Vector2(346, 54)
+
+[node name="PadUp" parent="Entities" unique_id=1413375619 instance=ExtResource("4_gravity_pad")]
+position = Vector2(172, 487)
+size = Vector2(56, 16)
+
+[node name="PadDown" parent="Entities" unique_id=874786016 instance=ExtResource("4_gravity_pad")]
+position = Vector2(853, 33)
+pulls_up = false
+size = Vector2(56, 16)
+
+[node name="Door" parent="Entities" unique_id=713303052 instance=ExtResource("2_door")]
+position = Vector2(880, 438)
+
+[node name="Spring" parent="Entities" unique_id=632558782 instance=ExtResource("3_7da1l")]
+position = Vector2(461, 50)
+rotation = -3.1415925
+size = Vector2(56, 14)
+
+[node name="Feather" parent="Entities" unique_id=533428638 instance=ExtResource("4_f4fe7")]
+texture_filter = 1
+position = Vector2(422, 448)
+size = Vector2(24, 24)
+
+[node name="Spikes" parent="Entities" unique_id=10008468 instance=ExtResource("5_uvsab")]
+texture_filter = 1
+position = Vector2(572, 36)
+facing = 1
+size = Vector2(200, 50)
