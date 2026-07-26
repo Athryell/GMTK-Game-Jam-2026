@@ -43,7 +43,7 @@ const SAND_FULL := Color("ffb03a")
 const SAND_LOW := Color("ff4d6d")
 ## The sand while a feather's jump is in hand. The one place the glass leaves the
 ## warm family, so the charge is legible without an icon.
-const SAND_CHARGED := Color("59a5ff")
+const SAND_CHARGED := Color("3fb8ff")
 
 # ----- Text ------------------------------------------------------------------
 
