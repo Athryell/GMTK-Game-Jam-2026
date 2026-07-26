@@ -34,10 +34,7 @@ const PAD_DETECT_HEIGHT := 8.0
 var _origin := Vector2.ZERO
 var _elapsed := 0.0
 var _active := true
-## True while a jump would land the player in this plane: marked at full
-## strength, still inert.
 var _next := false
-## The dashed line that says which plane this slab is in.
 var _marker := PlaneMarker.new()
 
 
@@ -46,8 +43,7 @@ func _ready() -> void:
 	# The brick tile is 64 px and the shortest platform in the game is wider than
 	# that; without repeat the whole slab is one stretched course.
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	# See `terrain.gd`: nearest on the brick, linear left alone everywhere the
-	# game draws a gradient.
+	# See `terrain.gd`.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_apply_size()
 	_apply_kind()
@@ -84,12 +80,10 @@ func _draw() -> void:
 		draw_texture_rect(Bricks.TEXTURE,
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
-	# Last, so the brick cannot cover it.
 	_marker.draw(self, _corners(), plane)
 
 
-## The rectangle as a polygon, in this node's own space, wound clockwise on
-## screen — what both the shadow and the marker are cut from.
+## The rectangle as a polygon, wound clockwise on screen.
 func _corners() -> PackedVector2Array:
 	return PackedVector2Array([
 		Vector2.ZERO, Vector2(size.x, 0.0), size, Vector2(0.0, size.y)])
@@ -102,13 +96,12 @@ func shadow_outline() -> PackedVector2Array:
 
 
 ## The pad keeps its gold: it is the one platform whose colour says what it does
-## rather than where it is. Everything else is masonry, tinted by the level.
+## rather than where it is.
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
 	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
-	# A ghost lives in the other plane: visible, but not solid. `next` is
-	# deliberately not passed on — a slab says where the jump lands with its
-	# dashes, not by pretending to be more solid than it is.
+	# `next` is deliberately not passed on: a slab says where the jump lands with
+	# its dashes, not by pretending to be more solid than it is.
 	return Palette.ghost(base, _active or Engine.is_editor_hint())
 
 

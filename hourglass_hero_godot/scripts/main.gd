@@ -8,7 +8,6 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 @onready var _level_root: Node2D = $LevelRoot
 @onready var _camera: CameraRig = $Camera2D
 @onready var _backdrop: Backdrop = $Backdrop
-# Draws nothing: it hands every solid a light occluder.
 @onready var _shadows: CastShadows = $CastShadows
 @onready var _world_light: CanvasModulate = $WorldLight
 @onready var _transition: Transition = $Transition
@@ -27,8 +26,6 @@ func _ready() -> void:
 	Game.flow_changed.connect(_on_flow_changed)
 	Tuning.changed.connect(_apply_world_light)
 	_apply_world_light()
-	# `start_level` arms the state (sand, plane, status); `_load_current_level`
-	# only instantiates the scene. Index comes from the menu, 0 when run standalone.
 	Game.start_level(Game.level_index)
 	# The menu hands over on a hard cut; come out of the dark like any other level.
 	_transition.close(0.0)
@@ -84,7 +81,6 @@ func _load_current_level() -> void:
 	_camera.snap()
 	_backdrop.sync(_camera.global_position)
 
-	# `play_music` ignores a track already playing, so this does not restart it.
 	Audio.play_music("return_8_bit")
 	Game.announce_level(_level.level_name)
 
@@ -94,26 +90,22 @@ func _load_current_level() -> void:
 		_transition.open(Tuning.cfg.level_fade)
 
 
-## Per-level rule overrides. Applied here, not in `Game.start_level`, which runs
-## before the level scene exists.
+## Applied here, not in `Game.start_level`, which runs before the level exists.
 func _apply_level_rules() -> void:
 	Game.double_jump = _level.double_jump
 	Game.clock_running = not _level.clock_starts_on_move
 	Game.jump_locked_first_life = _level.jump_locked_first_life
-	# Every level starts the right way up; only a pad turns the world.
 	Game.set_gravity(1.0)
 	var top := _level.sand_start_override if _level.sand_start_override > 0.0 \
 		else Tuning.cfg.sand_start
 	Game.arm_glass(_level.chambers, top)
 
 
-## Ambient darkness before the lights, tinted slightly blue rather than grey.
 func _apply_world_light() -> void:
 	var v := Tuning.cfg.world_light
 	_world_light.color = Color(v, v, minf(v * 1.14, 1.0))
 
 
-## Fires when `_advance_timer` runs out: retry on death, next level otherwise.
 func _advance() -> void:
 	if Game.status == Game.Status.DEAD:
 		Game.restart()

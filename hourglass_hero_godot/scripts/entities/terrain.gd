@@ -1,25 +1,15 @@
 @tool
-## A stretch of ground drawn as a polygon: floor, ledge, wall and SLOPE, all in
-## one node instead of a staircase of rectangles.
+## A stretch of ground drawn as a polygon: floor, ledge, wall and SLOPE in one
+## node. The points live on the child `CollisionPolygon2D`, so selecting it hands
+## you Godot's own polygon tool, and this script draws that same polygon.
 ##
-## Authoring is Godot's own. The points live on the child `CollisionPolygon2D`,
-## so selecting it hands you the built-in polygon tool — drag a handle to move a
-## point, ctrl-click an edge to insert one, and the ground redraws as you go. A
-## Terrain added from the Create Node dialog plants that child itself, with a
-## rectangle to start pulling on.
-##
-## There is no second copy of the shape to keep in sync, because there is no
-## second copy: this script draws the collision polygon. What you can see is
-## exactly what you can stand on.
-##
-## `Platform` is not going anywhere — it is still the right node for a small
-## rectangle that MOVES, and for the flip-pad. Terrain is for the ground.
+## `Platform` is still the right node for a small rectangle that MOVES, and for
+## the flip-pad.
 class_name Terrain
 extends StaticBody2D
 
-## The rectangle a freshly added Terrain starts as, purely so there is something
-## to drag. Not a `const`: `PackedVector2Array(…)` is a constructor call, and a
-## constant may only hold an expression the parser can fold.
+## The rectangle a freshly added Terrain starts as. Not a `const`:
+## `PackedVector2Array(…)` is a constructor call, which a constant cannot hold.
 static var STARTER := PackedVector2Array([
 	Vector2(0.0, 0.0), Vector2(240.0, 0.0), Vector2(240.0, 60.0), Vector2(0.0, 60.0),
 ])
@@ -33,23 +23,18 @@ var _points := PackedVector2Array()
 ## almost never convex.
 var _triangles := PackedInt32Array()
 var _active := true
-## True while a jump would land the player in this plane: marked at full
-## strength, still as dim and as inert as any other ghost.
 var _next := false
-## The dashed line that says which plane this ground is in.
 var _marker := PlaneMarker.new()
 
 
 func _ready() -> void:
-	# A Terrain collides with nothing; it is the thing others collide with.
 	collision_layer = Layers.SOLID
 	collision_mask = 0
 	# Ground is measured in hundreds of px and the brick tile in tens, so the UVs
 	# run well past 1 and have to wrap.
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	# Drawn at one art px to one world px, so every texel lands on a whole pixel
-	# and there is nothing to interpolate. Set here rather than project-wide: the
-	# lights and the sky are gradients, and nearest-filtering those bands them.
+	# Set here rather than project-wide: the lights and the sky are gradients, and
+	# nearest-filtering those bands them.
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if Engine.is_editor_hint():
 		_plant_shape()
@@ -65,9 +50,7 @@ func _ready() -> void:
 	_on_next_plane_changed(Game.next_plane)
 
 
-## The polygon is edited on the child node, so there is no signal to wait on:
-## the editor writes straight into it. Comparing a handful of points once a
-## frame while a level is open costs nothing and keeps the drawing honest.
+## The polygon is edited on the child node, so there is no signal to wait on.
 func _process(_delta: float) -> void:
 	_refresh()
 
@@ -77,7 +60,6 @@ func _draw() -> void:
 		return
 	draw_set_transform_matrix(_shape.transform)
 	var body := _colour()
-	# The collision polygon itself, so the line lands on the edge you stand on.
 	Outline.polygon(self, _points, body.a)
 	var i := 0
 	while i + 2 < _triangles.size():
@@ -88,14 +70,8 @@ func _draw() -> void:
 		]), body)
 		i += 3
 
-	# A rectangle has one top face; a polygon has as many as it likes, and a ramp
-	# is one of them. So the lip follows the geometry rather than the node: every
-	# edge the light could land on gets it, and the walls get nothing.
-	#
-	# Filled inwards from the edge rather than stroked along it. A stroke is
-	# centred, so it overhangs the silhouette, and two strokes meeting at a fold
-	# leave a notch on the outside of the corner — the joint is mitred here
-	# because both edges read the SAME inset vertex.
+	# Filled inwards from the edge rather than stroked along it: both edges of a
+	# fold read the SAME inset vertex, so the joint mitres instead of notching.
 	var lip := body.lightened(Bricks.LIP_LIFT)
 	var wind := Polygons.winding(_points)
 	var inner := Polygons.grow(_points, -Bricks.LIP_WIDTH)
@@ -105,8 +81,6 @@ func _draw() -> void:
 			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
 
-	# The plane is carried at the edge rather than by lifting the fill, which is
-	# what says "you can stand here". Last, so nothing lands on top of it.
 	_marker.draw(self, _points, plane)
 
 
@@ -121,9 +95,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 
 ## The outline this casts a shadow from, in this node's own space. `CastShadows`
-## asks every solid for one of these once and then follows the node's transform,
-## which is why it is local: a shadow must not be re-measured every frame just
-## because its caster slid sideways.
+## asks once and then follows the node's transform.
 func shadow_outline() -> PackedVector2Array:
 	if _points.size() < 3:
 		return PackedVector2Array()
@@ -143,12 +115,8 @@ func _first_polygon() -> CollisionPolygon2D:
 	return null
 
 
-## A Terrain with no polygon is a Terrain you cannot edit, so a fresh one is
-## given a rectangle to start dragging.
-##
-## The child is owned by the EDITED SCENE, not by this node: an unowned child is
-## one the editor hides from the tree, and hiding it would hide the very handles
-## this node exists to expose.
+## The child is owned by the EDITED SCENE, not by this node: the editor hides
+## unowned children, and with them the handles this node exists to expose.
 func _plant_shape() -> void:
 	if _first_polygon() != null or not is_inside_tree():
 		return
@@ -198,7 +166,7 @@ func _aim_marker() -> void:
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
 	# `next` is deliberately not passed on: the ground says where the jump lands
-	# with its dashes, not by pretending to be more solid than it is.
+	# with its dashes, not by looking more solid than it is.
 	return Palette.ghost(Palette.bricks(level), _active or Engine.is_editor_hint())
 
 

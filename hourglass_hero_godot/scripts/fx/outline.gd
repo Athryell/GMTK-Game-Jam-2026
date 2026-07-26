@@ -35,8 +35,7 @@ const DASH_OFF := 2
 
 
 ## A dashed line `distance` px outside the ink, blocked onto the `CELL` grid so a
-## ramp comes out as a staircase rather than as a smooth diagonal: the walk
-## follows the silhouette, the grid decides where the corners land.
+## ramp comes out as a staircase rather than as a smooth diagonal.
 static func dashes(canvas: CanvasItem, points: PackedVector2Array,
 		colour: Color, distance: float) -> void:
 	var count := points.size()

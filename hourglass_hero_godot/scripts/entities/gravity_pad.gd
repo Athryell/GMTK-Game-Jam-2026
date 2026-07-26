@@ -10,7 +10,6 @@ extends PlaneArea
 
 ## Foot slab, as a fraction of the pad's height.
 const FOOT := 0.22
-## Arrows stacked between the foot and the open end.
 const CHEVRONS := 2
 const CHEVRON_WIDTH := 3.0
 ## Inset of each arrow from the pad's ends, as a fraction of its width.
@@ -30,7 +29,6 @@ var _armed := true
 func _init() -> void:
 	# Same footprint as the spring, so one can be swapped for the other.
 	size = Vector2(56.0, 16.0)
-	# The spring's family: the world moves you, and it costs no sand.
 	light_tint = Palette.SPRING
 	light_radius = 140.0
 	light_energy = 0.9
@@ -67,8 +65,6 @@ func _on_gravity_changed(sign: float) -> void:
 	queue_redraw()
 
 
-## A foot on the surface it is bolted to, and arrows pointing where you are
-## about to go. Spent pads keep the silhouette and lose the light.
 func _draw() -> void:
 	var colour := _shade(Palette.SPRING)
 	if not _armed:
@@ -76,7 +72,6 @@ func _draw() -> void:
 	colour = colour.lerp(Color.WHITE, _flash * 0.8)
 
 	var foot := maxf(3.0, size.y * FOOT)
-	# The slab only; the chevrons above it are painted on the air.
 	var foot_box := Rect2(Vector2(0.0, minf(_from_foot(0.0), _from_foot(foot))),
 		Vector2(size.x, foot))
 	Outline.rect(self, foot_box, colour.a)
