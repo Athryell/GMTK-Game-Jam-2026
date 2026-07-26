@@ -1,5 +1,5 @@
-## The hourglass, drawn (player sprite and HUD gauge share it). Drawn centred on
-## the canvas origin; the caller positions it. Free surfaces are cut square to
+## The hourglass, drawn (player sprite and HUD gauge share it). Centred on the
+## canvas origin; the caller positions it. Free surfaces are cut square to
 ## `down`, gravity in the glass's own frame, which `HourglassMotion` computes.
 class_name HourglassShape
 extends RefCounted
@@ -9,44 +9,26 @@ const NECK_RATIO := 0.13
 ## Half-height of the throat, as a fraction of the glass's half-height.
 const THROAT_RATIO := 0.07
 ## Fraction of a chamber's reach from the neck that the trickle covers before the
-## pile hides it. That reach is `_span(...).x` — half the glass's height at two
-## chambers, the rosette's radius above two.
+## pile hides it.
 const STREAM_REACH := 0.82
 ## Bisection steps used to place a free surface; 16 lands inside a pixel.
 const LEVEL_STEPS := 16
-## How much of its own wedge a chamber may fill, measured as an angle off its
-## axis. Chamber `i` owns the wedge `PI / count` either side of its axis; at 1.0
-## it fills that wedge exactly and touches its neighbours, so the neck corners
-## are held to this fraction of it instead.
-##
-## Must sit strictly between 0 and 1, and 1 is a harder ceiling than it looks:
-## the cap is a tangent, so past the wedge the angle goes obtuse, `tan` comes
-## back NEGATIVE, and the chamber turns inside out rather than merely touching.
-##
-## It is not decoration. Two chambers that overlap draw their sand twice over the
-## shared sliver, and `shell` — one ring through every chamber — stops being a
-## simple polygon, which `draw_colored_polygon` triangulates into a mess right at
-## the neck, where the eye is.
+## How much of its own `PI / count` wedge a chamber may fill. Must sit strictly
+## between 0 and 1: the cap is a tangent, so past the wedge `tan` comes back
+## negative and the chamber turns inside out. Overlapping chambers also draw
+## their sand twice and make `shell` self-intersect at the neck.
 const WEDGE_FILL := 0.8
 
 ## The sand's grain: how far the two speckle tones sit either side of the sand
-## colour, and how many cells in [constant GRAIN_BUCKETS] wear each.
-##
-## Three tones is the whole palette — a body, something catching the light and
-## something in shadow. A fourth reads as noise at one world px a grain rather
-## than as sand, and the tones are deliberately close: they are texture, and the
-## moment they carry real contrast the eye starts reading them as sand MOVING,
-## which is the surface's job and not theirs.
+## colour, and how many cells in [constant GRAIN_BUCKETS] wear each. The tones
+## are deliberately close — with real contrast the eye reads them as sand moving,
+## which is the surface's job.
 const GRAIN_LIGHT := 0.17
 const GRAIN_DARK := 0.13
 const GRAIN_BUCKETS := 16
 const GRAIN_LIT_CELLS := 2
-## Cumulative, not a second count: buckets 2 and 3 are the shaded ones, so a
-## quarter of the pile is speckled at all and three quarters are plain sand.
-##
-## Turned DOWN from three-eighths, which read as gravel. The failure is not
-## subtle when it happens: past about a third the speckle stops being a surface
-## the sand has and starts being what the sand is made of.
+## Cumulative, not a second count: buckets 2 and 3 are the shaded ones. Turned
+## down from three-eighths, which read as gravel.
 const GRAIN_SHADE_CELLS := 4
 
 ## What [method _tone] answers with. `TONE_BODY` draws nothing of its own — the
@@ -57,24 +39,16 @@ const TONE_SHADE := 1
 
 
 ## How far a chamber reaches from the neck, and how wide it is at the far end,
-## both in px, for a glass of `size`. NOTE the axes swap: `.x` is a reach ALONG
-## the chamber's axis and `.y` a half-width ACROSS it, so at two chambers `.x`
-## comes from `size.y` and `.y` from `size.x`. `chamber` renames them the moment
-## it has them.
+## both in px. NOTE the axes swap: `.x` is a reach ALONG the chamber's axis and
+## `.y` a half-width ACROSS it.
 ##
-## At two chambers the glass keeps the width and height it was authored with —
-## which is what makes the twelve two-plane levels pixel-identical, and it costs
-## one branch. Above two it is a rosette, so it takes one radius in every
-## direction: an ellipse of chambers would give the side lobes a different area
-## from the top one, and the sand economy assumes every chamber holds the same.
+## At two chambers the glass keeps its authored width and height, which is what
+## makes the twelve two-plane levels pixel-identical. Above two it is a rosette
+## of equal radius, because the sand economy assumes every chamber holds the
+## same area.
 ##
-## `sin(PI / count)` sets the FAR end only, and buys it a real margin: a corner
-## at half-width `r * sin(t)` and reach `r` sits `atan(sin(t))` off the axis,
-## which is comfortably short of `t` (35 degrees of a 45-degree wedge at four).
-## It says nothing at all about the NECK end — that corner is `NECK_RATIO` over
-## `THROAT_RATIO`, two hand-tuned constants with no idea `count` exists, and at
-## four chambers they aim it 52 degrees off a 45-degree wedge. `chamber` is where
-## that gets bounded, by `WEDGE_FILL`; see the note there.
+## `sin(PI / count)` bounds the FAR corner only; the NECK corner comes from two
+## hand-tuned ratios that know nothing of `count` and is bounded in `chamber`.
 static func _span(size: Vector2, count: int) -> Vector2:
 	if count == 2:
 		return Vector2(size.y / 2.0, size.x / 2.0)
@@ -82,21 +56,19 @@ static func _span(size: Vector2, count: int) -> Vector2:
 	return Vector2(radius, radius * sin(PI / float(count)))
 
 
-## Chamber `index` as a convex polygon in the glass's own frame: a trapezoid
-## with its narrow end at the neck and its wide end out at the rim. Corners run
-## far-side, far-other-side, neck-other-side, neck-side, which is the order
-## `shell` walks to join the chambers into one ring.
+## Chamber `index` as a convex polygon in the glass's own frame: a trapezoid with
+## its narrow end at the neck. Corners run far-side, far-other-side,
+## neck-other-side, neck-side, which is the order `shell` walks.
 static func chamber(size: Vector2, count: int, index: int) -> PackedVector2Array:
 	var span := _span(size, count)
 	var axis := ChamberLayout.axis(count, index)
 	var side := Vector2(-axis.y, axis.x)
 	var wide := span.y
 	var throat := span.x * THROAT_RATIO
-	# The throat is short, so `NECK_RATIO` of the full width is a wide corner at a
-	# tiny reach — an angle off the axis that grows as the glass gets more
-	# chambers to share the same neck, and overruns the wedge at four. Capping it
-	# at the wedge is what keeps neighbours apart; the authored ratio wins
-	# wherever there is room for it, which at two chambers is always.
+	# `NECK_RATIO` of the full width is a wide corner at a tiny reach, and it
+	# overruns the wedge at four chambers. Capping at the wedge keeps neighbours
+	# apart; the authored ratio wins wherever there is room, which at two chambers
+	# is always.
 	var narrow := minf(wide * NECK_RATIO, throat * tan(PI / float(count) * WEDGE_FILL))
 	return PackedVector2Array([
 		axis * span.x - side * wide,
@@ -107,9 +79,8 @@ static func chamber(size: Vector2, count: int, index: int) -> PackedVector2Array
 
 
 ## The whole glass as ONE ring: every chamber walked in turn and joined through
-## the neck. Drawing it in a single piece is what puts walls on the throat and
-## leaves no seam across it — outlining each chamber separately would rule a
-## line through the middle of the glass.
+## the neck. Outlining each chamber separately would rule a line through the
+## middle of the glass.
 static func shell(size: Vector2, count: int) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	for i in count:
@@ -122,33 +93,26 @@ static func shell(size: Vector2, count: int) -> PackedVector2Array:
 
 
 ## `size` is the full width and height of the glass. `fills` is how full each
-## chamber is, 0 to 1, indexed by the slot it is drawn in — and its SIZE is the
-## number of chambers, so one array says both how many and how much. `down` is
-## gravity in the glass's own frame; pass `Vector2.DOWN` for a glass at rest.
-## `invert` is how far the flow has turned over, 0 (down the glass) to 1 (up it). `tints` optionally gives one colour per
-## chamber for its end plate — the plane each side of the glass stands for; empty
-## leaves every plate plain glass.
+## chamber is, 0 to 1, indexed by the slot it is drawn in — its size is the
+## number of chambers. `down` is gravity in the glass's own frame. `invert` is
+## how far the flow has turned over, 0 (down the glass) to 1 (up it). `tints`
+## optionally gives one colour per chamber for its end plate; empty leaves every
+## plate plain glass.
 static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Array,
 		sand: Color, down: Vector2, line_width := 1.5,
 		invert := 0.0, tints := PackedColorArray()) -> void:
 	var count := fills.size()
 	if count < 2:
-		# Below two there is nowhere for sand to fall, and `chamber` would turn its
-		# own polygon inside out rather than say so. Drawing nothing is the only
-		# safe answer, but doing it quietly would take the player's glass AND the
-		# HUD gauge off the screen with no trace of why.
+		# `chamber` would turn its own polygon inside out rather than say so, and
+		# failing quietly would take the player's glass and the HUD gauge off screen
+		# with no trace of why.
 		push_error("HourglassShape: a glass needs at least two chambers, got %d" % count)
 		return
 
-	# The glass itself, in one piece.
 	var ring := shell(size, count)
 	canvas.draw_colored_polygon(ring, Color(Palette.GLASS, 0.10))
 
-	# The sand. Every chamber is the same trapezoid turned, so one area serves
-	# for all of them — the same symmetry that makes a completed turn seamless.
-	#
-	# Turning the flow over never turns the glass over: the surfaces stay square
-	# to `down` throughout, and only the piles climb.
+	# Every chamber is the same trapezoid turned, so one area serves for all.
 	var capacity := _area(chamber(size, count, 0))
 	for i in count:
 		var poly := chamber(size, count, i)
@@ -157,9 +121,8 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 
 	_trickle(canvas, size, count, fills, sand, down, line_width, invert)
 
-	# Frame: the outline, then a plate capping each chamber. A tinted plate is
-	# drawn heavier than a plain one — at the size the HUD gauge runs, a plane's
-	# hue laid on at hairline width reads as a smudge rather than as a label.
+	# A tinted plate is drawn heavier than a plain one: at the size the HUD gauge
+	# runs, a hue laid on at hairline width reads as a smudge rather than a label.
 	_outline(canvas, ring, line_width)
 	for i in count:
 		var poly := chamber(size, count, i)
@@ -171,30 +134,17 @@ static func draw_glass(canvas: CanvasItem, size: Vector2, fills: PackedFloat32Ar
 
 
 ## The sand in the air: one thread from each draining chamber to each chamber it
-## pours into. At two chambers that is the single fall down the middle; at three
-## it is the pair that splits half and half, and nothing here had to be told the
-## difference.
+## pours into.
 ##
 ## The fall dries up as the glass tips, spent by the angle of a chamber's own
-## wall — which is exactly the tilt at which falling sand would start missing the
-## chamber below, so a trickle can never be drawn outside the glass.
-##
-## `invert` runs the same falls backwards, and the thread has to turn over with
-## them: sand in flight sits between the neck and whichever chamber it is heading
-## for, so a climbing fall belongs ABOVE the neck, in the chamber being filled.
-## Drawn on the falling side throughout, it reads as still pouring downwards
-## while every pile around it climbs.
-##
-## Turned over through a signed reach rather than a branch, so the column
-## shortens into the neck, vanishes as the flow hands over, and grows back out
-## the other side.
+## wall — the tilt at which falling sand would start missing the chamber below,
+## so a trickle is never drawn outside the glass.
 static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 		fills: PackedFloat32Array, sand: Color, down: Vector2,
 		line_width: float, invert: float) -> void:
-	# Measured off the polygon that actually gets drawn, not rebuilt from the
-	# ratios: above two chambers `chamber` caps its neck corner at the wedge, so
-	# the authored `NECK_RATIO` is not the wall you can see. Reproduces the
-	# shipped 0.8485 exactly at two.
+	# Measured off the polygon that actually gets drawn: above two chambers
+	# `chamber` caps its neck corner, so the authored `NECK_RATIO` is not the wall
+	# you can see.
 	var edge := chamber(size, count, 0)
 	var wall := cos(absf((edge[0] - edge[3]).angle_to(ChamberLayout.axis(count, 0))))
 	var pouring := clampf((down.y - wall) / (1.0 - wall), 0.0, 1.0)
@@ -207,7 +157,6 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 		for j in ChamberLayout.targets(count, i):
 			if climbing and fills[j] <= 0.01:
 				continue
-			# One thread per (draining chamber -> target) pair.
 			var seg := trickle_segment(size, count, i, j, down, invert)
 			fill_grains(canvas, thread_quad(seg[0], seg[1], line_width * 0.8),
 				Color(sand, sand.a * pouring))
@@ -216,18 +165,12 @@ static func _trickle(canvas: CanvasItem, size: Vector2, count: int,
 ## The thread of sand in flight from chamber `index` into chamber `target`, as
 ## its two endpoints in the glass's own frame.
 ##
-## Split out of the drawing so the reversal can be measured rather than merely
-## looked at; `tests/sand_test.gd` holds it to mirroring through the neck.
-##
-## It starts at the UNDERSIDE of the draining chamber, not at the centre of the
-## glass: the sand stops at the top of the throat, so a thread beginning at the
-## origin leaves the height of the throat as a gap of bare glass, and the fall
-## reads as cut in two right where it should be one thing.
+## It starts at the UNDERSIDE of the draining chamber: from the origin, the
+## height of the throat would show as a gap of bare glass mid-fall.
 ##
 ## `way` is +1 running down the glass, 0 at the hand-over and -1 running up it,
-## and every term is signed by it — so the column mirrors through the neck as the
-## flow turns over instead of hanging on the falling side, shrinking away to
-## nothing as it changes its mind.
+## and signs every term — so the column mirrors through the neck as the flow
+## turns over instead of hanging on the falling side.
 static func trickle_segment(size: Vector2, count: int, index: int, target: int,
 		down: Vector2, invert := 0.0) -> PackedVector2Array:
 	var span := _span(size, count)
@@ -269,7 +212,6 @@ static func pile(bulb: PackedVector2Array, down: Vector2, target: float,
 		bottom = minf(bottom, v.dot(down))
 	var piece := _clip(bulb, down,
 		lerpf(_level(bulb, down, target), bottom, clampf(lift, 0.0, 1.0)))
-	# Trim back to `target`; at rest `piece` already holds exactly that.
 	var up := -down
 	return _clip(piece, up, _level(piece, up, target))
 
@@ -315,7 +257,7 @@ static func _clip(poly: PackedVector2Array, down: Vector2, level: float) -> Pack
 
 
 ## The two points where the surface meets the bulb's walls, or nothing if it
-## misses. Unused by the drawing; `tests/sand_test.gd` measures the surface with it.
+## misses. Used only by `tests/sand_test.gd`.
 static func _chord(poly: PackedVector2Array, down: Vector2, level: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var n := poly.size()
@@ -342,11 +284,9 @@ static func _area(poly: PackedVector2Array) -> float:
 
 
 ## A filled polygon with a smooth edge. `draw_colored_polygon` has no AA flag and
-## MSAA does not reach it under Compatibility, so the edge is restroked. Public:
-## used by anything in the game that draws a diagonal.
-##
-## Not what the sand uses any more — see [method fill_grains]. Still the right
-## answer for a shape that is not pixel art, like a spike.
+## MSAA does not reach it under Compatibility, so the edge is restroked. For
+## shapes that are not pixel art, like a spike; the sand uses [method
+## fill_grains].
 static func fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) -> void:
 	if poly.size() < 3:
 		return
@@ -354,18 +294,13 @@ static func fill(canvas: CanvasItem, poly: PackedVector2Array, colour: Color) ->
 	canvas.draw_polyline(_closed(poly), colour, 1.0, true)
 
 
-## The same polygon, laid down on the pixel grid instead of filled smoothly.
+## The same polygon, laid down on the pixel grid instead of filled smoothly: a
+## cell is sand when its CENTRE lies inside `poly`, so the surface comes out
+## stepped in whole pixels and slides down in whole pixels as the bulb drains.
 ##
-## Nothing about the sand's MOVEMENT changes here. `poly` is whatever [method
-## pile] produced — the surfaces still sit square to gravity, still find their
-## level by area, still climb through a turn. All that changes is how the result
-## is put on screen: a cell is sand when its CENTRE lies inside `poly`, so the
-## surface comes out stepped in whole pixels the size of the painted ones, and
-## slides down in whole pixels as the bulb drains.
-##
-## `cell` is a world px, which is an art px everywhere in this game. Left as a
-## number rather than read off anything, because a glass drawn at some other
-## scale still wants grains the size of the brick's pixels, not of its own.
+## `cell` is a world px. Left as a number rather than read off anything, because
+## a glass drawn at some other scale still wants grains the size of the brick's
+## pixels, not of its own.
 static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Color,
 		cell := 1.0) -> void:
 	if poly.size() < 3 or cell <= 0.0:
@@ -380,10 +315,9 @@ static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Co
 	var n := poly.size()
 	for row in range(floori(top / cell), floori(bottom / cell) + 1):
 		var y := (row + 0.5) * cell
-		# Where the row's centre line crosses the outline. The pile is convex in
-		# practice, so the extreme crossings bound the run — taking the min and max
-		# rather than pairing crossings up leaves a concave one filled solid, which
-		# is the failure that is worth having: a stripe of bare glass across the
+		# The pile is convex in practice, so the extreme crossings bound the run.
+		# Taking min and max rather than pairing crossings up fills a concave row
+		# solid, which is the failure worth having: a stripe of bare glass across the
 		# sand would read as a bug, a slightly over-full row does not.
 		var left := INF
 		var right := -INF
@@ -402,9 +336,8 @@ static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Co
 			continue
 		canvas.draw_rect(Rect2(first * cell, row * cell,
 			(last - first + 1) * cell, cell), colour)
-		# Then the speckle over it, merged into runs: neighbouring cells wearing one
-		# tone go down as a single rect. At this density that is most of them, and
-		# it is the difference between a few rects a row and one per grain.
+		# Speckle merged into runs: neighbouring cells wearing one tone go down as a
+		# single rect, which is a few rects a row instead of one per grain.
 		var start := first
 		var tone := _tone(first, row)
 		for i in range(first + 1, last + 2):
@@ -419,20 +352,16 @@ static func fill_grains(canvas: CanvasItem, poly: PackedVector2Array, colour: Co
 
 
 ## A segment as a rectangle, so a thread of falling sand can go through [method
-## fill_grains] and land on the same grid as the piles it runs between. Drawn as
-## a line it stayed smooth while everything around it went blocky, which showed.
+## fill_grains] and land on the same grid as the piles it runs between.
 static func thread_quad(a: Vector2, b: Vector2, width: float) -> PackedVector2Array:
 	var across := (b - a).orthogonal().normalized() * (width * 0.5)
 	return PackedVector2Array([a - across, b - across, b + across, a + across])
 
 
-## Which tone a grain wears.
-##
-## Hashed from the cell's place on the GRID, not from the sand sitting in it.
-## That pins the speckle to the glass rather than to the pile, so a draining bulb
+## Which tone a grain wears. Hashed from the cell's place on the GRID, not from
+## the sand sitting in it: that pins the speckle to the glass, so a draining bulb
 ## uncovers a texture that was already there instead of one that boils as it
-## goes. Every bit of movement the eye picks up then comes from the surface —
-## which is the only thing that is actually moving.
+## goes.
 static func _tone(i: int, row: int) -> int:
 	var h := (i * 73856093) ^ (row * 19349663)
 	h = (h ^ (h >> 13)) * 1274126177

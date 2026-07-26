@@ -6,10 +6,7 @@ const LEVELS_DIR := "res://scenes/levels"
 ## Nodes here are asked `contains_player()` once a frame. A group rather than a
 ## registry: unloading a level deregisters every zone for free.
 const INVERSION_GROUP := "inversion_zones"
-## The player puts itself here. Entities that need to know where it IS — rather
-## than merely whether it has touched them — look it up through this. A group
-## rather than a reference on `Game`: the level owns the player, so nothing here
-## has to be cleared when the level goes.
+## The player puts itself here, so nothing has to be cleared when the level goes.
 const PLAYER_GROUP := "player"
 
 enum Status { PLAY, DEAD, LEVEL_CLEAR, VICTORY }
@@ -48,16 +45,10 @@ var chamber_count := 2
 
 ## The sand you can still spend: everything sitting in a chamber that drains.
 ##
-## Derived rather than stored, which is what let the whole multi-chamber glass
-## arrive without the HUD, the light, the tremble or `danger()` changing a line.
-## At three and four chambers there is exactly one draining chamber, so this is
-## simply the top one.
-##
-## Writable, and it MUST stay writable. A property with only a getter is not an
-## error in GDScript: `Game.sand = x` compiles, does nothing, and the next line
-## reads the old value — which is how a smoke check sat there filling a glass
-## that was never filled. Setting it puts the sand where it is spent from and
-## leaves every other chamber alone, so the glass's total moves with it.
+## It MUST stay writable. A property with only a getter is not an error in
+## GDScript: `Game.sand = x` compiles, does nothing, and the next line reads the
+## old value. Setting it puts the sand where it is spent from and leaves every
+## other chamber alone.
 var sand: float:
 	get:
 		var total := 0.0
@@ -102,9 +93,7 @@ var jump_enabled: bool:
 	get: return not (jump_locked_first_life and level_deaths == 0)
 
 ## Screen-y of "down" right now: +1 normally, -1 while the world is upside down.
-## Changed mid-level by a [GravityPad]. Every vertical quantity is written as a
-## downward component times this, so an inverted world is the same code.
-##
+## Every vertical quantity is written as a downward component times this.
 ## Set through `set_gravity`, never assigned directly: the player has to be told.
 var gravity_sign := 1.0
 
@@ -144,11 +133,8 @@ func _process(delta: float) -> void:
 	# A held clock is held for everything: the drain, the flow and both death rules.
 	if not clock_running:
 		return
-	# Both ends of the glass kill, and it is the DRAINING chambers that run out,
-	# not the glass: at four chambers you can die with sand still sealed in a side
-	# you never turned towards. Normally an empty one is death; inside an
-	# inversion zone the sand climbs back into them and a brim-full one — nothing
-	# left below to lift — is death instead. Standing still is never safe.
+	# Both ends of the glass kill: an empty draining chamber normally, a brim-full
+	# one inside an inversion zone. Standing still is never safe.
 	var cfg := Tuning.cfg
 	var flow := poll_sand_flow()
 	advance_flow_blend(delta)
@@ -160,14 +146,10 @@ func _process(delta: float) -> void:
 		set_status(Status.DEAD)
 
 
-## Asks every zone whether it holds the player, caches the answer in
-## `sand_flow` and returns it. Zones never push to `Game`, so the clock keeps a
-## single writer. One containing zone is enough: the flow is a direction, not
-## a total, so overlapping zones do not stack.
-## Crossing the boundary is a signal rather than something a zone announces, for
-## the same reason the flow itself is polled: a level reload while the player
-## stands inside one must not leave an "entered" event owing its "exited" one.
-## `start_level` rearms it by writing `sand_flow` straight back to +1.
+## Asks every zone whether it holds the player, caches the answer in `sand_flow`
+## and returns it. Polled rather than pushed so the clock keeps a single writer,
+## and so a level reload inside a zone cannot leave an "entered" owing its
+## "exited". One containing zone is enough: the flow is a direction, not a total.
 func poll_sand_flow() -> float:
 	var before := sand_flow
 	sand_flow = 1.0
@@ -243,9 +225,8 @@ func start_level(index: int, keep_deaths := false) -> void:
 		level_deaths = 0
 	level_index = clampi(index, 0, level_scenes.size() - 1)
 	levels_reached = maxi(levels_reached, level_index)
-	# Two chambers until the level says otherwise. `main.gd` re-arms the glass
-	# once the scene exists and can be asked; this is what a level that never
-	# does gets.
+	# Two chambers until the level says otherwise; `main.gd` re-arms the glass once
+	# the scene exists and can be asked.
 	arm_glass(2, Tuning.cfg.sand_start)
 	sand_flow = 1.0
 	flow_blend = 0.0
@@ -313,12 +294,8 @@ func aim(travel_dir: float) -> void:
 # ----- The hourglass ---------------------------------------------------------
 
 ## The glass a level is played on: `count` chambers, `top` sand in the one on
-## top, the rest of the glass split evenly among the others.
-##
-## The glass carries one bulb of sand per turn it takes to get a drained bulb
-## back on top, and no more. Three chambers split every drain in two and hand
-## back only the half you turn into, which is why they get one bulb and not one
-## and a half.
+## top, the rest split evenly among the others. It carries one bulb of sand per
+## turn it takes to get a drained bulb back on top, and no more.
 func arm_glass(count: int, top: float) -> void:
 	chamber_count = clampi(count, 2, Planes.COUNT)
 	chambers = PackedFloat32Array()
@@ -339,29 +316,21 @@ func reach() -> int:
 	return 1
 
 
-## One chamber's capacity. `sand_max` has always meant this — at two chambers all
-## of it fits into a single bulb, which is why the shipped flip could clamp to it.
+## One chamber's capacity.
 func capacity() -> float:
 	return Tuning.cfg.sand_max
 
 
 ## Moves `amount` of sand out of the draining chambers and into whatever sits
-## below them. Never destroys a grain: what a chamber loses, its targets gain.
-##
-## A NEGATIVE amount runs the same falls backwards — an inversion zone, where the
-## sand climbs out of the chambers below and back into the one draining. It is
-## the same graph read the other way round, so nothing here needed a second
-## table, and the trickle is drawn from the same `targets` either way.
-##
-## The rate is the glass's, not a chamber's — two chambers draining at once each
-## run at half speed, so the clock does not care how the sand is arranged.
+## below them. Never destroys a grain. A NEGATIVE amount runs the same falls
+## backwards — an inversion zone. The rate is the glass's, not a chamber's: two
+## chambers draining at once each run at half speed.
 func drain(amount: float) -> void:
 	var down := amount >= 0.0
 	var live: Array[int] = []
 	for i in ChamberLayout.uppers(chamber_count):
-		# Running down, a chamber is live while it still holds sand; running up,
-		# while it still has room. Either way a dead chamber is one the sand cannot
-		# move through, and the glass's rate is shared among the rest.
+		# Running down, a chamber is live while it still holds sand; running up, while
+		# it still has room.
 		var free := chambers[i] > 0.0 if down else chambers[i] < capacity()
 		if free:
 			live.append(i)
@@ -372,8 +341,7 @@ func drain(amount: float) -> void:
 		var targets := ChamberLayout.targets(chamber_count, i)
 		if targets.is_empty():
 			continue
-		# Capped at both ends, in whichever direction the sand is going: there has
-		# to be sand to move, and room to put it in.
+		# There has to be sand to move, and room to put it in.
 		var below := 0.0
 		for t in targets:
 			below += chambers[t]
@@ -386,10 +354,6 @@ func drain(amount: float) -> void:
 
 ## One step of the glass. `dir` is +1 clockwise on screen and -1 the other way;
 ## every chamber keeps its sand and moves to the next slot.
-##
-## At two chambers this IS the flip that shipped: the lower chamber always holds
-## `sand_max - top`, so the new top is `sand_max - old_top + sand_flip_base`,
-## character for character.
 func rotate_glass(dir: int) -> void:
 	var moved := PackedFloat32Array()
 	moved.resize(chamber_count)
@@ -399,13 +363,9 @@ func rotate_glass(dir: int) -> void:
 	_pay_flip_bonus()
 
 
-## The tuning panel's flip bonus, kept meaning what it means at any chamber
-## count: it tops the draining chambers up, and the glass takes the cost back out
-## of the fullest chamber that does not drain, so the total never moves.
-##
-## It is 0 in the shipped config and this whole function is inert. It is here so
-## that dragging the slider still does something sane rather than quietly
-## inventing sand.
+## The tuning panel's flip bonus: tops the draining chambers up and takes the
+## cost back out of the fullest chamber that does not drain, so the total never
+## moves. 0 in the shipped config, so this is inert unless the slider is dragged.
 func _pay_flip_bonus() -> void:
 	var bonus := Tuning.cfg.sand_flip_base
 	if is_zero_approx(bonus):
@@ -436,9 +396,8 @@ func jump_flip(travel_dir: float) -> void:
 	flipped.emit(false)
 
 
-## A flip-pad: refuels with no jump and no plane change. Standing still while the
-## glass turns only reads right at two chambers, where the pad just swaps the two
-## bulbs — no three- or four-chamber level places one.
+## A flip-pad: refuels with no jump and no plane change. Only reads right at two
+## chambers, where the pad just swaps the two bulbs; no wider level places one.
 func pad_flip() -> void:
 	rotate_glass(1)
 	pad_flash = Tuning.cfg.pad_flash_duration

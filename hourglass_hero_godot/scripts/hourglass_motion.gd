@@ -33,14 +33,13 @@ var _mirror := 1.0
 func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	if delta <= 0.0:
 		return
-	# A turn is one chamber over `flip_duration`. The glass being regular, it
-	# lands visually upright. The spin is read off the config rather than
-	# differenced frame to frame, which would spike on the reset to 0.
+	# A turn is one chamber over `flip_duration`, so a regular glass lands upright.
+	# The spin is read off the config rather than differenced frame to frame, which
+	# would spike on the reset to 0.
 	var cfg := Tuning.cfg
 	var spin := 0.0
 	# An upside-down world is seen in a mirror, so the glass tumbles the other way
-	# round on screen or it rolls against its own travel. Which chamber the turn
-	# lands on is untouched: right is one step round either way up.
+	# round on screen or it rolls against its own travel.
 	_mirror = Game.gravity_sign
 	var mirror := _mirror
 	if Game.flip_anim > 0.0 and cfg.flip_duration > 0.0:
@@ -50,9 +49,8 @@ func update(delta: float, speed := 0.0, shove := 0.0) -> void:
 	else:
 		tilt = 0.0
 
-	# `lean` is the surface's angle in world space, so both terms take the sign of
-	# the thing they lag behind — and `mirror` on the travel terms, which arrive
-	# as screen-x rather than through the already-mirrored spin.
+	# `mirror` on the travel terms only: they arrive as screen-x rather than through
+	# the already-mirrored spin.
 	var target := clampf(
 		spin * SPIN_LAG + mirror * speed * DRAG_LEAN / 1000.0, -MAX_LEAN, MAX_LEAN)
 	_lean_speed += mirror * shove * LEAN_KICK
@@ -73,8 +71,7 @@ func invert() -> float:
 
 
 ## How full each chamber is, 0 to 1, indexed by the slot it is drawn in. The
-## array's size is the chamber count, so this one value tells the shape both how
-## many chambers to draw and how much is in each.
+## array's size is the chamber count.
 func chambers() -> PackedFloat32Array:
 	var count := Game.chamber_count
 	var cap := maxf(Tuning.cfg.sand_max, 1.0)
@@ -88,15 +85,10 @@ func chambers() -> PackedFloat32Array:
 
 ## One colour per drawn slot: the hue of the plane that slot's chamber puts you
 ## in once it reaches the top. Empty at two chambers, where FRONT/BACK is already
-## unambiguous and the glass is kept pixel-identical to the one that shipped.
+## unambiguous.
 ##
 ## Slot `i` sits `i` turns short of the top and a turn carries the plane with it,
-## so that slot is plane `Game.plane - i`. A jump of direction `d` brings slot
-## `-d` up, whose colour is therefore `Game.plane + d` — precisely the plane you
-## are about to land in, which is the whole point of showing them.
-##
-## Indexed through the same `_back` as [method chambers], so a colour can never
-## come adrift from the sand it belongs to mid-turn.
+## so that slot is plane `Game.plane - i`.
 func plane_tints() -> PackedColorArray:
 	var count := Game.chamber_count
 	if count <= 2:
@@ -111,14 +103,9 @@ func plane_tints() -> PackedColorArray:
 
 # ----- The painted glass -----------------------------------------------------
 # The player wears the two-bulb glass from `art/sprites/` at EVERY chamber count,
-# so it needs its own tumble and its own reading of the sand. Neither can come
-# off the rosette's: that turns one chamber per jump and lands seamlessly only
-# because it has a chamber's worth of symmetry to land on, which two bulbs at
-# three chambers do not — 120 degrees round, a two-bulb glass is lying on its
-# side, and the snap back upright is the whole animation undone in a frame.
-#
-# The HUD gauge is still the rosette, and still says which plane each chamber
-# stands for. Nothing below touches it.
+# so it needs its own tumble and its own reading of the sand: the rosette's turn
+# of one chamber per jump leaves two bulbs on their side at three chambers.
+# The HUD gauge is still the rosette; nothing below touches it.
 
 
 ## Rotation of the painted glass, in radians. A HALF turn per jump whatever the
@@ -136,28 +123,13 @@ func sprite_down() -> Vector2:
 	return Vector2.DOWN.rotated(lean - sprite_tilt())
 
 
-## The glass's sand as two bulbs: what you can spend on top, everything else
+## The glass's sand as two bulbs: the draining chamber on top, everything else
 ## pooled below.
 ##
-## Above two chambers there is always exactly one chamber draining — the one the
-## clock runs off and the one an empty glass kills you for — so the top bulb is
-## that chamber, and the rest of the glass, however it is divided up, becomes the
-## pile underneath. Which is what a two-bulb glass has always meant: the sand you
-## have left, over the sand you have spent.
-##
 ## Both halves are measured against the WHOLE glass rather than against a bulb,
-## so they always add up to one — sand that leaves the top arrives at the bottom,
-## which is the only thing a two-bulb picture can honestly say. Against a bulb
-## each instead, a three-chamber glass could never fill its lower half past the
-## middle however much sand was sitting down there.
-##
-## It costs the top bulb its brim at four chambers, and should: only one chamber
-## drains, so no more than half the glass is ever yours to spend, and a top bulb
-## that never fills past half is that rule drawn.
-##
-## Down to the same swap as [method chambers] mid-turn, so the bulbs change
-## places as the glass goes over and it lands with the sand where the picture
-## left it. Only whether to swap matters across two bulbs, never which way.
+## so they always add up to one. That costs the top bulb its brim at four
+## chambers, and should: only one chamber drains, so no more than half the glass
+## is ever yours to spend.
 func sprite_fills() -> PackedFloat32Array:
 	var count := Game.chamber_count
 	var total := maxf(Game.capacity() * float(Game.reach()), 0.001)
@@ -172,12 +144,8 @@ func sprite_fills() -> PackedFloat32Array:
 
 
 ## The step back through the chamber arrays that cancels the step round the
-## glass, mid-turn.
-##
-## Every chamber keeps what it held. `Game.chambers` moved to the post-turn
-## arrangement the instant the jump began, so reading it one step BACK puts each
-## chamber's contents where the chamber still is. The glass snaps upright at the
-## end and the two agree, which is what lands it seamlessly. Through `_mirror`,
-## like the tilt it cancels.
+## glass, mid-turn: `Game.chambers` moved to the post-turn arrangement the instant
+## the jump began, so reading it one step BACK puts each chamber's contents where
+## the chamber still is.
 func _back() -> int:
 	return -int(_mirror * Game.flip_dir) if Game.flip_anim > 0.0 else 0
