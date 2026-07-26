@@ -23,8 +23,6 @@ func _numbers() -> void:
 
 
 func _order() -> void:
-	# The case a plain string sort gets wrong: "0" sorts before "_", so
-	# "level_100" would land between "level_09" and "level_10".
 	var names: Array[String] = [
 		"level_10_the_well.tscn",
 		"level_100_test.tscn",

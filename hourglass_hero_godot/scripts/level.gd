@@ -31,8 +31,8 @@ func _get_level_name() -> String:
 	return title_from_path(scene_file_path)
 
 
-## "res://scenes/levels/level_04_the_spring.tscn" -> 4. A scene with no number
-## in its name lands after every numbered one rather than first.
+## "res://scenes/levels/level_04_the_spring.tscn" -> 4. An unnumbered scene
+## comes out high so it sorts after every numbered one rather than before.
 static func number_from_path(path: String) -> int:
 	for word in path.get_file().get_basename().split("_", false):
 		if word.is_valid_int():
