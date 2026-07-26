@@ -24,7 +24,6 @@ var _jumping := false
 ## Mid-air jumps in hand. A [Feather] puts one here; spending it empties it, and
 ## nothing — not landing, not a spring — puts it back.
 var _air_jumps := 0
-## The carried feather, drawn over the glass while the charge is unspent.
 var _feather_mark: Sprite2D
 
 ## The light the glass gives off; its brightness is the remaining sand.
@@ -55,12 +54,11 @@ const FLOOR_SNAP := 8.0
 ## How far the landing thud is detuned each time, either way.
 const LAND_PITCH_JITTER := 0.09
 
-## The carried feather, drawn over the shoulder of the glass: how far out and up
-## from its centre, how big, and how far it sways.
-##
 ## Preloaded here rather than read off [Feather], which would close the loop
 ## `player -> feather -> plane_area -> player`.
 const FEATHER_TEXTURE: Texture2D = preload("res://art/sprites/feather.png")
+## The carried feather, drawn at the glass's shoulder: offset from its centre,
+## size, and sway, all in px.
 const FEATHER_OFFSET := Vector2(15.0, -26.0)
 const FEATHER_SIZE := 14.0
 const FEATHER_SWAY := 2.5
@@ -244,8 +242,7 @@ func bounce(power: float) -> void:
 
 # ----- The feather -----------------------------------------------------------
 
-## Picked one up. Idempotent at one charge: two feathers in a level would still
-## only ever buy a single jump.
+## Idempotent at one charge: two feathers in a level still only buy one jump.
 func take_feather() -> void:
 	_air_jumps = 1
 	_feather_mark.visible = true
@@ -260,8 +257,7 @@ func _build_feather_mark() -> void:
 	add_child(_feather_mark)
 
 
-## The carried feather rides beside the glass and turns over with the world, so
-## it stays overhead when gravity does not.
+## Turns over with the world, so the feather stays overhead when gravity does not.
 func _sway_feather() -> void:
 	if not _feather_mark.visible:
 		return
