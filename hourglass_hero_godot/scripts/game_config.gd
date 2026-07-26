@@ -54,6 +54,9 @@ extends Resource
 ## How far the plane a jump would land in is lifted out of `ghost_alpha` towards
 ## solid. 0 hides which way you are going; 1 makes it look walkable.
 @export_range(0.0, 1.0, 0.01) var ghost_next_lift: float = 0.45
+## How far a solid's dashed "the next jump brings this in" marker sits outside
+## its silhouette, in px, past the outline itself. 0 puts it against the ink.
+@export_range(0.0, 12.0, 1.0) var next_outline_gap: float = 2.0
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.

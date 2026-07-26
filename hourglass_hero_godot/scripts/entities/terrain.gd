@@ -33,7 +33,8 @@ var _points := PackedVector2Array()
 ## almost never convex.
 var _triangles := PackedInt32Array()
 var _active := true
-## True while a jump would land the player in this plane: brighter, still inert.
+## True while a jump would land the player in this plane: marked at the edge by
+## `Outline.dashes`, still as dim and as inert as any other ghost.
 var _next := false
 
 
@@ -101,6 +102,14 @@ func _draw() -> void:
 		if Polygons.faces_up(_points[j], _points[next], wind):
 			Bricks.polygon(self, PackedVector2Array([
 				_points[j], _points[next], inner[next], inner[j]]), lip)
+
+	# Ground the next jump brings in is marked at its edge instead of being lifted
+	# out of the ghosts: the fill stays as dim as everything else you cannot stand
+	# on, and the dashes say which of it is about to change. Drawn last so nothing
+	# else lands on top of it.
+	if _next and not _active:
+		Outline.dashes(self, _points, Palette.halo(plane, 1.0),
+			Tuning.cfg.next_outline_gap)
 
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -184,8 +193,9 @@ func _on_next_plane_changed(next: Planes.Kind) -> void:
 
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
-	return Palette.ghost(Palette.bricks(level),
-		_active or Engine.is_editor_hint(), _next)
+	# `next` is deliberately not passed on: the ground says where the jump lands
+	# with its dashes, not by pretending to be more solid than it is.
+	return Palette.ghost(Palette.bricks(level), _active or Engine.is_editor_hint())
 
 
 func _set_plane(value: Planes.Kind) -> void:
