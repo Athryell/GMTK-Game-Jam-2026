@@ -54,11 +54,6 @@ extends Resource
 ## How far the plane a jump would land in is lifted out of `ghost_alpha` towards
 ## solid. 0 hides which way you are going; 1 makes it look walkable.
 @export_range(0.0, 1.0, 0.01) var ghost_next_lift: float = 0.45
-## How much of its plane's hue a solid that belongs to one takes on. 0 makes it
-## indistinguishable from the permanent stone around it; 1 is the plane's own
-## colour, the same one its particles are, with only the courses left of the level
-## tint.
-@export_range(0.0, 1.0, 0.01) var plane_wash: float = 1.0
 ## How long the "level clear" screen stays up, in s.
 @export_range(0.1, 3.0, 0.1) var level_clear_delay: float = 0.9
 ## How long the death screen stays up before the level restarts itself, in s.

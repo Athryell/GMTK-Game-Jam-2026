@@ -13,6 +13,19 @@ enum Kind {
 ## Height of the flip-pad's trigger strip, sitting on the pad's top face.
 const PAD_DETECT_HEIGHT := 8.0
 
+## The halo a solid that belongs to a plane wears, so what the next jump takes
+## away is readable while it is still under your feet. The stone keeps the level's
+## own tint; the AIR around it carries the plane's colour. A glow means this slab
+## is on loan; bare stone with no glow means it stays.
+##
+## Drawn rather than lit. A `PointLight2D` needs a surface to land on, and there
+## is nothing behind a platform but the parallax sky, so a real light only tinted
+## the slab itself — cyan on warm brick, which read as mud. This is painted under
+## the brick instead, so it shows against anything.
+const PLANE_HALO_ALPHA := 0.85
+## How far the glow reaches past the slab's edge, in px.
+const PLANE_HALO_MARGIN := 24.0
+
 @export var size := Vector2(120.0, 18.0): set = _set_size
 @export var plane: Planes.Kind = Planes.Kind.BOTH: set = _set_plane
 @export var kind: Kind = Kind.NORMAL: set = _set_kind
@@ -72,11 +85,23 @@ func _physics_process(delta: float) -> void:
 ## the same course as the brick underneath it rather than half a row out.
 func _draw() -> void:
 	var colour := _colour()
+	_draw_halo(colour.a)
 	draw_texture_rect(Bricks.TEXTURE, Rect2(Vector2.ZERO, size), true, colour)
 	if size.y >= 6.0:
 		draw_texture_rect(Bricks.TEXTURE,
 			Rect2(Vector2.ZERO, Vector2(size.x, Bricks.LIP_WIDTH)),
 			true, colour.lightened(Bricks.LIP_LIFT))
+
+
+## `strength` is the body's own alpha, so a ghost's halo fades with it: which
+## plane a slab belongs to stays legible from the other side of the flip.
+func _draw_halo(strength: float) -> void:
+	if kind == Kind.FLIP_PAD or plane == Planes.Kind.BOTH:
+		return
+	var tint := Palette.solid(plane, plane)
+	tint.a = PLANE_HALO_ALPHA * strength
+	draw_texture_rect(LightKit.falloff(),
+		Rect2(Vector2.ZERO, size).grow(PLANE_HALO_MARGIN), false, tint)
 
 
 ## The outline this casts a shadow from, in this node's own space: its four
@@ -91,7 +116,7 @@ func shadow_outline() -> PackedVector2Array:
 ## rather than where it is. Everything else is masonry, tinted by the level.
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
-	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level, plane)
+	var base := Palette.FLIP_PAD if kind == Kind.FLIP_PAD else Palette.bricks(level)
 	# A ghost lives in the other plane: visible, but not solid.
 	return Palette.ghost(base, _active or Engine.is_editor_hint(), _next)
 

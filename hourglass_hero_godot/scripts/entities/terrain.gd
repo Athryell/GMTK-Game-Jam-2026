@@ -178,7 +178,7 @@ func _on_next_plane_changed(next: Planes.Kind) -> void:
 
 func _colour() -> Color:
 	var level := 0 if Engine.is_editor_hint() else Game.level_index
-	return Palette.ghost(Palette.bricks(level, plane),
+	return Palette.ghost(Palette.bricks(level),
 		_active or Engine.is_editor_hint(), _next)
 
 
