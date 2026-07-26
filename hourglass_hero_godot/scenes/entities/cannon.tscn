@@ -7,3 +7,6 @@ script = ExtResource("1_cannon")
 
 [node name="Ray" type="RayCast2D" parent="."]
 collision_mask = 3
+
+[node name="Barrel" type="Sprite2D" parent="."]
+z_index = -1
