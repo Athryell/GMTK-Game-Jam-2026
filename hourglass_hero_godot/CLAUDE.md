@@ -16,8 +16,13 @@ Always start from the main checkout at `/Users/justinchapon/GMTK-Game-Jam-2026`,
 never from another worktree:
 
 ```bash
-cd /Users/justinchapon/GMTK-Game-Jam-2026 && git checkout main && git pull --ff-only
+cd /Users/justinchapon/GMTK-Game-Jam-2026 && git fetch origin && git checkout main && git pull --ff-only
 ```
+
+The fetch is not optional and neither is doing it *now*: a `main` that was
+current an hour ago is not current, and a worktree branched off a stale one
+lands as a merge commit that drags old work back with it. Never create the
+worktree before this command has actually run and printed its result.
 
 If `main` has uncommitted changes, stop and ask the user what to do with them.
 
