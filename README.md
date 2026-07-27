@@ -59,12 +59,5 @@ Sandbound was built by:
 ![Downside Up: the world upside down, a spring below and the exit
 ahead](images/screen_1.png)
 
-*"Downside Up" — a gravity pad has turned the world over, so the glass falls
-upward. The gauge top-left is the same hourglass you are playing.*
-
 ![Crossfire: two cannons tracking the player, with a ghosted platform in the
 other plane](images/screen_2.png)
-
-*"Crossfire" — cannons hold the line they aimed on, so the brick block is real
-cover. The dashed cyan slab is solid in the plane the next jump lands in, not in
-this one.*
