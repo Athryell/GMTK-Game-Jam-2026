@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "godot": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@coding-solo/godot-mcp"],
+      "env": {
+        "GODOT_PATH": "${GODOT_PATH:-godot}"
+      }
+    },
+    "godot-full": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${GODOT_MCP_FULL:-/Users/pierclgr/mcp-servers/godot-mcp-full/build/index.js}"
+      ],
+      "env": {
+        "GODOT_PATH": "${GODOT_PATH:-godot}"
+      }
+    },
+    "aseprite": {
+      "type": "stdio",
+      "command": "${ASEPRITE_MCP:-/Users/pierclgr/dev-tools/pixel-mcp/bin/pixel-mcp}"
+    }
+  }
+}
