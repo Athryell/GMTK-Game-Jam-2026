@@ -29,6 +29,8 @@ It launches fullscreen at a 960×540 design resolution — every level coordinat
 is in those units — letterboxed to fit, so a level frames identically on every
 display.
 
+Or you can play the browser version on: https://athryell.itch.io/sandbound
+
 ## Working on it
 
 - **Levels** are in `scenes/levels/`. The folder is scanned at startup, so a new
