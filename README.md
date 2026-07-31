@@ -31,17 +31,6 @@ display.
 
 You can also play the browser version on: https://athryell.itch.io/sandbound
 
-## GMTK Game Jam 2026
-
-Sandbound was built for the
-[GMTK Game Jam 2026](https://itch.io/jam/gmtk-jam-2026), theme "Countdown".
-It [placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
-
-| Criterion | Rank / entries |
-|---|---|
-| Creativity | **36** / 10,598 |
-| Enjoyment | **151** / 10,598 |
-
 ## Working on it
 
 - **Levels** are in `scenes/levels/`. The folder is scanned at startup, so a new
@@ -66,6 +55,17 @@ Sandbound was built by:
 - [@Athryell](https://github.com/Athryell)
 - [@pierclgr](https://github.com/pierclgr)
 - [@Letju](https://github.com/Letju)
+
+## GMTK Game Jam 2026
+
+Sandbound was built for the
+[GMTK Game Jam 2026](https://itch.io/jam/gmtk-jam-2026), theme "Countdown".
+It [placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
+
+| Criterion | Rank / entries |
+|---|---|
+| Creativity | **36** / 10,598 |
+| Enjoyment | **151** / 10,598 |
 
 ## Screenshots
 
