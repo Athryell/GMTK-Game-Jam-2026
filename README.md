@@ -29,7 +29,19 @@ It launches fullscreen at a 960×540 design resolution — every level coordinat
 is in those units — letterboxed to fit, so a level frames identically on every
 display.
 
-Or you can play the browser version on: https://athryell.itch.io/sandbound
+You can also play the browser version on: https://athryell.itch.io/sandbound
+
+## GMTK Game Jam 2026
+
+Sandbound was built for the
+[GMTK Game Jam 2026](https://itch.io/jam/gmtk-jam-2026), theme "Countdown".
+Out of **10,598 entries**, it
+[placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
+
+| Criterion | Rank | Score |
+|---|---|---|
+| Creativity | **#36** | 4.578 |
+| Enjoyment | **#151** | 4.244 |
 
 ## Working on it
 
