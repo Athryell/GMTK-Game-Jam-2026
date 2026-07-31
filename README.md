@@ -35,13 +35,12 @@ You can also play the browser version on: https://athryell.itch.io/sandbound
 
 Sandbound was built for the
 [GMTK Game Jam 2026](https://itch.io/jam/gmtk-jam-2026), theme "Countdown".
-Out of **10,598 entries**, it
-[placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
+It [placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
 
-| Criterion | Rank | Score |
-|---|---|---|
-| Creativity | **#36** | 4.578 |
-| Enjoyment | **#151** | 4.244 |
+| Criterion | Rank / entries |
+|---|---|
+| Creativity | **36** / 10,598 |
+| Enjoyment | **151** / 10,598 |
 
 ## Working on it
 
