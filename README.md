@@ -66,9 +66,9 @@ It [placed](https://itch.io/jam/gmtk-jam-2026/rate/4828957):
 |---|---|
 | Creativity | **36** / 10,598 |
 | Enjoyment | **151** / 10,598 |
-| Audio | 1,126 / 10,598 |
-| Artwork | 1,548 / 10,598 |
-| Narrative | 3,564 / 10,598 |
+| Audio | **1,126** / 10,598 |
+| Artwork | **1,548** / 10,598 |
+| Narrative | **3,564** / 10,598 |
 
 ## Screenshots
 
